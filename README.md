@@ -1,6 +1,6 @@
 # Claude Instructions
 
-Custom slash commands and settings for Claude Code CLI.
+Custom slash commands and settings for Claude Code CLI, tailored for TDD workflows.
 
 ## Installation
 
@@ -25,8 +25,10 @@ git clone https://github.com/wbern/claude-instructions.git /tmp/claude-instructi
 
 ## Usage
 
-After installation, use any command in Claude Code:
+After installation, restart Claude Code if it's currently running. Then use any command:
 
 ```bash
-claude /red "implement user authentication"
+/red
+/green
+/refactor
 ```
