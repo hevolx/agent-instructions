@@ -8,19 +8,8 @@ Create a git commit following project standards
 
 Include any of the following info if specified: $ARGUMENTS
 
-## Commit Message Rules
-
-1. **Format**: `type(#issue): description`
-   - Use `#123` for local repo issues
-   - Use `owner/repo#123` for cross-repo issues
-
-2. **AI Credits**: **NEVER include AI credits in commit messages**
-   - No "Generated with Claude Code"
-   - No "Co-Authored-By: Claude" or "Co-Authored-By: Happy"
-   - Focus on the actual changes made, not conversation history
-
-3. **Content**: Write clear, concise commit messages describing what changed and why
-
+<!-- docs INCLUDE path='src/fragments/commit-message-format.md' -->
+<!-- /docs -->
 
 ## Process
 
@@ -34,5 +23,5 @@ Include any of the following info if specified: $ARGUMENTS
 
 ```bash
 git add <files>
-git commit -m "feat(#123): add minimum width to timeline elements"
+git commit -m "feat(#123): add validation to user input form"
 ```

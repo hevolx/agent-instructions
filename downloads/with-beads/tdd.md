@@ -1,17 +1,10 @@
 ---
-allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
-description: Execute TDD Green Phase - write minimal implementation to pass the failing test
-argument-hint: <implementation description>
+allowed-tools: Read, Glob, Grep, Task
+description: Remind agent about TDD approach and continue conversation
+argument-hint: [optional-response-to-last-message]
 ---
 
-GREEN PHASE! Apply the below to the info given by user input here:
-
-$ARGUMENTS
-
-(If there was no info above, fallback to:
-1. Context of the conversation, if there's an immediate thing
-2. `bd ready` to see what to work on next and start from there)
-
+# TDD Reminder
 
 ## TDD Fundamentals
 
@@ -82,3 +75,8 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
 
+## Continue Conversation
+
+User response to the last message: $ARGUMENTS
+
+Please continue with TDD approach based on the above response.

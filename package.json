@@ -1,0 +1,20 @@
+{
+  "name": "claude-instructions",
+  "version": "1.0.0",
+  "description": "TDD workflow commands for Claude Code with markdown fragment management",
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf downloads",
+    "clean:dev": "rm -rf .claude/commands",
+    "build": "bash scripts/build.sh",
+    "build:dev": "bash scripts/build-dev.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "markdown-magic": "^4.0.4",
+    "vitest": "^4.0.8"
+  }
+}

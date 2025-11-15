@@ -1,0 +1,2 @@
+- **During work**: Use `bd update` to add notes/findings back to issues
+- **When stuck**: Check `bd show ISSUE-ID` to review acceptance criteria

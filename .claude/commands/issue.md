@@ -1,6 +1,10 @@
-Analyze GitHub issue and create TDD implementation plan.
+---
+allowed-tools: Bash(git:*), mcp__github__issue_read, mcp__github__get_issue, Task
+description: Analyze GitHub issue and create TDD implementation plan
+argument-hint: [optional-issue-number]
+---
 
-Usage: /issue (auto-detect from branch) or /issue 123
+Analyze GitHub issue and create TDD implementation plan. Use beads MCP to generate the issues needed to complete the work.
 
 Process:
 
@@ -12,18 +16,23 @@ Process:
 - If not found: ask user
 
 2. Fetch Issue
-   Try GitHub MCP first:
 
-- If available: use MCP to fetch issue
-- If not available: show message and try gh issue view <number>
+Try to fetch the issue using GitHub MCP (mcp__github__issue_read tool).
 
-  GitHub MCP not configured!
-  See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
-  Trying GitHub CLI fallback...
+If GitHub MCP is not configured, show:
+```
+GitHub MCP not configured!
+See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
+Trying GitHub CLI fallback...
+```
+
+Then try using `gh issue view [ISSUE_NUMBER] --json` as fallback.
+
 
 3. Analyze and Plan
 
 - Summarize the issue and requirements
+- Use beads MCP to create issues. If unclear, ask user for general direction first.
 - Suggest a direction for TDD, and a first TDD-based test for each direction in order to identify good starting points
 
 After presenting the plan, remind that we'll likely proceed with:
@@ -84,7 +93,7 @@ Each step in TDD should address ONE specific issue:
 
 ### Optional Pre-Phase: Spike Phase
 
-In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.  
+In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.
 This phase is **not part of the regular TDD workflow** and must only be applied under exceptional circumstances.
 
 - The goal of a Spike is **exploration and learning**, not implementation.
@@ -99,3 +108,4 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both teest and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+

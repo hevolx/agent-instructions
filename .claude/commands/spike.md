@@ -1,8 +1,17 @@
+---
+allowed-tools: Read, Glob, Grep, Bash(pnpm:*), Task
+description: Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
+argument-hint: <exploration description>
+---
+
 SPIKE PHASE! Apply the below to the info given by user input here:
 
 $ARGUMENTS
 
-(If there was no info above, use info from the current context of conversation. If there was not enough info, ask for it.)
+(If there was no info above, fallback to:
+1. Context of the conversation, if there's an immediate thing
+2. `bd ready` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -57,12 +66,12 @@ Each step in TDD should address ONE specific issue:
 
 ### Optional Pre-Phase: Spike Phase
 
-In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.  
+In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.
 This phase is **not part of the regular TDD workflow** and must only be applied under exceptional circumstances.
 
-- The goal of a Spike is **exploration and learning**, not implementation.  
-- The code written during a Spike is **disposable** and **must not** be merged or reused directly.  
-- Once sufficient understanding is achieved, all spike code is discarded, and normal TDD resumes starting from the **Red Phase**.  
+- The goal of a Spike is **exploration and learning**, not implementation.
+- The code written during a Spike is **disposable** and **must not** be merged or reused directly.
+- Once sufficient understanding is achieved, all spike code is discarded, and normal TDD resumes starting from the **Red Phase**.
 - A Spike is justified only when it is impossible to define a meaningful failing test due to technical uncertainty or unknown system behavior.
 
 ### General Information
@@ -72,3 +81,4 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both teest and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+

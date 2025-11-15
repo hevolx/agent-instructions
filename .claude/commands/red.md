@@ -1,3 +1,7 @@
+---
+description: Execute TDD Red Phase - write ONE failing test
+---
+
 RED PHASE! Apply the below to the info given by user input here:
 
 $ARGUMENTS
@@ -57,7 +61,7 @@ Each step in TDD should address ONE specific issue:
 
 ### Optional Pre-Phase: Spike Phase
 
-In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.  
+In rare cases where the problem space, interface, or expected behavior is unclear, a **Spike Phase** may be used **before the Red Phase**.
 This phase is **not part of the regular TDD workflow** and must only be applied under exceptional circumstances.
 
 - The goal of a Spike is **exploration and learning**, not implementation.
@@ -72,3 +76,4 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both teest and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+

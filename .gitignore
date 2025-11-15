@@ -1,0 +1,27 @@
+# Source archive
+src/archive/
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Beads database (commit .beads/ directory structure but not database)
+.beads/beads.db
+.beads/*.db
+
+# Test artifacts
+coverage/
+
+# Local settings
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

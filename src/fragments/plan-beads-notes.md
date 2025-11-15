@@ -1,0 +1,2 @@
+- **GitHub Issue Integration**: Use `external_ref` field in bd to link back to GitHub issues for traceability
+- **Map dependencies** - this helps `bd ready` show you what's actually ready to work on

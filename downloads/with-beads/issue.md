@@ -1,17 +1,68 @@
 ---
-allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
-description: Execute TDD Green Phase - write minimal implementation to pass the failing test
-argument-hint: <implementation description>
+allowed-tools: mcp__github__issue_read, mcp__github__get_issue, Task
+description: Analyze GitHub issue and create TDD implementation plan
+argument-hint: [optional-issue-number]
 ---
 
-GREEN PHASE! Apply the below to the info given by user input here:
+Analyze GitHub issue and create TDD implementation plan.
 
-$ARGUMENTS
+Process:
 
-(If there was no info above, fallback to:
-1. Context of the conversation, if there's an immediate thing
-2. `bd ready` to see what to work on next and start from there)
+1. Get Issue Number
 
+- Either from branch name use that issue number
+  - Patterns: issue-123, 123-feature, feature/123, fix/123
+- Or from this bullet point with custom info: $ARGUMENTS
+- If not found: ask user
+
+2. Fetch Issue
+
+Try to fetch the issue using GitHub MCP (mcp__github__issue_read tool).
+
+If GitHub MCP is not configured, show:
+```
+GitHub MCP not configured!
+See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
+Trying GitHub CLI fallback...
+```
+
+Then try using `gh issue view [ISSUE_NUMBER] --json` as fallback.
+
+3. Analyze and Plan
+
+Summarize the issue and requirements, then:
+
+## Discovery Phase
+
+Understand the requirement by asking (use AskUserQuestion if needed):
+
+**Problem Statement**
+- What problem does this solve?
+- Who experiences this problem?
+- What's the current pain point?
+
+**Desired Outcome**
+- What should happen after this is built?
+- How will users interact with it?
+- What does success look like?
+
+**Scope & Constraints**
+- What's in scope vs. out of scope?
+- Any technical constraints?
+- Dependencies on other systems/features?
+
+**Context Check**
+- Search codebase for related features/modules
+- Check for existing test files that might be relevant
+
+### Beads Integration
+
+Use Beads MCP to:
+- Track work with `bd ready` to find next task
+- Create issues with `bd create "description"`
+- Track dependencies with `bd dep add`
+
+See https://github.com/steveyegge/beads for more information.
 
 ## TDD Fundamentals
 
@@ -81,4 +132,3 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both teest and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
-

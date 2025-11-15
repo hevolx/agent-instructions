@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Run tests
+pnpm test
+
+# Build both variants
+pnpm build
+
+# Stage generated files
+git add downloads/
+git add README.md
