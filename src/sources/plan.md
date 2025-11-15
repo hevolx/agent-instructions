@@ -81,7 +81,7 @@ Extract from GitHub issue:
 
 ## Integration with Other Commands
 
-- **Before /my-plan**: Use `/my-spike` if you need technical exploration first
-- **After /my-plan**: Use `/my-red` to start TDD on first task
+- **Before /plan**: Use `/spike` if you need technical exploration first
+- **After /plan**: Use `/red` to start TDD on first task
 <!-- docs INCLUDE path='src/fragments/plan-beads-integration.md' featureFlag='beads' -->
 <!-- /docs -->

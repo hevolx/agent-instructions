@@ -154,7 +154,7 @@ See https://github.com/steveyegge/beads for more information.
 
 ## Integration with Other Commands
 
-- **Before /my-plan**: Use `/my-spike` if you need technical exploration first
-- **After /my-plan**: Use `/my-red` to start TDD on first task
+- **Before /plan**: Use `/spike` if you need technical exploration first
+- **After /plan**: Use `/red` to start TDD on first task
 - **During work**: Use `bd update` to add notes/findings back to issues
 - **When stuck**: Check `bd show ISSUE-ID` to review acceptance criteria

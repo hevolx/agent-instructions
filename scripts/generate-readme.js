@@ -115,7 +115,7 @@ function generateCommandsMarkdown(commands) {
     cmds.sort((a, b) => a.name.localeCompare(b.name));
 
     for (const cmd of cmds) {
-      markdown += `- \`/my-${cmd.name}\` - ${cmd.description}\n`;
+      markdown += `- \`/${cmd.name}\` - ${cmd.description}\n`;
     }
 
     markdown += '\n';
