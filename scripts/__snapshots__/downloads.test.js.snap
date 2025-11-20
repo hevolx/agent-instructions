@@ -138,6 +138,64 @@ See https://github.com/steveyegge/beads for more information.
 "
 `;
 
+exports[`downloads/with-beads > should match snapshot for beepboop.md 1`] = `
+"---
+allowed-tools: Read, Grep, Glob
+description: Communicate AI-generated content with transparent attribution
+argument-hint: <task-description>
+---
+
+# AI-Attributed Communication Command
+
+Execute the user's requested task (e.g., posting PR comments, GitHub issue comments, or other communications through various MCPs), but frame the output with clear AI attribution.
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
+
+### Beads Integration
+
+Use Beads MCP to:
+- Track work with \`bd ready\` to find next task
+- Create issues with \`bd create "description"\`
+- Track dependencies with \`bd dep add\`
+
+See https://github.com/steveyegge/beads for more information.
+
+## Instructions
+
+Arguments: $ARGUMENTS
+
+**IMPORTANT Communication Format:**
+
+1. **Opening**: Begin with "*Beep boop, I am Claude Code 🤖, my user has reviewed and approved the following written by me:*"
+   - Use italics for this line
+   - Clearly establishes AI authorship
+
+2. **Middle**: Perform the requested task (post comment, create review, etc.)
+   - Execute whatever communication task the user requested
+   - Write the actual content that accomplishes the user's goal
+
+3. **Closing**: End with "*Beep boop, Claude Code 🤖 out!*"
+   - Use italics for this line
+   - Provides clear closure
+
+## Purpose
+
+This command ensures transparency about AI usage while maintaining that the user has reviewed and approved the content. It prevents offloading review responsibility to other users while being open about AI assistance.
+
+## Examples
+
+- Posting a GitHub PR review comment
+- Adding a comment to a GitHub issue
+- Responding to feedback with AI-generated explanations
+- Any communication where AI attribution is valuable
+"
+`;
+
 exports[`downloads/with-beads > should match snapshot for commit.md 1`] = `
 "---
 allowed-tools: Bash(pnpm test:*), Bash(pnpm lint:*)
@@ -688,6 +746,64 @@ See https://github.com/steveyegge/beads for more information.
 - **After /plan**: Use \`/red\` to start TDD on first task
 - **During work**: Use \`bd update\` to add notes/findings back to issues
 - **When stuck**: Check \`bd show ISSUE-ID\` to review acceptance criteria
+"
+`;
+
+exports[`downloads/with-beads > should match snapshot for pr.md 1`] = `
+"---
+allowed-tools: mcp__github__*, Bash(git:*)
+description: Creates a pull request using GitHub MCP
+argument-hint: [optional-pr-title-and-description]
+---
+
+# Create Pull Request
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
+
+Current branch status:
+!\`git status\`
+
+Recent commits:
+!\`git log --oneline -5\`
+
+Create a pull request for the current branch. Use @CLAUDE.md for general guidelines on project.
+
+Arguments: $ARGUMENTS
+
+If nothing else specified:
+PR Title: conventional commits format, like \`feat(owner/repo#123): add user authentication to API endpoints\` or \`feat(#123)\` for local repo issues
+Description: Very simple description of the changes, prefixed with that the content is AI generated and approved by the PR author. Description should lead with the following
+
+\`\`\`
+<!--
+  Are there any relevant issues / PRs / mailing lists discussions?
+  Please reference them here.
+-->
+References
+[links to github issues that were referenced in the scope of the commit messages]
+-
+\`\`\`
+
+
+Use the GitHub MCP tools to:
+1. Check current branch and ensure it's pushed
+2. Create a well-formatted pull request with proper title and description
+3. Set the base branch (default: main)
+4. Include relevant issue references if found in commit messages
+
+### Beads Integration
+
+Use Beads MCP to:
+- Track work with \`bd ready\` to find next task
+- Create issues with \`bd create "description"\`
+- Track dependencies with \`bd dep add\`
+
+See https://github.com/steveyegge/beads for more information.
 "
 `;
 
@@ -1889,6 +2005,56 @@ Use **/ship** instead if: change is tiny, obvious, and safe
 "
 `;
 
+exports[`downloads/without-beads > should match snapshot for beepboop.md 1`] = `
+"---
+allowed-tools: Read, Grep, Glob
+description: Communicate AI-generated content with transparent attribution
+argument-hint: <task-description>
+---
+
+# AI-Attributed Communication Command
+
+Execute the user's requested task (e.g., posting PR comments, GitHub issue comments, or other communications through various MCPs), but frame the output with clear AI attribution.
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
+
+
+## Instructions
+
+Arguments: $ARGUMENTS
+
+**IMPORTANT Communication Format:**
+
+1. **Opening**: Begin with "*Beep boop, I am Claude Code 🤖, my user has reviewed and approved the following written by me:*"
+   - Use italics for this line
+   - Clearly establishes AI authorship
+
+2. **Middle**: Perform the requested task (post comment, create review, etc.)
+   - Execute whatever communication task the user requested
+   - Write the actual content that accomplishes the user's goal
+
+3. **Closing**: End with "*Beep boop, Claude Code 🤖 out!*"
+   - Use italics for this line
+   - Provides clear closure
+
+## Purpose
+
+This command ensures transparency about AI usage while maintaining that the user has reviewed and approved the content. It prevents offloading review responsibility to other users while being open about AI assistance.
+
+## Examples
+
+- Posting a GitHub PR review comment
+- Adding a comment to a GitHub issue
+- Responding to feedback with AI-generated explanations
+- Any communication where AI attribution is valuable
+"
+`;
+
 exports[`downloads/without-beads > should match snapshot for commit.md 1`] = `
 "---
 allowed-tools: Bash(pnpm test:*), Bash(pnpm lint:*)
@@ -2371,6 +2537,56 @@ Understand the requirement by asking (use AskUserQuestion if needed):
 
 - **Before /plan**: Use \`/spike\` if you need technical exploration first
 - **After /plan**: Use \`/red\` to start TDD on first task
+"
+`;
+
+exports[`downloads/without-beads > should match snapshot for pr.md 1`] = `
+"---
+allowed-tools: mcp__github__*, Bash(git:*)
+description: Creates a pull request using GitHub MCP
+argument-hint: [optional-pr-title-and-description]
+---
+
+# Create Pull Request
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
+
+Current branch status:
+!\`git status\`
+
+Recent commits:
+!\`git log --oneline -5\`
+
+Create a pull request for the current branch. Use @CLAUDE.md for general guidelines on project.
+
+Arguments: $ARGUMENTS
+
+If nothing else specified:
+PR Title: conventional commits format, like \`feat(owner/repo#123): add user authentication to API endpoints\` or \`feat(#123)\` for local repo issues
+Description: Very simple description of the changes, prefixed with that the content is AI generated and approved by the PR author. Description should lead with the following
+
+\`\`\`
+<!--
+  Are there any relevant issues / PRs / mailing lists discussions?
+  Please reference them here.
+-->
+References
+[links to github issues that were referenced in the scope of the commit messages]
+-
+\`\`\`
+
+
+Use the GitHub MCP tools to:
+1. Check current branch and ensure it's pushed
+2. Create a well-formatted pull request with proper title and description
+3. Set the base branch (default: main)
+4. Include relevant issue references if found in commit messages
+
 "
 `;
 
