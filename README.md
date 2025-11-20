@@ -96,7 +96,6 @@ After installation, restart Claude Code if it's currently running.
 
 ## Available Commands
 
-<!-- docs COMMANDS_LIST -->
 ### Planning
 
 - `/issue` - Analyze GitHub issue and create TDD implementation plan
@@ -127,7 +126,6 @@ After installation, restart Claude Code if it's currently running.
 - `/tdd` - Remind agent about TDD approach and continue conversation
 - `/beepboop` - Communicate AI-generated content with transparent attribution
 - `/add-command` - Guide for creating new slash commands
-<!-- /docs -->
 
 ## Getting Started
 
@@ -205,7 +203,6 @@ The commands enforce TDD discipline: you can't refactor with failing tests, can'
 
 ## Example Conversations
 
-<!-- docs EXAMPLE_CONVERSATIONS -->
 # Conversation: Solving "Find Closest to Zero" Code Challenge
 
 **Summary:** User works through solving a code challenge: given a list of integers, find the closest to zero. If there is a tie, choose the positive value. (challenge from [cyber-dojo.org](https://cyber-dojo.org))
@@ -326,7 +323,6 @@ function closestToZero(nums: number[]): number {
 ```
 ✅ 4/4 tests still pass
 
-<!-- /docs -->
 
 ## Contributing
 

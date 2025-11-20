@@ -52,6 +52,8 @@ build_variant "without-beads" "--without-beads" "$OUT_DIR_WITHOUT_BEADS"
 # Generate README
 echo "📖 Updating README.md..."
 node scripts/generate-readme.js README.md > /dev/null 2>&1
+echo "🧹 Removing comment blocks from README.md..."
+node scripts/post-process.js README.md
 echo "   ✅ README.md updated"
 echo ""
 

@@ -57,18 +57,29 @@ function processDirectory(dirPath) {
   return filesProcessed;
 }
 
-// Get directory from command line args
-const targetDir = process.argv[2];
+// Get target from command line args (can be directory or file)
+const target = process.argv[2];
 
-if (!targetDir) {
-  console.error('Usage: node post-process.js <directory>');
+if (!target) {
+  console.error('Usage: node post-process.js <directory-or-file>');
   process.exit(1);
 }
 
-if (!fs.existsSync(targetDir)) {
-  console.error(`Error: Directory '${targetDir}' does not exist`);
+if (!fs.existsSync(target)) {
+  console.error(`Error: '${target}' does not exist`);
   process.exit(1);
 }
 
-const count = processDirectory(targetDir);
+const stat = fs.statSync(target);
+let count;
+
+if (stat.isDirectory()) {
+  count = processDirectory(target);
+} else if (target.endsWith('.md')) {
+  count = processFile(target) ? 1 : 0;
+} else {
+  console.error(`Error: '${target}' is not a directory or markdown file`);
+  process.exit(1);
+}
+
 console.log(`   ✅ Removed comment blocks from ${count} file(s)`);
