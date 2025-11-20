@@ -2,6 +2,8 @@
 allowed-tools: Read, Glob, Grep, Task
 description: Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
 argument-hint: <exploration description>
+_category: TDD Cycle
+_order: 1
 ---
 
 SPIKE PHASE! Apply the below to the info given by user input here:

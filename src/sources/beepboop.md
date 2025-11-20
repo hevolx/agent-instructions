@@ -2,6 +2,8 @@
 allowed-tools: Read, Grep, Glob
 description: Communicate AI-generated content with transparent attribution
 argument-hint: <task-description>
+_category: Utilities
+_order: 2
 ---
 
 # AI-Attributed Communication Command

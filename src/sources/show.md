@@ -2,6 +2,8 @@
 allowed-tools: mcp__github__*, Bash(git:*)
 description: Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)
 argument-hint: [optional-pr-title-and-description]
+_category: Workflow
+_order: 3
 ---
 
 # Show - Visible Merge with Optional Feedback

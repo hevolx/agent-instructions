@@ -2,6 +2,8 @@
 allowed-tools: mcp__github__issue_read, mcp__github__get_issue, Task
 description: Analyze GitHub issue and create TDD implementation plan
 argument-hint: [optional-issue-number]
+_category: Planning
+_order: 1
 ---
 
 Analyze GitHub issue and create TDD implementation plan.

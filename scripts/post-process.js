@@ -12,9 +12,23 @@ import path from 'path';
 // Regex to match markdown-magic comment blocks
 const MAGIC_COMMENT_REGEX = /<!--\s*docs\s+.*?-->\n?|<!--\s*\/docs\s*-->\n?/g;
 
+// Regex to match frontmatter fields with underscore prefix (build-only metadata)
+const UNDERSCORE_FIELD_REGEX = /^_[a-zA-Z0-9_-]+:.*$/gm;
+
 function processFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
-  const cleaned = content.replace(MAGIC_COMMENT_REGEX, '');
+
+  // Remove markdown-magic comment blocks
+  let cleaned = content.replace(MAGIC_COMMENT_REGEX, '');
+
+  // Remove underscore-prefixed frontmatter fields
+  cleaned = cleaned.replace(UNDERSCORE_FIELD_REGEX, '');
+
+  // Clean up any double newlines in frontmatter that may result from field removal
+  cleaned = cleaned.replace(/---\n([\s\S]*?)\n---/g, (_match, frontmatterContent) => {
+    const cleanedFrontmatter = frontmatterContent.replace(/\n\n+/g, '\n').trim();
+    return `---\n${cleanedFrontmatter}\n---`;
+  });
 
   if (content !== cleaned) {
     fs.writeFileSync(filePath, cleaned, 'utf8');

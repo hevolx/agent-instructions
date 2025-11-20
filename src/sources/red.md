@@ -1,5 +1,7 @@
 ---
 description: Execute TDD Red Phase - write ONE failing test
+_category: TDD Cycle
+_order: 2
 ---
 
 RED PHASE! Apply the below to the info given by user input here:

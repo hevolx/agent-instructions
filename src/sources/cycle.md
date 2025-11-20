@@ -2,6 +2,8 @@
 allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
 description: Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 argument-hint: <feature or requirement description>
+_category: TDD Cycle
+_order: 5
 ---
 
 RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input here:

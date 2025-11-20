@@ -2,6 +2,8 @@
 allowed-tools: mcp__github__*, Bash(git:*)
 description: Request team review and approval - for complex changes needing discussion (OK fine, traditional PRs still have their place - Cursor)
 argument-hint: [optional-pr-title-and-description]
+_category: Workflow
+_order: 4
 ---
 
 # Ask - Request Review and Approval

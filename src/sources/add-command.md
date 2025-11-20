@@ -1,6 +1,8 @@
 ---
 description: Guide for creating new slash commands
 argument-hint: <command-name> <description>
+_category: Utilities
+_order: 3
 ---
 
 # Slash Command Creator Guide

@@ -2,6 +2,8 @@
 allowed-tools: mcp__github__*, Bash(git:*)
 description: Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)
 argument-hint: [optional-commit-message]
+_category: Workflow
+_order: 2
 ---
 
 # Ship - Direct Merge to Main

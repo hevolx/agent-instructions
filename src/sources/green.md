@@ -2,6 +2,8 @@
 allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
 description: Execute TDD Green Phase - write minimal implementation to pass the failing test
 argument-hint: <implementation description>
+_category: TDD Cycle
+_order: 3
 ---
 
 GREEN PHASE! Apply the below to the info given by user input here:

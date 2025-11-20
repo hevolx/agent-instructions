@@ -11,16 +11,11 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const SOURCES_DIR = 'src/sources';
 const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---/;
 const CATEGORIES = {
-  TDD_WORKFLOW: 'TDD Workflow',
+  PLANNING: 'Planning',
+  TDD_CYCLE: 'TDD Cycle',
   WORKFLOW: 'Workflow',
   WORKTREE: 'Worktree Management',
   UTILITIES: 'Utilities'
-};
-
-const COMMAND_CATEGORIES = {
-  'TDD Workflow': ['red', 'green', 'refactor', 'cycle', 'spike', 'issue'],
-  'Workflow': ['commit', 'pr'],
-  'Worktree Management': ['worktree-add', 'worktree-cleanup']
 };
 
 // Parse feature flags from environment or args
@@ -38,24 +33,22 @@ function parseFrontmatter(content) {
     const colonIndex = line.indexOf(':');
     if (colonIndex === -1) continue;
     const key = line.slice(0, colonIndex).trim();
-    const value = line.slice(colonIndex + 1).trim();
+    let value = line.slice(colonIndex + 1).trim();
+
+    // Parse numeric values for _order field
+    if (key === '_order' && !isNaN(value)) {
+      value = parseInt(value, 10);
+    }
+
     frontmatter[key] = value;
   }
 
   return frontmatter;
 }
 
-// Categorize commands based on predefined categories
-function categorizeCommand(filename) {
-  const name = filename.replace('.md', '');
-
-  for (const [category, commands] of Object.entries(COMMAND_CATEGORIES)) {
-    if (commands.includes(name)) {
-      return category;
-    }
-  }
-
-  return CATEGORIES.UTILITIES;
+// Get category from frontmatter or default to Utilities
+function getCategory(frontmatter) {
+  return frontmatter._category || CATEGORIES.UTILITIES;
 }
 
 const config = {
@@ -86,7 +79,8 @@ const config = {
         return {
           name,
           description: frontmatter.description || 'No description',
-          category: categorizeCommand(name)
+          category: getCategory(frontmatter),
+          order: frontmatter._order || 999 // Default to end if no order specified
         };
       });
 
@@ -130,7 +124,13 @@ function generateCommandsMarkdown(commands) {
 
     markdown += `### ${category}\n\n`;
 
-    cmds.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort by order field, then alphabetically as fallback
+    cmds.sort((a, b) => {
+      if (a.order !== b.order) {
+        return a.order - b.order;
+      }
+      return a.name.localeCompare(b.name);
+    });
 
     for (const cmd of cmds) {
       markdown += `- \`/${cmd.name}\` - ${cmd.description}\n`;
@@ -171,8 +171,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 // Export for testing
 export {
   parseFrontmatter,
-  categorizeCommand,
+  getCategory,
   generateCommandsMarkdown,
-  CATEGORIES,
-  COMMAND_CATEGORIES
+  CATEGORIES
 };

@@ -2,6 +2,8 @@
 allowed-tools: Bash(code-insiders:*), Bash(code:*), Bash(zed:*), Bash(cursor:*), Bash(which:*), Read, mcp__github__issue_read, mcp__ide__getDiagnostics, ListMcpResourcesTool
 description: Add a new git worktree from branch name or GitHub issue URL, copy settings, install deps, and open in current IDE
 argument-hint: <branch-name-or-github-issue-url> [optional-base-branch]
+_category: Worktree Management
+_order: 1
 ---
 
 # Git Worktree Setup

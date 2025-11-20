@@ -97,18 +97,25 @@ After installation, restart Claude Code if it's currently running.
 ## Available Commands
 
 <!-- docs COMMANDS_LIST -->
-### TDD Workflow
+### Planning
 
-- `/cycle` - Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
-- `/green` - Execute TDD Green Phase - write minimal implementation to pass the failing test
 - `/issue` - Analyze GitHub issue and create TDD implementation plan
-- `/red` - Execute TDD Red Phase - write ONE failing test
-- `/refactor` - Execute TDD Refactor Phase - improve code structure while keeping tests green
+- `/plan` - Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
+
+### TDD Cycle
+
 - `/spike` - Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
+- `/red` - Execute TDD Red Phase - write ONE failing test
+- `/green` - Execute TDD Green Phase - write minimal implementation to pass the failing test
+- `/refactor` - Execute TDD Refactor Phase - improve code structure while keeping tests green
+- `/cycle` - Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 
 ### Workflow
 
 - `/commit` - Create a git commit following project standards
+- `/ship` - Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)
+- `/show` - Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)
+- `/ask` - Request team review and approval - for complex changes needing discussion (OK fine, traditional PRs still have their place - Cursor)
 
 ### Worktree Management
 
@@ -117,13 +124,9 @@ After installation, restart Claude Code if it's currently running.
 
 ### Utilities
 
-- `/add-command` - Guide for creating new slash commands
-- `/ask` - Request team review and approval - for complex changes needing discussion (OK fine, traditional PRs still have their place - Cursor)
-- `/beepboop` - Communicate AI-generated content with transparent attribution
-- `/plan` - Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
-- `/ship` - Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)
-- `/show` - Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)
 - `/tdd` - Remind agent about TDD approach and continue conversation
+- `/beepboop` - Communicate AI-generated content with transparent attribution
+- `/add-command` - Guide for creating new slash commands
 <!-- /docs -->
 
 ## Getting Started
@@ -322,6 +325,7 @@ function closestToZero(nums: number[]): number {
 }
 ```
 ✅ 4/4 tests still pass
+
 <!-- /docs -->
 
 ## Contributing
