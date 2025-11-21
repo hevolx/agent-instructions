@@ -2,30 +2,6 @@
 
 TDD workflow commands for Claude Code CLI.
 
-## Which Variant Should I Use?
-
-### Without Beads (Recommended for Beginners)
-
-**Start here if you're:**
-- New to TDD or this workflow
-- Working individually or on small projects
-- Want to focus on learning TDD fundamentals first
-- Prefer minimal dependencies
-
-The without-beads variant provides the complete TDD workflow (red-green-refactor cycle) without additional issue tracking. It's simpler to get started and easier to understand.
-
-### With Beads (For Teams & Advanced Users)
-
-**Choose this if you:**
-- Are comfortable with TDD workflows
-- Need issue tracking and workflow management
-- Work in a team environment
-- Want integrated project planning with `/plan`
-
-The with-beads variant adds [Beads MCP](https://github.com/steveyegge/beads) integration for issue tracking, dependency management, and workflow coordination.
-
-**Upgrading:** You can always start with without-beads and upgrade later by reinstalling the with-beads variant.
-
 ## Installation
 
 ### Without Beads Integration (Recommended for Beginners)
@@ -59,7 +35,13 @@ rm -rf /tmp/claude-instructions
 
 ### With Beads Integration
 
-Includes [Beads MCP](https://github.com/steveyegge/beads) integration for issue tracking and workflow management.
+Supports [Beads MCP](https://github.com/steveyegge/beads) integration for issue tracking and workflow management, installed separately.
+
+**Choose this if you:**
+- Are comfortable with TDD workflows
+- Need issue tracking and workflow management
+- Work in a team environment
+- Want integrated project planning with `/plan`
 
 **User-level (global - available in all projects):**
 ```bash
