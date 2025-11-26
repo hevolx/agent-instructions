@@ -1,4 +1,3 @@
-import { select } from '@clack/prompts';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -25,6 +24,16 @@ export const DIRECTORIES = {
 
 export type Variant = typeof VARIANTS[keyof typeof VARIANTS];
 export type Scope = typeof SCOPES[keyof typeof SCOPES];
+
+export const VARIANT_OPTIONS = [
+  { value: VARIANTS.WITH_BEADS, label: 'With Beads' },
+  { value: VARIANTS.WITHOUT_BEADS, label: 'Without Beads' }
+] as const;
+
+export const SCOPE_OPTIONS = [
+  { value: SCOPES.PROJECT, label: 'Project/Repository' },
+  { value: SCOPES.USER, label: 'User (Global)' }
+] as const;
 
 export interface GenerateResult {
   success: boolean;
@@ -57,35 +66,13 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
     throw new Error('Either outputPath or scope must be provided');
   }
 
+  const files = await fs.readdir(sourcePath);
   await fs.copy(sourcePath, destinationPath, {});
 
   return {
     success: true,
-    filesGenerated: 1,
+    filesGenerated: files.length,
     variant
   };
 }
 
-export async function promptForVariant(): Promise<Variant> {
-  const variant = await select({
-    message: 'Select variant',
-    options: [
-      { value: VARIANTS.WITH_BEADS, label: 'With Beads' },
-      { value: VARIANTS.WITHOUT_BEADS, label: 'Without Beads' }
-    ]
-  });
-
-  return variant as Variant;
-}
-
-export async function promptForScope(): Promise<Scope> {
-  const scope = await select({
-    message: 'Select installation scope',
-    options: [
-      { value: SCOPES.PROJECT, label: 'Project/Repository' },
-      { value: SCOPES.USER, label: 'User (Global)' }
-    ]
-  });
-
-  return scope as Scope;
-}

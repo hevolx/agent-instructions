@@ -1,19 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs-extra';
 
-vi.mock('@clack/prompts', () => ({
-  select: vi.fn()
-}));
-
 vi.mock('fs-extra', () => ({
   default: {
     copy: vi.fn(),
-    ensureDir: vi.fn()
+    ensureDir: vi.fn(),
+    readdir: vi.fn().mockResolvedValue(['file1.md', 'file2.md'])
   }
 }));
 
-import { generateToDirectory, promptForVariant, promptForScope, VARIANTS, SCOPES } from './cli-generator.js';
-import { select } from '@clack/prompts';
+import { generateToDirectory, VARIANTS, SCOPES } from './cli-generator.js';
 
 describe('CLI Generator', () => {
   const MOCK_OUTPUT_PATH = '/mock/output/path';
@@ -66,43 +62,15 @@ describe('CLI Generator', () => {
         expect.any(Object)
       );
     });
-  });
 
-  describe('promptForVariant', () => {
-    it('should prompt user to select variant', async () => {
-      vi.mocked(select).mockResolvedValue(VARIANTS.WITH_BEADS);
+    it('should return actual count of files copied', async () => {
+      const mockFiles = ['red.md', 'green.md', 'refactor.md', 'cycle.md', 'commit.md'];
+      vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
 
-      const result = await promptForVariant();
+      const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS);
 
-      expect(select).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.any(String),
-          options: expect.arrayContaining([
-            expect.objectContaining({ value: VARIANTS.WITH_BEADS }),
-            expect.objectContaining({ value: VARIANTS.WITHOUT_BEADS })
-          ])
-        })
-      );
-      expect(result).toBe(VARIANTS.WITH_BEADS);
+      expect(result.filesGenerated).toBe(5);
     });
   });
 
-  describe('promptForScope', () => {
-    it('should prompt user to select installation scope', async () => {
-      vi.mocked(select).mockResolvedValue(SCOPES.PROJECT);
-
-      const result = await promptForScope();
-
-      expect(select).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.any(String),
-          options: expect.arrayContaining([
-            expect.objectContaining({ value: SCOPES.PROJECT }),
-            expect.objectContaining({ value: SCOPES.USER })
-          ])
-        })
-      );
-      expect(result).toBe(SCOPES.PROJECT);
-    });
-  });
 });

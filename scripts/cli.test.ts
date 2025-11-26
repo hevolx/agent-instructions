@@ -1,13 +1,24 @@
 import { describe, it, expect, vi } from 'vitest';
 
+const mockCancel = Symbol('cancel');
+
 vi.mock('@clack/prompts', () => ({
-  select: vi.fn()
+  select: vi.fn(),
+  isCancel: (value: unknown) => value === mockCancel,
+  intro: vi.fn(),
+  outro: vi.fn()
 }));
 
 vi.mock('./cli-generator.js', () => ({
   generateToDirectory: vi.fn().mockResolvedValue({ success: true, filesGenerated: 5 }),
-  VARIANTS: { WITH_BEADS: 'with-beads', WITHOUT_BEADS: 'without-beads' },
-  SCOPES: { PROJECT: 'project', USER: 'user' }
+  VARIANT_OPTIONS: [
+    { value: 'with-beads', label: 'With Beads' },
+    { value: 'without-beads', label: 'Without Beads' }
+  ],
+  SCOPE_OPTIONS: [
+    { value: 'project', label: 'Project/Repository' },
+    { value: 'user', label: 'User (Global)' }
+  ]
 }));
 
 describe('CLI', () => {
@@ -34,5 +45,32 @@ describe('CLI', () => {
       'with-beads',
       'project'
     );
+  });
+
+  it('should exit gracefully when user cancels with Ctrl+C', async () => {
+    const { select } = await import('@clack/prompts');
+    const { generateToDirectory } = await import('./cli-generator.js');
+    const { main } = await import('./cli.js');
+
+    vi.mocked(select).mockResolvedValueOnce(mockCancel);
+    vi.mocked(generateToDirectory).mockClear();
+
+    await main();
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it('should show intro and outro messages', async () => {
+    const { select, intro, outro } = await import('@clack/prompts');
+    const { main } = await import('./cli.js');
+
+    vi.mocked(select)
+      .mockResolvedValueOnce('with-beads')
+      .mockResolvedValueOnce('project');
+
+    await main();
+
+    expect(intro).toHaveBeenCalled();
+    expect(outro).toHaveBeenCalled();
   });
 });
