@@ -1,10 +1,17 @@
 ---
-allowed-tools: Bash(git:*), Bash(pnpm:*), Bash(cp:*), Bash(code-insiders:*), Bash(code:*), Bash(zed:*), Bash(cursor:*), Bash(which:*), Read, mcp__github__issue_read, mcp__ide__getDiagnostics, ListMcpResourcesTool
+allowed-tools: Bash(code-insiders:*), Bash(code:*), Bash(zed:*), Bash(cursor:*), Bash(which:*), Read, mcp__github__issue_read, mcp__ide__getDiagnostics, ListMcpResourcesTool
 description: Add a new git worktree from branch name or GitHub issue URL, copy settings, install deps, and open in current IDE
 argument-hint: <branch-name-or-github-issue-url> [optional-base-branch]
 ---
 
 # Git Worktree Setup
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
 
 Create a new git worktree for branch: $ARGUMENTS
 
@@ -36,7 +43,6 @@ Uncommitted changes: !git status --short`
   <purpose>Ensure required MCP dependencies are available before proceeding</purpose>
 </step_0>
 
-
   <step_1>
     <description>Detect current IDE environment</description>
     <detection_methods>
@@ -66,7 +72,7 @@ Uncommitted changes: !git status --short`
     <input>$ARGUMENTS</input>
     <expected_format>branch-name-or-github-url [optional-base-branch]</expected_format>
     <example>fix/issue-123-main-content-area-visually-clipped main</example>
-    <example_github_url>https://github.com/owner/project/issues/14533 main</example_github_url>
+    <example_github_url>https://github.com/owner/project/issues/123 main</example_github_url>
     <default_base_branch>main (if not specified)</default_base_branch>
   </step_1>
 
@@ -104,9 +110,9 @@ Uncommitted changes: !git status --short`
       <if_yes>Continue with generated/modified branch name</if_yes>
     </user_confirmation>
     <examples>
-      <input>https://github.com/owner/project/issues/14533</input>
-      <title>"Proper fix for duplicate items in the flow view"</title>
-      <generated>refactor/issue-456-proper-fix-for-duplicate-items-in-the-flow-view</generated>
+      <input>https://github.com/owner/project/issues/456</input>
+      <title>"Fix duplicate items in list view"</title>
+      <generated>fix/issue-456-duplicate-items-in-list-view</generated>
     </examples>
   </step_1_5>
 
@@ -172,8 +178,8 @@ Uncommitted changes: !git status --short`
     <search_command>find . -name ".env.local" -type f</search_command>
     <copy_logic>For each .env.local file found, copy to corresponding location in new worktree</copy_logic>
     <common_locations>
-      - apps/cloud-console/.env.local
-      - apps/local-console/.env.local
+      - app/.env.local
+      - packages/*/.env.local
       - (any other .env.local files found)
     </common_locations>
     <copy_command>find . -name ".env.local" -type f -exec sh -c 'mkdir -p "$(dirname "${parent_path}/${branch_name}/$1")" && cp "$1" "${parent_path}/${branch_name}/$1"' _ {} \;</copy_command>

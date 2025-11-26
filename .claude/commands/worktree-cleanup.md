@@ -1,10 +1,17 @@
 ---
-allowed-tools: Bash(git:*), Read, mcp__mcp-jq__jq_query, mcp__mcp-jq__jq_query_file, mcp__github__search_pull_requests, mcp__github__pull_request_read, mcp__github__issue_read, mcp__github__issue_write, mcp__github__add_issue_comment, ListMcpResourcesTool
+allowed-tools: Read, mcp__mcp-jq__jq_query, mcp__mcp-jq__jq_query_file, mcp__github__search_pull_requests, mcp__github__pull_request_read, mcp__github__issue_read, mcp__github__issue_write, mcp__github__add_issue_comment, ListMcpResourcesTool
 description: Clean up merged worktrees by verifying PR/issue status, consolidating settings, and removing stale worktrees
 argument-hint: (no arguments)
 ---
 
 # Worktree Cleanup
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
 
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
@@ -34,7 +41,6 @@ Current worktrees: !git worktree list`
   <purpose>Ensure required MCP dependencies are available before proceeding</purpose>
 </step_0>
 
-
   <step_1>
     <description>Verify we're in main branch</description>
     <check_command>git branch --show-current</check_command>
@@ -52,23 +58,22 @@ Current worktrees: !git worktree list`
   </step_2>
 
   <step_3>
-    <description>Find oldest worktree by directory age (skip demo)</description>
+    <description>Find oldest worktree by directory age</description>
     <get_worktree_ages>
       <command_macos>git worktree list | grep -v "main" | awk '{print $1}' | while read path; do /usr/bin/stat -f "%Sm|%N" -t "%Y-%m-%d %H:%M:%S" "$path" 2>/dev/null; done | sort</command_macos>
       <command_linux>git worktree list | grep -v "main" | awk '{print $1}' | xargs stat -c "%y|%n" | sort</command_linux>
       <purpose>List all worktrees sorted by directory modification time (oldest first)</purpose>
-      <note>Use full path /usr/bin/stat on macOS, regular stat on Linux. Filter excludes demo in worktree list grep.</note>
+      <note>Use full path /usr/bin/stat on macOS, regular stat on Linux.</note>
     </get_worktree_ages>
     <filter_recent>
       <exclude_new>For worktrees created within the last 24 hours, let user know that this worktree might not be worth cleaning</exclude_new>
       <get_current_time>date +"%Y-%m-%d %H:%M"</get_current_time>
     </filter_recent>
-    <select_oldest_non_demo>
-      <skip_demo>Skip any worktree named "demo" as it's often used for demonstrations</skip_demo>
-      <extract_branch_name>Parse branch name from oldest non-demo worktree path</extract_branch_name>
+    <select_oldest>
+      <extract_branch_name>Parse branch name from oldest worktree path</extract_branch_name>
       <important_note>DO NOT use "git branch --merged" to check merge status - it's unreliable</important_note>
       <proceed_to_pr_check>Move directly to step 4 to verify PR merge status instead</proceed_to_pr_check>
-    </select_oldest_non_demo>
+    </select_oldest>
     <purpose>Identify oldest worktree candidate - actual merge verification happens via GitHub PR in next step</purpose>
   </step_3>
 
@@ -77,7 +82,7 @@ Current worktrees: !git worktree list`
     <determine_repo>
       <check_remote>git remote get-url origin</check_remote>
       <parse_repo>Extract owner/repo from GitHub URL</parse_repo>
-      <fallback>Use project configuration: owner/repo or owner/project</fallback>
+      <fallback>Use project repository from git remote (owner/repo format)</fallback>
     </determine_repo>
     <search_pr>
       <tool>mcp__github__search_pull_requests</tool>
@@ -211,12 +216,11 @@ Current worktrees: !git worktree list`
   - Skips worktrees without merged PRs and continues to next oldest candidate
   - Checks and optionally closes related GitHub issues
   - Prioritizes oldest worktrees by directory age first for systematic cleanup
-  - Skips "demo" worktree as it's often used for demonstrations
   - Warns about very recent worktrees (created within 24 hours) to avoid cleaning active work
   - Preserves useful development settings before deletion
   - Requires explicit confirmation before any destructive actions
   - Handles locked worktrees automatically
   - Processes one worktree at a time to maintain control
   - Must be run from main branch for safety
-  - Supports both owner/repo and owner/project repositories
+  - Works with standard GitHub repository URLs (owner/repo format)
 </important_notes>

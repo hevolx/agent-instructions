@@ -66,6 +66,14 @@ tsx scripts/post-process.ts README.md
 echo "   ✅ README.md updated"
 echo ""
 
+# Copy to local .claude/commands for development
+echo "📋 Updating .claude/commands (with-beads variant)..."
+mkdir -p ".claude/commands"
+rm -f ".claude/commands"/*.md
+cp "$OUT_DIR_WITH_BEADS"/*.md ".claude/commands/"
+echo "   ✅ .claude/commands updated"
+echo ""
+
 # Summary
 echo "✅ Build complete!"
 echo ""
@@ -76,3 +84,6 @@ ls -1 "$OUT_DIR_WITH_BEADS"/*.md | sed 's|.*/|     ✓ |'
 echo ""
 echo "   Without Beads (downloads/without-beads/):"
 ls -1 "$OUT_DIR_WITHOUT_BEADS"/*.md | sed 's|.*/|     ✓ |'
+echo ""
+echo "   Local (.claude/commands/):"
+ls -1 ".claude/commands"/*.md | sed 's|.*/|     ✓ |'

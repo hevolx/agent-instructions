@@ -1,12 +1,10 @@
 ---
 allowed-tools: Read, Glob, Grep, Task
-description: Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
-argument-hint: <exploration description>
+description: Remind agent about TDD approach and continue conversation
+argument-hint: [optional-response-to-last-message]
 ---
 
-SPIKE PHASE! Apply the below to the info given by user input here:
-
-$ARGUMENTS
+# TDD Reminder
 
 ## General Guidelines
 
@@ -14,10 +12,6 @@ $ARGUMENTS
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
-
-(If there was no info above, fallback to:
-1. Context of the conversation, if there's an immediate thing
-2. `bd ready` to see what to work on next and start from there)
 
 ## TDD Fundamentals
 
@@ -87,3 +81,9 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
+## Continue Conversation
+
+User response to the last message: $ARGUMENTS
+
+Please continue with TDD approach based on the above response.

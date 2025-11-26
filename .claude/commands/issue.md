@@ -1,10 +1,17 @@
 ---
-allowed-tools: Bash(git:*), mcp__github__issue_read, mcp__github__get_issue, Task
+allowed-tools: mcp__github__issue_read, mcp__github__get_issue, Task
 description: Analyze GitHub issue and create TDD implementation plan
 argument-hint: [optional-issue-number]
 ---
 
-Analyze GitHub issue and create TDD implementation plan. Use beads MCP to generate the issues needed to complete the work.
+Analyze GitHub issue and create TDD implementation plan.
+
+## General Guidelines
+
+### Output Style
+- **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
+- Write natural, descriptive code without meta-commentary about the development process
+- The code should speak for itself - TDD is the process, not the product
 
 Process:
 
@@ -28,17 +35,41 @@ Trying GitHub CLI fallback...
 
 Then try using `gh issue view [ISSUE_NUMBER] --json` as fallback.
 
-
 3. Analyze and Plan
 
-- Summarize the issue and requirements
-- Use beads MCP to create issues. If unclear, ask user for general direction first.
-- Suggest a direction for TDD, and a first TDD-based test for each direction in order to identify good starting points
+Summarize the issue and requirements, then:
 
-After presenting the plan, remind that we'll likely proceed with:
-/red, /green, /refactor cycles
+## Discovery Phase
 
-Ask: Ready to start with /red for the first test?
+Understand the requirement by asking (use AskUserQuestion if needed):
+
+**Problem Statement**
+- What problem does this solve?
+- Who experiences this problem?
+- What's the current pain point?
+
+**Desired Outcome**
+- What should happen after this is built?
+- How will users interact with it?
+- What does success look like?
+
+**Scope & Constraints**
+- What's in scope vs. out of scope?
+- Any technical constraints?
+- Dependencies on other systems/features?
+
+**Context Check**
+- Search codebase for related features/modules
+- Check for existing test files that might be relevant
+
+### Beads Integration
+
+Use Beads MCP to:
+- Track work with `bd ready` to find next task
+- Create issues with `bd create "description"`
+- Track dependencies with `bd dep add`
+
+See https://github.com/steveyegge/beads for more information.
 
 ## TDD Fundamentals
 
@@ -105,7 +136,6 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 
 - Sometimes the test output shows as no tests have been run when a new test is failing due to a missing import or constructor. In such cases, allow the agent to create simple stubs. Ask them if they forgot to create a stub if they are stuck.
 - It is never allowed to introduce new logic without evidence of relevant failing tests. However, stubs and simple implementation to make imports and test infrastructure work is fine.
-- In the refactor phase, it is perfectly fine to refactor both teest and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
+- In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
-
