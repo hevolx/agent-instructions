@@ -30,6 +30,15 @@ build_variant() {
 
   echo "   ✅ Generated command files"
 
+  # Copy files without markdown-magic blocks
+  echo "📄 Copying files without transforms..."
+  for file in "$SRC_DIR"/*.md; do
+    filename=$(basename "$file")
+    if [ ! -f "$out_dir/$filename" ]; then
+      cp "$file" "$out_dir/$filename"
+    fi
+  done
+
   # Remove markdown-magic comment blocks (workaround for markdown-magic bug)
   echo "🧹 Removing comment blocks..."
   tsx scripts/post-process.ts "$out_dir"

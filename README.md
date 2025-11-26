@@ -76,6 +76,76 @@ rm -rf /tmp/claude-instructions
 
 After installation, restart Claude Code if it's currently running.
 
+## Which Command Should I Use?
+
+### Main Workflow
+
+Follow this workflow from planning to shipping:
+
+```mermaid
+flowchart TB
+    Start([Start New Work])
+
+    Start --> Step1[<b>1. PLAN</b>]
+
+    Step1 --> Issue[📋 /issue<br/>Have GitHub issue<br/><i>Requires: GitHub MCP</i>]
+    Step1 --> Plan[📝 /plan<br/>No issue yet<br/><i>Optional: Beads MCP</i>]
+
+    Issue --> Step2[<b>2. CODE with TDD</b>]
+    Plan --> Step2
+
+    Step2 -->|Manual| Red[🔴 /red<br/>Write failing test]
+    Red --> Green[🟢 /green<br/>Make it pass]
+    Green --> Refactor[🔵 /refactor<br/>Clean up code]
+    Refactor --> MoreTests{More tests?}
+
+    Step2 -->|Automated| Cycle[🔄 /cycle<br/>Runs red+green+refactor]
+    Cycle --> MoreTests
+
+    MoreTests -->|Yes| Step2
+    MoreTests -->|No| Step3
+
+    Step3[<b>3. SHIP</b>]
+
+    Step3 --> Commit[📦 /commit<br/>Create commit]
+    Commit --> ShipChoice{How to<br/>merge?}
+
+    ShipChoice -->|Simple change| Ship[🚢 /ship<br/>Direct to main<br/><i>Requires: GitHub MCP</i>]
+    ShipChoice -->|Show team| Show[👀 /show<br/>Auto-merge + notify<br/><i>Requires: GitHub MCP</i>]
+    ShipChoice -->|Needs review| Ask[💬 /ask<br/>Create PR<br/><i>Requires: GitHub MCP</i>]
+
+    Ship --> Done([✅ Done])
+    Show --> Done
+    Ask --> Done
+
+    style Start fill:#e1f5ff
+    style Step1 fill:#fff4e6
+    style Step2 fill:#e8f5e9
+    style Step3 fill:#fce4ec
+    style Done fill:#c8e6c9
+```
+
+### Other Commands
+
+Available anytime during your workflow:
+
+```mermaid
+flowchart TB
+    Utils[<b>UTILITIES</b>]
+    Utils --> Spike[🔬 /spike<br/>Exploratory coding before TDD]
+    Utils --> TDD[📚 /tdd<br/>Remind agent about TDD]
+    Utils --> AddCommand[➕ /add-command<br/>Create custom commands]
+    Utils --> Summarize[📄 /summarize<br/>Summarize conversation<br/><i>Optional: Beads MCP</i>]
+    Utils --> Beepboop[🤖 /beepboop<br/>AI attribution]
+
+    Worktree[<b>WORKTREE MANAGEMENT</b>]
+    Worktree --> WorktreeAdd[➕ /worktree-add<br/>Create new worktree<br/><i>Requires: GitHub MCP</i>]
+    Worktree --> WorktreeCleanup[🧹 /worktree-cleanup<br/>Clean up merged worktrees<br/><i>Requires: GitHub MCP</i>]
+
+    style Utils fill:#fff9c4
+    style Worktree fill:#f3e5f5
+```
+
 ## Available Commands
 
 ### Planning
@@ -97,6 +167,7 @@ After installation, restart Claude Code if it's currently running.
 - `/ship` - Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)
 - `/show` - Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)
 - `/ask` - Request team review and approval - for complex changes needing discussion (OK fine, traditional PRs still have their place - Cursor)
+- `/summarize` - Summarize conversation progress and next steps
 
 ### Worktree Management
 

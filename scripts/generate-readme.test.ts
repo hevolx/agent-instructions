@@ -103,4 +103,15 @@ describe('generateCommandsMarkdown', () => {
     const result = generateCommandsMarkdown([]);
     expect(result).toBe('');
   });
+
+  it('should include summarize command when reading from source files', () => {
+    const commands = [
+      { name: 'summarize', description: 'Summarize conversation progress and next steps', category: 'Workflow', order: 10 }
+    ];
+
+    const result = generateCommandsMarkdown(commands);
+
+    expect(result).toContain('/summarize');
+    expect(result).toContain('Summarize conversation progress and next steps');
+  });
 });

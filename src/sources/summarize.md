@@ -1,0 +1,14 @@
+---
+allowed-tools: AskUserQuestion, mcp__beads__list, mcp__beads__stats
+description: Summarize conversation progress and next steps
+_category: Workflow
+_order: 10
+---
+
+Create a concise summary of the current conversation suitable for transferring context to a new conversation.
+
+<!-- docs INCLUDE path='src/fragments/summarize-structure.md' -->
+<!-- /docs -->
+
+<!-- docs INCLUDE path='src/fragments/summarize-beads.md' featureFlag='beads' -->
+<!-- /docs -->

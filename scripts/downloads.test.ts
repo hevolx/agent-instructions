@@ -44,6 +44,23 @@ describe('downloads/without-beads', () => {
 });
 
 describe('downloads variants comparison', () => {
+  it('should compile all source files to output directory', () => {
+    const sourcesDir = path.join(PROJECT_ROOT, 'src', 'sources');
+    const withBeadsDir = path.join(DOWNLOADS_DIR, 'with-beads');
+
+    if (fs.existsSync(sourcesDir) && fs.existsSync(withBeadsDir)) {
+      const sourceFiles = fs.readdirSync(sourcesDir).filter(f => f.endsWith('.md'));
+      const compiledFiles = fs.readdirSync(withBeadsDir).filter(f => f.endsWith('.md'));
+
+      // Every source file should have a corresponding compiled file
+      sourceFiles.forEach(sourceFile => {
+        expect(compiledFiles).toContain(sourceFile);
+      });
+
+      expect(sourceFiles.length).toBe(compiledFiles.length);
+    }
+  });
+
   it('should have same number of files in both variants', () => {
     const withBeadsDir = path.join(DOWNLOADS_DIR, 'with-beads');
     const withoutBeadsDir = path.join(DOWNLOADS_DIR, 'without-beads');
