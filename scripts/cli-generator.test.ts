@@ -5,11 +5,34 @@ vi.mock('fs-extra', () => ({
   default: {
     copy: vi.fn(),
     ensureDir: vi.fn(),
-    readdir: vi.fn().mockResolvedValue(['file1.md', 'file2.md'])
+    readdir: vi.fn().mockResolvedValue(['file1.md', 'file2.md']),
+    pathExists: vi.fn().mockResolvedValue(false),
+    readFile: vi.fn().mockResolvedValue(''),
+    writeFile: vi.fn()
   }
 }));
 
-import { generateToDirectory, VARIANTS, SCOPES } from './cli-generator.js';
+import { generateToDirectory, extractTemplateBlocks, VARIANTS, SCOPES } from './cli-generator.js';
+
+describe('extractTemplateBlocks', () => {
+  it('should extract template block from markdown content', () => {
+    const content = `# Project Instructions
+
+Some intro text.
+
+<claude-commands-template>
+## Project Context
+This is a React app using TypeScript.
+</claude-commands-template>
+
+More content after.`;
+
+    const result = extractTemplateBlocks(content);
+
+    expect(result).toBe(`## Project Context
+This is a React app using TypeScript.`);
+  });
+});
 
 describe('CLI Generator', () => {
   const MOCK_OUTPUT_PATH = '/mock/output/path';
@@ -70,6 +93,89 @@ describe('CLI Generator', () => {
       const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS);
 
       expect(result.filesGenerated).toBe(5);
+    });
+
+    it('should accept options object with skipTemplateInjection', async () => {
+      const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT, { skipTemplateInjection: true });
+
+      expect(result.success).toBe(true);
+      expect(result.templateInjectionSkipped).toBe(true);
+    });
+
+    it('should append template from CLAUDE.md to copied command files', async () => {
+      const templateContent = `<claude-commands-template>
+## Project Context
+This is a test project.
+</claude-commands-template>`;
+      const commandContent = `---
+description: Test command
+---
+
+# Test Command`;
+
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+        if (String(filePath).endsWith('CLAUDE.md')) {
+          return templateContent;
+        }
+        return commandContent;
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['test.md'] as never);
+
+      const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT);
+
+      expect(result.templateInjected).toBe(true);
+    });
+
+    it('should fallback to AGENTS.md when CLAUDE.md does not exist', async () => {
+      const templateContent = `<claude-commands-template>
+## Agent Context
+This is from AGENTS.md.
+</claude-commands-template>`;
+      const commandContent = `---
+description: Test command
+---
+
+# Test Command`;
+
+      vi.mocked(fs.pathExists).mockImplementation(async (filePath: unknown) => {
+        return String(filePath).endsWith('AGENTS.md');
+      });
+      vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+        if (String(filePath).endsWith('AGENTS.md')) {
+          return templateContent;
+        }
+        return commandContent;
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['test.md'] as never);
+
+      const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT);
+
+      expect(result.templateInjected).toBe(true);
+    });
+
+    it('should write template content appended to command files', async () => {
+      const templateContent = `<claude-commands-template>
+## Injected Content
+This should appear at the end.
+</claude-commands-template>`;
+      const commandContent = `# Original Command`;
+
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+        if (String(filePath).endsWith('CLAUDE.md')) {
+          return templateContent;
+        }
+        return commandContent;
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['test.md'] as never);
+
+      await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT);
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('test.md'),
+        expect.stringContaining('## Injected Content')
+      );
     });
   });
 

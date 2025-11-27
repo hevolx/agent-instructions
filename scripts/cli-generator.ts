@@ -35,10 +35,16 @@ export const SCOPE_OPTIONS = [
   { value: SCOPES.USER, label: 'User (Global)' }
 ] as const;
 
+export interface GenerateOptions {
+  skipTemplateInjection?: boolean;
+}
+
 export interface GenerateResult {
   success: boolean;
   filesGenerated: number;
   variant?: Variant;
+  templateInjectionSkipped?: boolean;
+  templateInjected?: boolean;
 }
 
 function getDestinationPath(outputPath: string | undefined, scope: string | undefined): string | undefined {
@@ -57,7 +63,15 @@ function getDestinationPath(outputPath: string | undefined, scope: string | unde
   return undefined;
 }
 
-export async function generateToDirectory(outputPath?: string, variant?: Variant, scope?: Scope): Promise<GenerateResult> {
+export function extractTemplateBlocks(content: string): string | null {
+  const match = content.match(/<claude-commands-template>([\s\S]*?)<\/claude-commands-template>/);
+  if (!match) {
+    return null;
+  }
+  return match[1].trim();
+}
+
+export async function generateToDirectory(outputPath?: string, variant?: Variant, scope?: Scope, options?: GenerateOptions): Promise<GenerateResult> {
   const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
 
   const destinationPath = getDestinationPath(outputPath, scope);
@@ -69,10 +83,39 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
   const files = await fs.readdir(sourcePath);
   await fs.copy(sourcePath, destinationPath, {});
 
+  let templateInjected = false;
+
+  if (!options?.skipTemplateInjection) {
+    const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
+    const agentsMdPath = path.join(process.cwd(), 'AGENTS.md');
+
+    let templateSourcePath: string | null = null;
+    if (await fs.pathExists(claudeMdPath)) {
+      templateSourcePath = claudeMdPath;
+    } else if (await fs.pathExists(agentsMdPath)) {
+      templateSourcePath = agentsMdPath;
+    }
+
+    if (templateSourcePath) {
+      const sourceContent = await fs.readFile(templateSourcePath, 'utf-8');
+      const template = extractTemplateBlocks(sourceContent);
+      if (template) {
+        for (const file of files) {
+          const filePath = path.join(destinationPath, file);
+          const content = await fs.readFile(filePath, 'utf-8');
+          await fs.writeFile(filePath, content + '\n\n' + template);
+        }
+        templateInjected = true;
+      }
+    }
+  }
+
   return {
     success: true,
     filesGenerated: files.length,
-    variant
+    variant,
+    templateInjectionSkipped: options?.skipTemplateInjection,
+    templateInjected
   };
 }
 
