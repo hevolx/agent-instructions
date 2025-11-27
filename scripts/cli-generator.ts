@@ -22,6 +22,13 @@ export const DIRECTORIES = {
   DOWNLOADS: 'downloads'
 } as const;
 
+export const TEMPLATE_SOURCE_FILES = ['CLAUDE.md', 'AGENTS.md'] as const;
+
+export interface TemplateBlock {
+  content: string;
+  commands?: string[];
+}
+
 export type Variant = typeof VARIANTS[keyof typeof VARIANTS];
 export type Scope = typeof SCOPES[keyof typeof SCOPES];
 
@@ -63,12 +70,20 @@ function getDestinationPath(outputPath: string | undefined, scope: string | unde
   return undefined;
 }
 
-export function extractTemplateBlocks(content: string): string | null {
+export function extractTemplateBlocks(content: string): TemplateBlock | null {
+  const matchWithCommands = content.match(/<claude-commands-template\s+commands="([^"]+)">([\s\S]*?)<\/claude-commands-template>/);
+  if (matchWithCommands) {
+    return {
+      content: matchWithCommands[2].trim(),
+      commands: matchWithCommands[1].split(',').map(c => c.trim())
+    };
+  }
+
   const match = content.match(/<claude-commands-template>([\s\S]*?)<\/claude-commands-template>/);
   if (!match) {
     return null;
   }
-  return match[1].trim();
+  return { content: match[1].trim() };
 }
 
 export async function generateToDirectory(outputPath?: string, variant?: Variant, scope?: Scope, options?: GenerateOptions): Promise<GenerateResult> {
@@ -86,14 +101,13 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
   let templateInjected = false;
 
   if (!options?.skipTemplateInjection) {
-    const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
-    const agentsMdPath = path.join(process.cwd(), 'AGENTS.md');
-
     let templateSourcePath: string | null = null;
-    if (await fs.pathExists(claudeMdPath)) {
-      templateSourcePath = claudeMdPath;
-    } else if (await fs.pathExists(agentsMdPath)) {
-      templateSourcePath = agentsMdPath;
+    for (const filename of TEMPLATE_SOURCE_FILES) {
+      const candidatePath = path.join(process.cwd(), filename);
+      if (await fs.pathExists(candidatePath)) {
+        templateSourcePath = candidatePath;
+        break;
+      }
     }
 
     if (templateSourcePath) {
@@ -101,9 +115,13 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
       const template = extractTemplateBlocks(sourceContent);
       if (template) {
         for (const file of files) {
+          const commandName = path.basename(file, '.md');
+          if (template.commands && !template.commands.includes(commandName)) {
+            continue;
+          }
           const filePath = path.join(destinationPath, file);
           const content = await fs.readFile(filePath, 'utf-8');
-          await fs.writeFile(filePath, content + '\n\n' + template);
+          await fs.writeFile(filePath, content + '\n\n' + template.content);
         }
         templateInjected = true;
       }

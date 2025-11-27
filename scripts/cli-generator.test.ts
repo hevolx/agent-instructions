@@ -29,8 +29,23 @@ More content after.`;
 
     const result = extractTemplateBlocks(content);
 
-    expect(result).toBe(`## Project Context
-This is a React app using TypeScript.`);
+    expect(result).toEqual({
+      content: `## Project Context
+This is a React app using TypeScript.`
+    });
+  });
+
+  it('should extract commands filter from template with commands attribute', () => {
+    const content = `<claude-commands-template commands="red,green,refactor">
+## Only for TDD commands
+</claude-commands-template>`;
+
+    const result = extractTemplateBlocks(content);
+
+    expect(result).toEqual({
+      content: '## Only for TDD commands',
+      commands: ['red', 'green', 'refactor']
+    });
   });
 });
 
@@ -175,6 +190,38 @@ This should appear at the end.
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('test.md'),
         expect.stringContaining('## Injected Content')
+      );
+    });
+
+    it('should only inject template to files matching commands filter', async () => {
+      const templateContent = `<claude-commands-template commands="red,green">
+## Only for TDD commands
+</claude-commands-template>`;
+      const commandContent = `# Original Command`;
+
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+        if (String(filePath).endsWith('CLAUDE.md')) {
+          return templateContent;
+        }
+        return commandContent;
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['red.md', 'green.md', 'commit.md'] as never);
+
+      await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT);
+
+      expect(fs.writeFile).toHaveBeenCalledTimes(2);
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('red.md'),
+        expect.stringContaining('## Only for TDD commands')
+      );
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('green.md'),
+        expect.stringContaining('## Only for TDD commands')
+      );
+      expect(fs.writeFile).not.toHaveBeenCalledWith(
+        expect.stringContaining('commit.md'),
+        expect.anything()
       );
     });
   });

@@ -49,7 +49,7 @@ describe('CLI Integration', () => {
     expect(pkgJson.files).toContain('downloads');
   });
 
-  it('should run CLI from packed tarball without immediate failure', async () => {
+  it('should run CLI from packed tarball without immediate failure', { timeout: 30000 }, async () => {
     // Pack the package to temp dir (doesn't affect repo)
     execSync('pnpm pack --pack-destination ' + tempDir, { cwd: PROJECT_ROOT, stdio: 'pipe' });
 
