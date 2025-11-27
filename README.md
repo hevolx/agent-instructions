@@ -19,85 +19,13 @@ TDD workflow commands for Claude Code CLI.
 
 ## Installation
 
-### Quick Install (Recommended)
-
 ```bash
 npx @wbern/claude-instructions
 ```
 
-This interactive installer lets you choose your variant and installation scope.
-
-### Manual Installation
-
-#### Without Beads Integration (Recommended for Beginners)
-
-Standalone TDD workflow commands without dependencies.
-
-**User-level (global - available in all projects):**
-```bash
-# Clone the repository
-git clone https://github.com/wbern/claude-instructions.git /tmp/claude-instructions
-
-# Copy commands to your user directory
-cp /tmp/claude-instructions/downloads/without-beads/*.md ~/.claude/commands/
-
-# Clean up
-rm -rf /tmp/claude-instructions
-```
-
-**Project-level (current repository only):**
-```bash
-# Clone the repository
-git clone https://github.com/wbern/claude-instructions.git /tmp/claude-instructions
-
-# Create commands directory and copy files
-mkdir -p .claude/commands
-cp /tmp/claude-instructions/downloads/without-beads/*.md .claude/commands/
-
-# Clean up
-rm -rf /tmp/claude-instructions
-```
-
-#### With Beads Integration
-
-Supports [Beads MCP](https://github.com/steveyegge/beads) integration for issue tracking and workflow management, installed separately.
-
-**Choose this if you:**
-- Are comfortable with TDD workflows
-- Need issue tracking and workflow management
-- Work in a team environment
-- Want integrated project planning with `/plan`
-
-**User-level (global - available in all projects):**
-```bash
-# Clone the repository
-git clone https://github.com/wbern/claude-instructions.git /tmp/claude-instructions
-
-# Copy commands to your user directory
-cp /tmp/claude-instructions/downloads/with-beads/*.md ~/.claude/commands/
-
-# Clean up
-rm -rf /tmp/claude-instructions
-```
-
-**Project-level (current repository only):**
-```bash
-# Clone the repository
-git clone https://github.com/wbern/claude-instructions.git /tmp/claude-instructions
-
-# Create commands directory and copy files
-mkdir -p .claude/commands
-cp /tmp/claude-instructions/downloads/with-beads/*.md .claude/commands/
-
-# Clean up
-rm -rf /tmp/claude-instructions
-```
-
-**Requirements:**
-- Install [Beads MCP](https://github.com/steveyegge/beads) for full functionality
-- Configure Beads in your project with `bd init`
-
-**Note:** User-level installation makes commands available globally in all your projects. Project-level installation only makes them available in the current repository.
+The interactive installer lets you choose:
+- **Variant**: With or without [Beads MCP](https://github.com/steveyegge/beads) integration
+- **Scope**: User-level (global) or project-level installation
 
 After installation, restart Claude Code if it's currently running.
 
