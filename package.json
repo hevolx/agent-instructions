@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "TDD workflow commands for Claude Code CLI",
   "type": "module",
-  "bin": {
-    "claude-instructions": "./bin/cli.js"
-  },
+  "bin": "./bin/cli.js",
   "files": [
     "bin",
     "downloads"

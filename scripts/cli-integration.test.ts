@@ -40,12 +40,45 @@ describe('CLI Integration', () => {
 
   it('should have package.json with correct bin entry', () => {
     const pkgJson = fs.readJsonSync(path.join(PROJECT_ROOT, 'package.json'));
-    expect(pkgJson.bin['claude-instructions']).toBe('./bin/cli.js');
+    expect(pkgJson.bin).toBe('./bin/cli.js');
   });
 
   it('should have package.json with files array including bin and downloads', () => {
     const pkgJson = fs.readJsonSync(path.join(PROJECT_ROOT, 'package.json'));
     expect(pkgJson.files).toContain('bin');
     expect(pkgJson.files).toContain('downloads');
+  });
+
+  it('should run CLI from packed tarball without immediate failure', async () => {
+    // Pack the package to temp dir (doesn't affect repo)
+    execSync('pnpm pack --pack-destination ' + tempDir, { cwd: PROJECT_ROOT, stdio: 'pipe' });
+
+    // Find the tarball
+    const files = fs.readdirSync(tempDir);
+    const tarball = files.find(f => f.endsWith('.tgz'));
+    expect(tarball).toBeDefined();
+
+    // Extract it
+    const extractDir = path.join(tempDir, 'extracted');
+    fs.mkdirSync(extractDir);
+    execSync(`tar -xzf ${path.join(tempDir, tarball!)} -C ${extractDir}`);
+
+    const packageDir = path.join(extractDir, 'package');
+
+    // Install dependencies in isolated temp dir (package.json already exists from tarball)
+    execSync('pnpm install', { cwd: packageDir, stdio: 'pipe' });
+
+    // Run the CLI with a timeout - it should start and wait for input, not crash
+    const cliPath = path.join(packageDir, 'bin', 'cli.js');
+
+    const { spawnSync } = await import('child_process');
+    const result = spawnSync('node', [cliPath], {
+      timeout: 1000,
+      stdio: 'pipe',
+      cwd: packageDir
+    });
+
+    // Should timeout waiting for input (null status) or exit cleanly, not crash with code 1
+    expect(result.status).not.toBe(1);
   });
 });
