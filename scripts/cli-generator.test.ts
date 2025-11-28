@@ -8,7 +8,8 @@ vi.mock('fs-extra', () => ({
     readdir: vi.fn().mockResolvedValue(['file1.md', 'file2.md']),
     pathExists: vi.fn().mockResolvedValue(false),
     readFile: vi.fn().mockResolvedValue(''),
-    writeFile: vi.fn()
+    writeFile: vi.fn(),
+    rename: vi.fn()
   }
 }));
 
@@ -189,6 +190,45 @@ This should appear at the end.
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('test.md'),
+        expect.stringContaining('## Injected Content')
+      );
+    });
+
+    it('should rename files with prefix when commandPrefix option is provided', async () => {
+      vi.mocked(fs.readdir).mockResolvedValue(['red.md', 'green.md'] as never);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+      await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT, { commandPrefix: 'my-' });
+
+      expect(fs.rename).toHaveBeenCalledWith(
+        expect.stringContaining('red.md'),
+        expect.stringContaining('my-red.md')
+      );
+      expect(fs.rename).toHaveBeenCalledWith(
+        expect.stringContaining('green.md'),
+        expect.stringContaining('my-green.md')
+      );
+    });
+
+    it('should inject template to prefixed filenames when commandPrefix is used', async () => {
+      const templateContent = `<claude-commands-template>
+## Injected Content
+</claude-commands-template>`;
+      const commandContent = `# Original Command`;
+
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+        if (String(filePath).endsWith('CLAUDE.md')) {
+          return templateContent;
+        }
+        return commandContent;
+      });
+      vi.mocked(fs.readdir).mockResolvedValue(['red.md'] as never);
+
+      await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT, { commandPrefix: 'my-' });
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('my-red.md'),
         expect.stringContaining('## Injected Content')
       );
     });

@@ -44,6 +44,7 @@ export const SCOPE_OPTIONS = [
 
 export interface GenerateOptions {
   skipTemplateInjection?: boolean;
+  commandPrefix?: string;
 }
 
 export interface GenerateResult {
@@ -98,6 +99,14 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
   const files = await fs.readdir(sourcePath);
   await fs.copy(sourcePath, destinationPath, {});
 
+  if (options?.commandPrefix) {
+    for (const file of files) {
+      const oldPath = path.join(destinationPath, file);
+      const newPath = path.join(destinationPath, options.commandPrefix + file);
+      await fs.rename(oldPath, newPath);
+    }
+  }
+
   let templateInjected = false;
 
   if (!options?.skipTemplateInjection) {
@@ -119,7 +128,8 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
           if (template.commands && !template.commands.includes(commandName)) {
             continue;
           }
-          const filePath = path.join(destinationPath, file);
+          const actualFileName = options?.commandPrefix ? options.commandPrefix + file : file;
+          const filePath = path.join(destinationPath, actualFileName);
           const content = await fs.readFile(filePath, 'utf-8');
           await fs.writeFile(filePath, content + '\n\n' + template.content);
         }
