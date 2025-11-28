@@ -144,3 +144,4 @@ Content lives in `src/fragments/tdd-fundamentals.md`
 
 ### Check MCP Integration
 MCP validation step fragment: `src/fragments/mcp-validation-step.md`
+- We always try to avoid adding fallback logic and values unless the technical design explicitly needs it
