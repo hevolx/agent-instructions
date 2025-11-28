@@ -23,6 +23,14 @@ describe('parseArgs', () => {
       skipTemplateInjection: true
     });
   });
+
+  it('should parse --commands as comma-separated list', () => {
+    const args = parseArgs(['--commands=red,green,commit']);
+
+    expect(args).toEqual({
+      commands: ['red', 'green', 'commit']
+    });
+  });
 });
 
 describe('run', () => {

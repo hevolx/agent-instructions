@@ -5,6 +5,8 @@ const mockCancel = Symbol('cancel');
 vi.mock('@clack/prompts', () => ({
   select: vi.fn(),
   text: vi.fn(),
+  multiselect: vi.fn(),
+  groupMultiselect: vi.fn(),
   isCancel: (value: unknown) => value === mockCancel,
   intro: vi.fn(),
   outro: vi.fn()
@@ -12,6 +14,16 @@ vi.mock('@clack/prompts', () => ({
 
 vi.mock('./cli-generator.js', () => ({
   generateToDirectory: vi.fn().mockResolvedValue({ success: true, filesGenerated: 5 }),
+  getAvailableCommands: vi.fn().mockResolvedValue(['red.md', 'green.md', 'refactor.md']),
+  getCommandsGroupedByCategory: vi.fn().mockResolvedValue({
+    'TDD Cycle': [
+      { value: 'red.md', label: 'red.md', hint: 'Red phase' },
+      { value: 'green.md', label: 'green.md', hint: 'Green phase' }
+    ],
+    'Workflow': [
+      { value: 'commit.md', label: 'commit.md', hint: 'Create commit' }
+    ]
+  }),
   VARIANT_OPTIONS: [
     { value: 'with-beads', label: 'With Beads' },
     { value: 'without-beads', label: 'Without Beads' }
@@ -182,6 +194,61 @@ describe('CLI', () => {
       'with-beads',
       'project',
       expect.objectContaining({ skipTemplateInjection: true })
+    );
+  });
+
+  it('should prompt for command selection with groupMultiselect', async () => {
+    const { select, text, groupMultiselect } = await import('@clack/prompts');
+    const { main } = await import('./cli.js');
+
+    vi.mocked(select)
+      .mockResolvedValueOnce('with-beads')
+      .mockResolvedValueOnce('project');
+    vi.mocked(groupMultiselect).mockResolvedValueOnce(['red.md', 'green.md']);
+    vi.mocked(text).mockResolvedValueOnce('');
+
+    await main();
+
+    expect(groupMultiselect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Enter to accept all'),
+        options: expect.any(Object)
+      })
+    );
+  });
+
+  it('should pass selected commands to generator', async () => {
+    const { select, text, groupMultiselect } = await import('@clack/prompts');
+    const { generateToDirectory } = await import('./cli-generator.js');
+    const { main } = await import('./cli.js');
+
+    vi.mocked(select)
+      .mockResolvedValueOnce('with-beads')
+      .mockResolvedValueOnce('project');
+    vi.mocked(groupMultiselect).mockResolvedValueOnce(['red.md', 'green.md']);
+    vi.mocked(text).mockResolvedValueOnce('');
+
+    await main();
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      'with-beads',
+      'project',
+      expect.objectContaining({ commands: ['red.md', 'green.md'] })
+    );
+  });
+
+  it('should pass commands from CLI args to generator in non-interactive mode', async () => {
+    const { generateToDirectory } = await import('./cli-generator.js');
+    const { main } = await import('./cli.js');
+
+    await main({ variant: 'with-beads', scope: 'project', prefix: '', commands: ['red', 'green'] });
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      'with-beads',
+      'project',
+      expect.objectContaining({ commands: ['red', 'green'] })
     );
   });
 });

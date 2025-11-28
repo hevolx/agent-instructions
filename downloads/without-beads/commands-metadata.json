@@ -1,0 +1,92 @@
+{
+  "add-command.md": {
+    "description": "Guide for creating new slash commands",
+    "category": "Utilities",
+    "order": 3
+  },
+  "ask.md": {
+    "description": "Request team review and approval - for complex changes needing discussion (OK fine, traditional PRs still have their place - Cursor)",
+    "category": "Workflow",
+    "order": 4
+  },
+  "beepboop.md": {
+    "description": "Communicate AI-generated content with transparent attribution",
+    "category": "Utilities",
+    "order": 2
+  },
+  "commit.md": {
+    "description": "Create a git commit following project standards",
+    "category": "Workflow",
+    "order": 1
+  },
+  "cycle.md": {
+    "description": "Execute complete TDD cycle - Red, Green, and Refactor phases in sequence",
+    "category": "TDD Cycle",
+    "order": 5
+  },
+  "gap.md": {
+    "description": "Analyze conversation context for unaddressed items and gaps",
+    "category": "Workflow",
+    "order": 11
+  },
+  "green.md": {
+    "description": "Execute TDD Green Phase - write minimal implementation to pass the failing test",
+    "category": "TDD Cycle",
+    "order": 3
+  },
+  "issue.md": {
+    "description": "Analyze GitHub issue and create TDD implementation plan",
+    "category": "Planning",
+    "order": 1
+  },
+  "plan.md": {
+    "description": "Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria",
+    "category": "Planning",
+    "order": 2
+  },
+  "red.md": {
+    "description": "Execute TDD Red Phase - write ONE failing test",
+    "category": "TDD Cycle",
+    "order": 2
+  },
+  "refactor.md": {
+    "description": "Execute TDD Refactor Phase - improve code structure while keeping tests green",
+    "category": "TDD Cycle",
+    "order": 4
+  },
+  "ship.md": {
+    "description": "Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)",
+    "category": "Workflow",
+    "order": 2
+  },
+  "show.md": {
+    "description": "Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)",
+    "category": "Workflow",
+    "order": 3
+  },
+  "spike.md": {
+    "description": "Execute TDD Spike Phase - exploratory coding to understand problem space before TDD",
+    "category": "TDD Cycle",
+    "order": 1
+  },
+  "summarize.md": {
+    "description": "Summarize conversation progress and next steps",
+    "category": "Workflow",
+    "order": 10
+  },
+  "tdd.md": {
+    "description": "Remind agent about TDD approach and continue conversation",
+    "category": "Utilities",
+    "order": 1
+  },
+  "worktree-add.md": {
+    "description": "Add a new git worktree from branch name or GitHub issue URL, copy settings, install deps, and open in current IDE",
+    "category": "Worktree Management",
+    "order": 1
+  },
+  "worktree-cleanup.md": {
+    "description": "Clean up merged worktrees by verifying PR/issue status, consolidating settings, and removing stale worktrees",
+    "category": "Worktree Management",
+    "order": 2
+  }
+}

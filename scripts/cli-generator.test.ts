@@ -264,6 +264,50 @@ This should appear at the end.
         expect.anything()
       );
     });
+
+    it('should only copy selected commands when commands option is provided', async () => {
+      vi.mocked(fs.readdir).mockResolvedValue(['red.md', 'green.md', 'commit.md', 'refactor.md'] as never);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+      const result = await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS, SCOPES.PROJECT, {
+        commands: ['red.md', 'commit.md']
+      });
+
+      expect(result.filesGenerated).toBe(2);
+      expect(fs.copy).toHaveBeenCalledTimes(2);
+      expect(fs.copy).toHaveBeenCalledWith(
+        expect.stringContaining('red.md'),
+        expect.stringContaining('red.md')
+      );
+      expect(fs.copy).toHaveBeenCalledWith(
+        expect.stringContaining('commit.md'),
+        expect.stringContaining('commit.md')
+      );
+    });
   });
 
+});
+
+describe('getCommandsGroupedByCategory', () => {
+  it('should return commands grouped by category from metadata file', async () => {
+    const mockMetadata = {
+      'red.md': { description: 'Red phase', category: 'TDD Cycle', order: 2 },
+      'green.md': { description: 'Green phase', category: 'TDD Cycle', order: 3 },
+      'commit.md': { description: 'Create commit', category: 'Workflow', order: 1 }
+    };
+    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockMetadata) as never);
+
+    const { getCommandsGroupedByCategory } = await import('./cli-generator.js');
+    const result = await getCommandsGroupedByCategory('with-beads');
+
+    expect(result).toEqual({
+      'TDD Cycle': [
+        { value: 'red.md', label: 'red.md' },
+        { value: 'green.md', label: 'green.md' }
+      ],
+      'Workflow': [
+        { value: 'commit.md', label: 'commit.md' }
+      ]
+    });
+  });
 });

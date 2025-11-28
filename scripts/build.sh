@@ -58,6 +58,11 @@ build_variant "with-beads" "" "$OUT_DIR_WITH_BEADS"
 # Build without-beads variant
 build_variant "without-beads" "--without-beads" "$OUT_DIR_WITHOUT_BEADS"
 
+# Generate commands metadata for both variants
+echo "📋 Generating commands metadata..."
+tsx scripts/generate-readme.ts --generate-metadata "$OUT_DIR_WITH_BEADS/commands-metadata.json"
+tsx scripts/generate-readme.ts --generate-metadata "$OUT_DIR_WITHOUT_BEADS/commands-metadata.json"
+
 # Generate README
 echo "📖 Updating README.md..."
 tsx scripts/generate-readme.ts README.md > /dev/null 2>&1

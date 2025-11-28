@@ -115,3 +115,18 @@ describe('generateCommandsMarkdown', () => {
     expect(result).toContain('Summarize conversation progress and next steps');
   });
 });
+
+describe('generateCommandsMetadata', () => {
+  it('should generate metadata JSON with commands keyed by filename', async () => {
+    const { generateCommandsMetadata } = await import('./generate-readme.js');
+
+    const result = await generateCommandsMetadata();
+
+    expect(result).toHaveProperty('red.md');
+    expect(result['red.md']).toMatchObject({
+      description: expect.any(String),
+      category: 'TDD Cycle',
+      order: expect.any(Number)
+    });
+  });
+});

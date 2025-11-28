@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // scripts/cli.ts
-import { select, text, isCancel, intro, outro } from "@clack/prompts";
+import { select, text, groupMultiselect, isCancel, intro, outro } from "@clack/prompts";
 
 // scripts/cli-generator.ts
 import fs from "fs-extra";
@@ -32,6 +32,31 @@ var SCOPE_OPTIONS = [
   { value: SCOPES.PROJECT, label: "Project/Repository" },
   { value: SCOPES.USER, label: "User (Global)" }
 ];
+async function getCommandsGroupedByCategory(variant) {
+  const sourcePath = path.join(__dirname, "..", DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
+  const metadataPath = path.join(sourcePath, "commands-metadata.json");
+  const metadataContent = await fs.readFile(metadataPath, "utf-8");
+  const metadata = JSON.parse(metadataContent);
+  const grouped = {};
+  for (const [filename, data] of Object.entries(metadata)) {
+    const category = data.category;
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push({
+      value: filename,
+      label: filename
+    });
+  }
+  for (const category of Object.keys(grouped)) {
+    grouped[category].sort((a, b) => {
+      const orderA = metadata[a.value].order;
+      const orderB = metadata[b.value].order;
+      return orderA - orderB;
+    });
+  }
+  return grouped;
+}
 function getDestinationPath(outputPath, scope) {
   if (outputPath) {
     return outputPath;
@@ -64,8 +89,16 @@ async function generateToDirectory(outputPath, variant, scope, options) {
   if (!destinationPath) {
     throw new Error("Either outputPath or scope must be provided");
   }
-  const files = await fs.readdir(sourcePath);
-  await fs.copy(sourcePath, destinationPath, {});
+  const allFiles = await fs.readdir(sourcePath);
+  const files = options?.commands ? allFiles.filter((f) => options.commands.includes(f)) : allFiles;
+  if (options?.commands) {
+    await fs.ensureDir(destinationPath);
+    for (const file of files) {
+      await fs.copy(path.join(sourcePath, file), path.join(destinationPath, file));
+    }
+  } else {
+    await fs.copy(sourcePath, destinationPath, {});
+  }
   if (options?.commandPrefix) {
     for (const file of files) {
       const oldPath = path.join(destinationPath, file);
@@ -132,10 +165,12 @@ async function main(args) {
   let variant;
   let scope;
   let commandPrefix;
+  let selectedCommands;
   if (args?.variant && args?.scope && args?.prefix !== void 0) {
     variant = args.variant;
     scope = args.scope;
     commandPrefix = args.prefix;
+    selectedCommands = args.commands;
   } else {
     variant = await select({
       message: "Select variant",
@@ -158,13 +193,24 @@ async function main(args) {
     if (isCancel(commandPrefix)) {
       return;
     }
+    const groupedCommands = await getCommandsGroupedByCategory(variant);
+    const allCommandValues = Object.values(groupedCommands).flat().map((cmd) => cmd.value);
+    selectedCommands = await groupMultiselect({
+      message: "Select commands to install (Enter to accept all)",
+      options: groupedCommands,
+      initialValues: allCommandValues
+    });
+    if (isCancel(selectedCommands)) {
+      return;
+    }
   }
-  const result = await generateToDirectory(void 0, variant, scope, { commandPrefix, skipTemplateInjection: args?.skipTemplateInjection });
+  const result = await generateToDirectory(void 0, variant, scope, { commandPrefix, skipTemplateInjection: args?.skipTemplateInjection, commands: selectedCommands });
   outro(`Installed ${result.filesGenerated} commands to .claude/commands`);
 }
 
 // scripts/bin.ts
 var STRING_ARGS = ["variant", "scope", "prefix"];
+var ARRAY_ARGS = ["commands"];
 var BOOLEAN_FLAGS = [
   { flag: "--skip-template-injection", key: "skipTemplateInjection" }
 ];
@@ -180,6 +226,12 @@ function parseArgs(argv) {
       const prefix = `--${key}=`;
       if (arg.startsWith(prefix)) {
         args[key] = arg.slice(prefix.length);
+      }
+    }
+    for (const key of ARRAY_ARGS) {
+      const prefix = `--${key}=`;
+      if (arg.startsWith(prefix)) {
+        args[key] = arg.slice(prefix.length).split(",");
       }
     }
   }

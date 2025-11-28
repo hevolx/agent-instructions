@@ -45,6 +45,7 @@ export const SCOPE_OPTIONS = [
 export interface GenerateOptions {
   skipTemplateInjection?: boolean;
   commandPrefix?: string;
+  commands?: string[];
 }
 
 export interface GenerateResult {
@@ -53,6 +54,54 @@ export interface GenerateResult {
   variant?: Variant;
   templateInjectionSkipped?: boolean;
   templateInjected?: boolean;
+}
+
+export async function getAvailableCommands(variant: Variant): Promise<string[]> {
+  const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
+  return fs.readdir(sourcePath);
+}
+
+interface CommandOption {
+  value: string;
+  label: string;
+}
+
+interface CommandMetadata {
+  description: string;
+  category: string;
+  order: number;
+}
+
+export async function getCommandsGroupedByCategory(variant: Variant): Promise<Record<string, CommandOption[]>> {
+  const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
+  const metadataPath = path.join(sourcePath, 'commands-metadata.json');
+
+  const metadataContent = await fs.readFile(metadataPath, 'utf-8');
+  const metadata: Record<string, CommandMetadata> = JSON.parse(metadataContent);
+
+  const grouped: Record<string, CommandOption[]> = {};
+
+  for (const [filename, data] of Object.entries(metadata)) {
+    const category = data.category;
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push({
+      value: filename,
+      label: filename
+    });
+  }
+
+  // Sort commands within each category by order
+  for (const category of Object.keys(grouped)) {
+    grouped[category].sort((a, b) => {
+      const orderA = metadata[a.value].order;
+      const orderB = metadata[b.value].order;
+      return orderA - orderB;
+    });
+  }
+
+  return grouped;
 }
 
 function getDestinationPath(outputPath: string | undefined, scope: string | undefined): string | undefined {
@@ -96,8 +145,17 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
     throw new Error('Either outputPath or scope must be provided');
   }
 
-  const files = await fs.readdir(sourcePath);
-  await fs.copy(sourcePath, destinationPath, {});
+  const allFiles = await fs.readdir(sourcePath);
+  const files = options?.commands ? allFiles.filter(f => options.commands!.includes(f)) : allFiles;
+
+  if (options?.commands) {
+    await fs.ensureDir(destinationPath);
+    for (const file of files) {
+      await fs.copy(path.join(sourcePath, file), path.join(destinationPath, file));
+    }
+  } else {
+    await fs.copy(sourcePath, destinationPath, {});
+  }
 
   if (options?.commandPrefix) {
     for (const file of files) {

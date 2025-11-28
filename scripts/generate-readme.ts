@@ -183,6 +183,19 @@ function generateCommandsMarkdown(commands: Command[]): string {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
 
+  // Check for metadata generation mode
+  const metadataIndex = args.indexOf('--generate-metadata');
+  if (metadataIndex !== -1) {
+    const outputPath = args[metadataIndex + 1];
+    if (!outputPath) {
+      console.error('Error: --generate-metadata requires an output path');
+      process.exit(1);
+    }
+    writeCommandsMetadata(outputPath);
+    console.log(`   ✅ Generated commands metadata: ${outputPath}`);
+    process.exit(0);
+  }
+
   // Extract output directory if provided
   const outputDirIndex = args.indexOf('--output-dir');
   const outputDir: string | null = outputDirIndex !== -1 ? args[outputDirIndex + 1] : null;
@@ -205,10 +218,45 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   markdownMagic(filesToProcess, finalConfig);
 }
 
+// Types for metadata
+interface CommandMetadata {
+  description: string;
+  category: string;
+  order: number;
+}
+
+// Generate metadata JSON for all commands
+function generateCommandsMetadata(): Record<string, CommandMetadata> {
+  const sourcesDir = path.join(PROJECT_ROOT, SOURCES_DIR);
+  const files = fs.readdirSync(sourcesDir).filter(f => f.endsWith('.md'));
+
+  const metadata: Record<string, CommandMetadata> = {};
+
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(sourcesDir, file), 'utf8');
+    const frontmatter = parseFrontmatter(content);
+
+    metadata[file] = {
+      description: frontmatter.description || 'No description',
+      category: getCategory(frontmatter),
+      order: typeof frontmatter._order === 'number' ? frontmatter._order : 999
+    };
+  }
+
+  return metadata;
+}
+
+// Write metadata JSON to a file
+function writeCommandsMetadata(outputPath: string): void {
+  const metadata = generateCommandsMetadata();
+  fs.writeFileSync(outputPath, JSON.stringify(metadata, null, 2));
+}
+
 // Export for testing
 export {
   parseFrontmatter,
   getCategory,
   generateCommandsMarkdown,
+  generateCommandsMetadata,
   CATEGORIES
 };

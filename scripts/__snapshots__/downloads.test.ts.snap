@@ -474,6 +474,32 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 "
 `;
 
+exports[`downloads/with-beads > should match snapshot for gap.md 1`] = `
+"---
+allowed-tools: mcp__beads__list, mcp__beads__ready
+description: Analyze conversation context for unaddressed items and gaps
+---
+
+Analyze the current conversation context and identify things that have not yet been addressed. Look for:
+
+1. **Incomplete implementations** - Code that was started but not finished
+2. **Unused variables/results** - Values that were captured but never used
+3. **Missing tests** - Functionality without test coverage
+4. **Open issues** - Beads issues that are still open or in progress
+5. **User requests** - Things the user asked for that weren't fully completed
+6. **TODO comments** - Any TODOs mentioned in conversation
+7. **Error handling gaps** - Missing error cases or edge cases
+8. **Documentation gaps** - Undocumented APIs or features
+
+Present findings as a prioritized list with:
+- What the gap is
+- Why it matters
+- Suggested next action
+
+If there are no gaps, confirm that everything discussed has been addressed.
+"
+`;
+
 exports[`downloads/with-beads > should match snapshot for green.md 1`] = `
 "---
 allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
@@ -2448,6 +2474,31 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+"
+`;
+
+exports[`downloads/without-beads > should match snapshot for gap.md 1`] = `
+"---
+allowed-tools: mcp__beads__list, mcp__beads__ready
+description: Analyze conversation context for unaddressed items and gaps
+---
+
+Analyze the current conversation context and identify things that have not yet been addressed. Look for:
+
+1. **Incomplete implementations** - Code that was started but not finished
+2. **Unused variables/results** - Values that were captured but never used
+3. **Missing tests** - Functionality without test coverage
+5. **User requests** - Things the user asked for that weren't fully completed
+6. **TODO comments** - Any TODOs mentioned in conversation
+7. **Error handling gaps** - Missing error cases or edge cases
+8. **Documentation gaps** - Undocumented APIs or features
+
+Present findings as a prioritized list with:
+- What the gap is
+- Why it matters
+- Suggested next action
+
+If there are no gaps, confirm that everything discussed has been addressed.
 "
 `;
 

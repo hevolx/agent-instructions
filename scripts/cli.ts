@@ -1,5 +1,5 @@
-import { select, text, isCancel, intro, outro } from '@clack/prompts';
-import { generateToDirectory, VARIANT_OPTIONS, SCOPE_OPTIONS, type Variant, type Scope } from './cli-generator.js';
+import { select, text, groupMultiselect, isCancel, intro, outro } from '@clack/prompts';
+import { generateToDirectory, VARIANT_OPTIONS, SCOPE_OPTIONS, getCommandsGroupedByCategory, type Variant, type Scope } from './cli-generator.js';
 
 const BATMAN_LOGO = `
        _==/          i     i          \\==_
@@ -23,6 +23,7 @@ export interface CliArgs {
   scope?: string;
   prefix?: string;
   skipTemplateInjection?: boolean;
+  commands?: string[];
 }
 
 export async function main(args?: CliArgs): Promise<void> {
@@ -31,11 +32,13 @@ export async function main(args?: CliArgs): Promise<void> {
   let variant: string | symbol;
   let scope: string | symbol;
   let commandPrefix: string | symbol;
+  let selectedCommands: string[] | symbol | undefined;
 
   if (args?.variant && args?.scope && args?.prefix !== undefined) {
     variant = args.variant;
     scope = args.scope;
     commandPrefix = args.prefix;
+    selectedCommands = args.commands;
   } else {
     variant = await select({
       message: 'Select variant',
@@ -63,9 +66,21 @@ export async function main(args?: CliArgs): Promise<void> {
     if (isCancel(commandPrefix)) {
       return;
     }
+
+    const groupedCommands = await getCommandsGroupedByCategory(variant as Variant);
+    const allCommandValues = Object.values(groupedCommands).flat().map(cmd => cmd.value);
+    selectedCommands = await groupMultiselect({
+      message: 'Select commands to install (Enter to accept all)',
+      options: groupedCommands,
+      initialValues: allCommandValues
+    });
+
+    if (isCancel(selectedCommands)) {
+      return;
+    }
   }
 
-  const result = await generateToDirectory(undefined, variant as Variant, scope as Scope, { commandPrefix: commandPrefix as string, skipTemplateInjection: args?.skipTemplateInjection });
+  const result = await generateToDirectory(undefined, variant as Variant, scope as Scope, { commandPrefix: commandPrefix as string, skipTemplateInjection: args?.skipTemplateInjection, commands: selectedCommands as string[] });
 
   outro(`Installed ${result.filesGenerated} commands to .claude/commands`);
 }
