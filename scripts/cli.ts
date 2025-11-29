@@ -1,5 +1,5 @@
 import { select, text, groupMultiselect, isCancel, intro, outro } from '@clack/prompts';
-import { generateToDirectory, VARIANT_OPTIONS, SCOPE_OPTIONS, getCommandsGroupedByCategory, type Variant, type Scope } from './cli-generator.js';
+import { generateToDirectory, VARIANT_OPTIONS, getScopeOptions, getCommandsGroupedByCategory, type Variant, type Scope } from './cli-generator.js';
 
 const BATMAN_LOGO = `
        _==/          i     i          \\==_
@@ -49,9 +49,11 @@ export async function main(args?: CliArgs): Promise<void> {
       return;
     }
 
+    const terminalWidth = process.stdout.columns || 80;
+    const uiOverhead = 25; // checkbox, label, padding
     scope = await select({
       message: 'Select installation scope',
-      options: [...SCOPE_OPTIONS]
+      options: getScopeOptions(terminalWidth - uiOverhead)
     });
 
     if (isCancel(scope)) {

@@ -32,15 +32,34 @@ export interface TemplateBlock {
 export type Variant = typeof VARIANTS[keyof typeof VARIANTS];
 export type Scope = typeof SCOPES[keyof typeof SCOPES];
 
+const ELLIPSIS = '...';
+
+function truncatePathFromLeft(pathStr: string, maxLength: number): string {
+  if (pathStr.length <= maxLength) {
+    return pathStr;
+  }
+  const truncated = pathStr.slice(-(maxLength - ELLIPSIS.length));
+  const firstSlash = truncated.indexOf('/');
+  if (firstSlash > 0) {
+    return ELLIPSIS + truncated.slice(firstSlash);
+  }
+  return ELLIPSIS + truncated;
+}
+
 export const VARIANT_OPTIONS = [
-  { value: VARIANTS.WITH_BEADS, label: 'With Beads' },
-  { value: VARIANTS.WITHOUT_BEADS, label: 'Without Beads' }
+  { value: VARIANTS.WITH_BEADS, label: 'With Beads', hint: 'Includes Beads task tracking' },
+  { value: VARIANTS.WITHOUT_BEADS, label: 'Without Beads', hint: 'Standard commands only' }
 ] as const;
 
-export const SCOPE_OPTIONS = [
-  { value: SCOPES.PROJECT, label: 'Project/Repository' },
-  { value: SCOPES.USER, label: 'User (Global)' }
-] as const;
+export function getScopeOptions(terminalWidth: number = 80) {
+  const projectPath = path.join(process.cwd(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
+  const userPath = path.join(os.homedir(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
+
+  return [
+    { value: SCOPES.PROJECT, label: 'Project/Repository', hint: truncatePathFromLeft(projectPath, terminalWidth) },
+    { value: SCOPES.USER, label: 'User (Global)', hint: truncatePathFromLeft(userPath, terminalWidth) }
+  ];
+}
 
 export interface GenerateOptions {
   skipTemplateInjection?: boolean;

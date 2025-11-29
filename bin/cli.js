@@ -24,14 +24,30 @@ var DIRECTORIES = {
   DOWNLOADS: "downloads"
 };
 var TEMPLATE_SOURCE_FILES = ["CLAUDE.md", "AGENTS.md"];
+var ELLIPSIS = "...";
+function truncatePathFromLeft(pathStr, maxLength) {
+  if (pathStr.length <= maxLength) {
+    return pathStr;
+  }
+  const truncated = pathStr.slice(-(maxLength - ELLIPSIS.length));
+  const firstSlash = truncated.indexOf("/");
+  if (firstSlash > 0) {
+    return ELLIPSIS + truncated.slice(firstSlash);
+  }
+  return ELLIPSIS + truncated;
+}
 var VARIANT_OPTIONS = [
-  { value: VARIANTS.WITH_BEADS, label: "With Beads" },
-  { value: VARIANTS.WITHOUT_BEADS, label: "Without Beads" }
+  { value: VARIANTS.WITH_BEADS, label: "With Beads", hint: "Includes Beads task tracking" },
+  { value: VARIANTS.WITHOUT_BEADS, label: "Without Beads", hint: "Standard commands only" }
 ];
-var SCOPE_OPTIONS = [
-  { value: SCOPES.PROJECT, label: "Project/Repository" },
-  { value: SCOPES.USER, label: "User (Global)" }
-];
+function getScopeOptions(terminalWidth = 80) {
+  const projectPath = path.join(process.cwd(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
+  const userPath = path.join(os.homedir(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
+  return [
+    { value: SCOPES.PROJECT, label: "Project/Repository", hint: truncatePathFromLeft(projectPath, terminalWidth) },
+    { value: SCOPES.USER, label: "User (Global)", hint: truncatePathFromLeft(userPath, terminalWidth) }
+  ];
+}
 async function getCommandsGroupedByCategory(variant) {
   const sourcePath = path.join(__dirname, "..", DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
   const metadataPath = path.join(sourcePath, "commands-metadata.json");
@@ -179,9 +195,11 @@ async function main(args) {
     if (isCancel(variant)) {
       return;
     }
+    const terminalWidth = process.stdout.columns || 80;
+    const uiOverhead = 25;
     scope = await select({
       message: "Select installation scope",
-      options: [...SCOPE_OPTIONS]
+      options: getScopeOptions(terminalWidth - uiOverhead)
     });
     if (isCancel(scope)) {
       return;

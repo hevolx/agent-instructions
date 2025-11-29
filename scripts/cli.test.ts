@@ -28,10 +28,10 @@ vi.mock('./cli-generator.js', () => ({
     { value: 'with-beads', label: 'With Beads' },
     { value: 'without-beads', label: 'Without Beads' }
   ],
-  SCOPE_OPTIONS: [
-    { value: 'project', label: 'Project/Repository' },
-    { value: 'user', label: 'User (Global)' }
-  ]
+  getScopeOptions: vi.fn().mockReturnValue([
+    { value: 'project', label: 'Project/Repository', hint: '/mock/path/.claude/commands' },
+    { value: 'user', label: 'User (Global)', hint: '/home/user/.claude/commands' }
+  ])
 }));
 
 describe('CLI', () => {

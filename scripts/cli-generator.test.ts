@@ -13,7 +13,44 @@ vi.mock('fs-extra', () => ({
   }
 }));
 
-import { generateToDirectory, extractTemplateBlocks, VARIANTS, SCOPES } from './cli-generator.js';
+import { generateToDirectory, extractTemplateBlocks, VARIANTS, SCOPES, getScopeOptions, VARIANT_OPTIONS } from './cli-generator.js';
+import os from 'os';
+
+describe('VARIANT_OPTIONS', () => {
+  it('should include hints explaining each variant', () => {
+    const withBeads = VARIANT_OPTIONS.find(opt => opt.value === VARIANTS.WITH_BEADS);
+    const withoutBeads = VARIANT_OPTIONS.find(opt => opt.value === VARIANTS.WITHOUT_BEADS);
+
+    expect(withBeads?.hint).toBeDefined();
+    expect(withoutBeads?.hint).toBeDefined();
+    expect(withBeads?.hint).toContain('Beads');
+    expect(withoutBeads?.hint).not.toContain('Beads');
+  });
+});
+
+describe('getScopeOptions', () => {
+  it('should truncate long paths when terminal is narrow', () => {
+    const options = getScopeOptions(40);
+    const projectOption = options.find(opt => opt.value === SCOPES.PROJECT);
+    expect(projectOption?.hint?.startsWith('...')).toBe(true);
+    expect(projectOption?.hint?.length).toBeLessThanOrEqual(40);
+  });
+
+  it('should show full path when terminal is wide enough', () => {
+    const options = getScopeOptions(200);
+    const projectOption = options.find(opt => opt.value === SCOPES.PROJECT);
+    expect(projectOption?.hint).toContain(process.cwd());
+    expect(projectOption?.hint).not.toMatch(/^\.\.\./);
+  });
+
+  it('should include .claude/commands in hint for both scopes', () => {
+    const options = getScopeOptions(200);
+    const projectOption = options.find(opt => opt.value === SCOPES.PROJECT);
+    const userOption = options.find(opt => opt.value === SCOPES.USER);
+    expect(projectOption?.hint).toContain('.claude/commands');
+    expect(userOption?.hint).toContain('.claude/commands');
+  });
+});
 
 describe('extractTemplateBlocks', () => {
   it('should extract template block from markdown content', () => {
