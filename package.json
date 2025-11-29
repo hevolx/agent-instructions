@@ -28,9 +28,7 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf downloads",
-    "clean:dev": "rm -rf .claude/commands",
-    "build": "bash scripts/build.sh",
-    "build:dev": "bash scripts/build-dev.sh",
+    "build": "tsx scripts/build.ts",
     "build:cli": "tsup",
     "test:manual": "pnpm build:cli && TMPDIR=$(mktemp -d) && pnpm pack --pack-destination $TMPDIR && cd $TMPDIR && tar -xzf *.tgz && cd package && pnpm i && node bin/cli.js",
     "generate": "tsx scripts/cli-generator.ts",

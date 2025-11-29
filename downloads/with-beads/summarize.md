@@ -1,5 +1,5 @@
 ---
-allowed-tools: AskUserQuestion, mcp__beads__list, mcp__beads__stats
+allowed-tools: AskUserQuestion
 description: Summarize conversation progress and next steps
 ---
 

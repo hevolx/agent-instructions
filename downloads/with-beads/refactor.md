@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
+allowed-tools: Read, Glob, Grep, Bash(pnpm test:*)
 description: Execute TDD Refactor Phase - improve code structure while keeping tests green
 argument-hint: <refactoring description>
 ---

@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["scripts/bin.ts", "scripts/generate-readme.ts", "scripts/build.sh"],
+  "entry": ["scripts/bin.ts", "scripts/generate-readme.ts", "scripts/build.ts"],
   "project": ["scripts/**/*.ts"],
   "ignore": [
     "scripts/**/*.test.ts",

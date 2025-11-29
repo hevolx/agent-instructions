@@ -9,69 +9,84 @@
 
 👤 `/red` single element [1] returns 1
 
-🔴 *writes test*
+🔴 _writes test_
+
 ```typescript
 expect(closestToZero([1])).toBe(1);
 ```
+
 FAIL: closestToZero is not defined
 
 👤 `/green`
 
-🟢 *returns hardcoded 1*
+🟢 _returns hardcoded 1_
+
 ```typescript
 function closestToZero(nums: number[]): number {
   return 1; // minimal - only need to pass current test
 }
 ```
+
 ✅ Test passes
 
 👤 `/red` two numbers [3, 2] returns 2
 
-🔴 *writes test*
+🔴 _writes test_
+
 ```typescript
 expect(closestToZero([3, 2])).toBe(2);
 ```
+
 FAIL: expected 1 to be 2
 
 👤 `/green`
 
-🟢 *sorts and returns first*
+🟢 _sorts and returns first_
+
 ```typescript
 function closestToZero(nums: number[]): number {
   return nums.sort((a, b) => a - b)[0]; // minimal
 }
 ```
+
 ✅ 2/2 tests pass
 
 👤 `/red` with negative [-3, 2] returns 2
 
-🔴 *writes test*
+🔴 _writes test_
+
 ```typescript
 expect(closestToZero([-3, 2])).toBe(2);
 ```
+
 FAIL: expected -3 to be 2 (regular sort puts -3 first)
 
 👤 `/green`
 
-🟢 *sorts by absolute value*
+🟢 _sorts by absolute value_
+
 ```typescript
 function closestToZero(nums: number[]): number {
   return nums.sort((a, b) => Math.abs(a) - Math.abs(b))[0];
 }
 ```
+
 ✅ 3/3 tests pass
 
 👤 `/red` exact tie [-2, 2] returns positive 2
 
-🔴 *writes test*
+🔴 _writes test_
+
 ```typescript
 expect(closestToZero([-2, 2])).toBe(2);
 ```
+
 FAIL: expected -2 to be 2 (returns first when tied)
 
 👤 `/green`
 
-🟢 *adds tie-breaking: prefer positive*
+🟢 _adds tie-breaking: prefer positive_
+
 ```typescript
 function closestToZero(nums: number[]): number {
   return nums.sort((a, b) => {
@@ -80,11 +95,13 @@ function closestToZero(nums: number[]): number {
   })[0];
 }
 ```
+
 ✅ 4/4 tests pass
 
 👤 `/refactor` extract helper and use iteration instead of sort
 
-🔵 *extracts helper function for comparison logic*
+🔵 _extracts helper function for comparison logic_
+
 ```typescript
 function isCloser(candidate: number, current: number): boolean {
   const candAbs = Math.abs(candidate);
@@ -103,17 +120,20 @@ function closestToZero(nums: number[]): number {
   return closest;
 }
 ```
+
 ✅ 4/4 tests still pass
 
 👤 `/refactor`
 
-🔵 *uses reduce for more functional style*
+🔵 _uses reduce for more functional style_
+
 ```typescript
 function closestToZero(nums: number[]): number {
   if (nums.length === 0) return 0;
   return nums.reduce((closest, num) =>
-    isCloser(num, closest) ? num : closest
+    isCloser(num, closest) ? num : closest,
   );
 }
 ```
+
 ✅ 4/4 tests still pass

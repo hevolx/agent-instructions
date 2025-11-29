@@ -1,5 +1,5 @@
 ---
-allowed-tools: mcp__github__*, Bash(git:*)
+allowed-tools: Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(git checkout:*), Bash(git pull:*), Bash(git merge:*), Bash(git push:*), Bash(git branch:*)
 description: Ship code directly to main - for small, obvious changes that don't need review (Cursor's modern alternative to PRs)
 argument-hint: [optional-commit-message]
 _category: Workflow
@@ -16,6 +16,7 @@ _order: 2
 > 🎯 **Cursor says**: It's 2025! Not everything needs a PR. Ship small, obvious changes directly.
 
 Ship is for small, obvious changes that don't need code review. Examples:
+
 - Typo fixes
 - Formatting changes
 - Documentation updates
@@ -25,6 +26,7 @@ Ship is for small, obvious changes that don't need code review. Examples:
 ## Prerequisites
 
 Before shipping directly to main:
+
 1. All tests must pass
 2. Linter must pass
 3. Changes must be small and low-risk
@@ -55,10 +57,11 @@ Arguments: $ARGUMENTS
    - Is this a small, obvious change?
    - Do all tests pass?
    - Is CI green?
-   
+
    If ANY of these are "no", suggest using `/show` or `/ask` instead.
 
 5. **Merge to Main**: If all checks pass and user confirms:
+
    ```bash
    git checkout main
    git pull origin main
@@ -67,6 +70,7 @@ Arguments: $ARGUMENTS
    ```
 
 6. **Cleanup**: Delete the feature branch
+
    ```bash
    git branch -d [feature-branch]
    git push origin --delete [feature-branch]
@@ -77,9 +81,9 @@ Arguments: $ARGUMENTS
 ## Safety Rails
 
 If tests fail, linter fails, or changes are large/complex, STOP and suggest:
+
 - Use `/show` for changes that should be seen but don't need approval
 - Use `/ask` (traditional PR) for complex changes needing discussion
 
 <!-- docs INCLUDE path='src/fragments/beads-integration.md' featureFlag='beads' -->
 <!-- /docs -->
-

@@ -1,5 +1,5 @@
 ---
-allowed-tools: mcp__github__*, Bash(git:*)
+allowed-tools: mcp__github__create_pull_request, mcp__github__update_pull_request, Bash(git status:*), Bash(git log:*), Bash(git push:*), Bash(git branch:*)
 description: Show code to team with auto-merge - for changes that should be visible but don't need approval (Cursor's modern workflow)
 argument-hint: [optional-pr-title-and-description]
 ---
@@ -18,6 +18,7 @@ argument-hint: [optional-pr-title-and-description]
 > 🚀 **Cursor says**: Not every change needs a traditional review. Show your work, then merge.
 
 Show is for changes that teammates should see, but don't require approval. Examples:
+
 - Refactoring with test coverage
 - New features with comprehensive tests
 - Performance improvements
@@ -26,6 +27,7 @@ Show is for changes that teammates should see, but don't require approval. Examp
 ## Prerequisites
 
 Before using show:
+
 1. All tests must pass
 2. Changes should have good test coverage
 3. Changes should be non-breaking or backward compatible
@@ -60,6 +62,7 @@ Arguments: $ARGUMENTS
    - Add notice that feedback is welcome but not required
 
 4. **PR Description Template**:
+
    ```markdown
    ## 🚀 Show - Auto-merging after CI
 
@@ -71,12 +74,15 @@ Arguments: $ARGUMENTS
    -->
 
    ### What changed
+
    [Brief description]
 
    ### Why
+
    [Rationale for change]
 
    ### Test coverage
+
    - [ ] All tests pass
    - [ ] Coverage maintained/improved
    - [ ] No breaking changes
@@ -87,6 +93,7 @@ Arguments: $ARGUMENTS
 ## Decision Guide
 
 Use **Show** when:
+
 - ✅ Tests are comprehensive
 - ✅ Changes are non-breaking
 - ✅ You're confident in the approach
@@ -95,5 +102,4 @@ Use **Show** when:
 Use **/ship** instead if: change is tiny and obvious (typo, formatting)
 
 Use **/ask** instead if: change needs discussion, breaks APIs, or you're uncertain
-
 

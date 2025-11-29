@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Glob, Grep, Bash(pnpm test:*), Bash(pnpm:*)
+allowed-tools: Read, Glob, Grep, Bash(pnpm test:*)
 description: Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 argument-hint: <feature or requirement description>
 ---
