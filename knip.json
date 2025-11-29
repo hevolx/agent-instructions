@@ -7,6 +7,6 @@
     "scripts/__tests__/**",
     "scripts/post-process.ts"
   ],
-  "ignoreDependencies": ["lint-staged", "@types/markdown-magic"],
-  "ignoreBinaries": ["semantic-release", "prettier", "eslint", "mktemp", "tar"]
+  "ignoreDependencies": [],
+  "ignoreBinaries": ["semantic-release", "mktemp", "tar"]
 }
