@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
+import { execSync } from "child_process";
 import { generateToDirectory, VARIANTS } from "../cli-generator";
+
+const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
 
 describe("Template Interpolation E2E", () => {
   let tempDir: string;
@@ -232,4 +235,68 @@ This is a project without any template blocks.
       process.chdir(originalCwd);
     }
   });
+});
+
+describe("Postinstall Workflow E2E", () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "claude-instructions-postinstall-"),
+    );
+  });
+
+  afterEach(async () => {
+    if (tempDir && (await fs.pathExists(tempDir))) {
+      await fs.remove(tempDir);
+    }
+  });
+
+  it(
+    "should regenerate commands on postinstall when configured as dev dependency",
+    { timeout: 60000 },
+    async () => {
+      // Pack the package to get a local tarball (avoids registry)
+      execSync("pnpm pack --pack-destination " + tempDir, {
+        cwd: PROJECT_ROOT,
+        stdio: "pipe",
+      });
+
+      const files = await fs.readdir(tempDir);
+      const tarball = files.find((f) => f.endsWith(".tgz"));
+      expect(tarball).toBeDefined();
+
+      // Create a minimal project with postinstall script
+      const projectDir = path.join(tempDir, "test-project");
+      await fs.mkdir(projectDir);
+
+      const packageJson = {
+        name: "test-project",
+        version: "1.0.0",
+        scripts: {
+          postinstall:
+            "npx @wbern/claude-instructions --variant=without-beads --scope=project --prefix= --skip-template-injection",
+        },
+        devDependencies: {
+          "@wbern/claude-instructions": `file:${path.join(tempDir, tarball!)}`,
+        },
+      };
+      await fs.writeJson(path.join(projectDir, "package.json"), packageJson);
+
+      // Run pnpm install - this should trigger postinstall
+      execSync("pnpm install", {
+        cwd: projectDir,
+        stdio: "pipe",
+      });
+
+      // Assert: Commands were generated in .claude/commands
+      const commandsDir = path.join(projectDir, ".claude", "commands");
+      expect(await fs.pathExists(commandsDir)).toBe(true);
+
+      const commandFiles = await fs.readdir(commandsDir);
+      const mdFiles = commandFiles.filter((f) => f.endsWith(".md"));
+      expect(mdFiles.length).toBeGreaterThan(0);
+      expect(mdFiles).toContain("commit.md");
+    },
+  );
 });

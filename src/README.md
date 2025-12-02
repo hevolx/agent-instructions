@@ -30,6 +30,41 @@ The interactive installer lets you choose:
 
 After installation, restart Claude Code if it's currently running.
 
+### Adding to Your Repository
+
+To automatically regenerate commands when teammates install dependencies, add it as a dev dependency with a postinstall script:
+
+```bash
+npm install --save-dev @wbern/claude-instructions
+```
+
+Then add a postinstall script to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "postinstall": "npx @wbern/claude-instructions --variant=without-beads --scope=project --prefix="
+  },
+  "devDependencies": {
+    "@wbern/claude-instructions": "^1.0.0"
+  }
+}
+```
+
+This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm install`, or `yarn install`.
+
+**CLI Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--variant=with-beads` | Include Beads MCP integration |
+| `--variant=without-beads` | Standard commands only |
+| `--scope=project` | Install to `.claude/commands` in current directory |
+| `--scope=user` | Install to `~/.claude/commands` (global) |
+| `--prefix=my-` | Add prefix to command names (e.g., `my-commit.md`) |
+| `--skip-template-injection` | Don't inject CLAUDE.md template content |
+| `--commands=commit,red,green` | Install only specific commands |
+
 ## Customizing Commands
 
 You can inject project-specific instructions into generated commands by adding a `<claude-commands-template>` block to your `CLAUDE.md` or `AGENTS.md` file.
