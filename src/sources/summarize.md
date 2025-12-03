@@ -1,6 +1,7 @@
 ---
 allowed-tools: AskUserQuestion
 description: Summarize conversation progress and next steps
+argument-hint: [optional additional info]
 _category: Workflow
 _order: 10
 ---

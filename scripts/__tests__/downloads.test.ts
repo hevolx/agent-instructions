@@ -170,6 +170,19 @@ describe("universal-guidelines inclusion", () => {
   });
 });
 
+describe("argument-hint frontmatter", () => {
+  const files = getMarkdownFiles(SOURCES_DIR);
+
+  files.forEach((file) => {
+    it(`${file} should have argument-hint since it uses $ARGUMENTS`, () => {
+      const content = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+
+      // All source files use $ARGUMENTS, so they should all have argument-hint
+      expect(content).toMatch(/^argument-hint:/m);
+    });
+  });
+});
+
 describe("README", () => {
   it("should contain Batman logo ASCII art", () => {
     const readmePath = path.join(PROJECT_ROOT, "README.md");
