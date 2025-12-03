@@ -11,6 +11,9 @@ Analyze GitHub issue and create TDD implementation plan.
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 Process:
 
 1. Get Issue Number

@@ -11,6 +11,9 @@ _order: 4
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 **Ship/Show/Ask Pattern - ASK**
 
 > 💭 **Cursor says**: Fine, SOME things still need traditional PRs. But be intentional about it.

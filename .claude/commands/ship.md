@@ -14,6 +14,8 @@ argument-hint: [optional-commit-message]
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues (the user interacts via `bd` commands).
+
 **Ship/Show/Ask Pattern - SHIP**
 
 > 🎯 **Cursor says**: It's 2025! Not everything needs a PR. Ship small, obvious changes directly.

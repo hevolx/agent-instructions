@@ -266,3 +266,16 @@ describe("markdownlint validation", () => {
     }).not.toThrow();
   });
 });
+
+describe("beads-awareness inclusion", () => {
+  const BEADS_AWARENESS_MARKER = "Beads is available for task tracking";
+  const variantDir = path.join(DOWNLOADS_DIR, "with-beads");
+  const files = getMarkdownFiles(variantDir);
+
+  files.forEach((file) => {
+    it(`with-beads/${file} should include beads-awareness content`, () => {
+      const content = fs.readFileSync(path.join(variantDir, file), "utf8");
+      expect(content).toContain(BEADS_AWARENESS_MARKER);
+    });
+  });
+});

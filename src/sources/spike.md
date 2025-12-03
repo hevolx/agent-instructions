@@ -13,6 +13,9 @@ $ARGUMENTS
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 <!-- docs INCLUDE path='src/fragments/fallback-arguments.md' -->
 <!-- /docs -->
 

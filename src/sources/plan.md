@@ -13,6 +13,9 @@ Create structured implementation plan that bridges product thinking (PRD) with t
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 ## Input
 
 $ARGUMENTS

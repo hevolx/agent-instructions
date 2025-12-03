@@ -11,6 +11,9 @@ Apply this document (specifically the Refactor phase), to the info given by user
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 <!-- docs INCLUDE path='src/fragments/fallback-arguments.md' -->
 <!-- /docs -->
 

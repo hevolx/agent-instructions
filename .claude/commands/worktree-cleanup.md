@@ -14,6 +14,8 @@ argument-hint: (no arguments)
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues (the user interacts via `bd` commands).
+
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
 Additional info: $ARGUMENTS

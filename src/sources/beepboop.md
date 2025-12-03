@@ -13,7 +13,7 @@ Execute the user's requested task (e.g., posting PR comments, GitHub issue comme
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
-<!-- docs INCLUDE path='src/fragments/beads-integration.md' featureFlag='beads' -->
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
 <!-- /docs -->
 
 ## Instructions

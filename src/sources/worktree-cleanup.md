@@ -11,6 +11,9 @@ _order: 2
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
 Additional info: $ARGUMENTS

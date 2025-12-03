@@ -11,6 +11,9 @@ _order: 2
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 **Ship/Show/Ask Pattern - SHIP**
 
 > 🎯 **Cursor says**: It's 2025! Not everything needs a PR. Ship small, obvious changes directly.

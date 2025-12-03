@@ -11,6 +11,9 @@ _order: 3
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 **Ship/Show/Ask Pattern - SHOW**
 
 > 🚀 **Cursor says**: Not every change needs a traditional review. Show your work, then merge.

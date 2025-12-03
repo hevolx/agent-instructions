@@ -8,6 +8,9 @@ _order: 11
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->
 
+<!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
+<!-- /docs -->
+
 Analyze the current conversation context and identify things that have not yet been addressed. Look for:
 
 1. **Incomplete implementations** - Code that was started but not finished
