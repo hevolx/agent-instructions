@@ -220,6 +220,27 @@ describe("README", () => {
   });
 });
 
+describe("fallback-arguments inclusion", () => {
+  const TDD_CYCLE_COMMANDS = [
+    "red.md",
+    "green.md",
+    "cycle.md",
+    "refactor.md",
+    "spike.md",
+  ];
+  const FALLBACK_MARKER = "bd ready";
+
+  TDD_CYCLE_COMMANDS.forEach((file) => {
+    it(`with-beads/${file} should include fallback-arguments content`, () => {
+      const content = fs.readFileSync(
+        path.join(DOWNLOADS_DIR, "with-beads", file),
+        "utf8",
+      );
+      expect(content).toContain(FALLBACK_MARKER);
+    });
+  });
+});
+
 describe("markdownlint validation", () => {
   ["with-beads", "without-beads"].forEach((variant) => {
     it(`${variant} should pass markdownlint`, () => {

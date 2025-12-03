@@ -8,8 +8,6 @@ RED PHASE! Apply the below to the info given by user input here:
 
 $ARGUMENTS
 
-(If there was no info above, use info from the current context of conversation. If there was not enough info, ask for it.)
-
 ## General Guidelines
 
 ### Output Style
@@ -17,6 +15,11 @@ $ARGUMENTS
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+(If there was no info above, fallback to:
+
+1. Context of the conversation, if there's an immediate thing
+2. `bd ready` to see what to work on next and start from there)
 
 ## TDD Fundamentals
 
