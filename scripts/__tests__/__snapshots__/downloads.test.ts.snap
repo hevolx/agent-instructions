@@ -572,9 +572,8 @@ Analyze the current conversation context and identify things that have not yet b
 5. **TODO comments** - Any TODOs mentioned in conversation
 6. **Error handling gaps** - Missing error cases or edge cases
 7. **Documentation gaps** - Undocumented APIs or features
-8. **Consistency gaps** - Inconsistent patterns, naming, or structure across the codebase
-
-Present findings as a prioritized list with:
+8. <!- **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+    resent findings as a prioritized list with:
 
 - What the gap is
 - Why it matters
@@ -1187,6 +1186,8 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
+**Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
 "
 `;
 
@@ -2703,9 +2704,8 @@ Analyze the current conversation context and identify things that have not yet b
 5. **TODO comments** - Any TODOs mentioned in conversation
 6. **Error handling gaps** - Missing error cases or edge cases
 7. **Documentation gaps** - Undocumented APIs or features
-8. **Consistency gaps** - Inconsistent patterns, naming, or structure across the codebase
-
-Present findings as a prioritized list with:
+8. <!- **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+    resent findings as a prioritized list with:
 
 - What the gap is
 - Why it matters
@@ -3250,6 +3250,8 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
+**Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
 "
 `;
 

@@ -19,7 +19,8 @@ Analyze the current conversation context and identify things that have not yet b
 5. **TODO comments** - Any TODOs mentioned in conversation
 6. **Error handling gaps** - Missing error cases or edge cases
 7. **Documentation gaps** - Undocumented APIs or features
-8. **Consistency gaps** - Inconsistent patterns, naming, or structure across the codebase
+8. <!-- docs INCLUDE path='src/fragments/consistency-check.md' -->
+   <!-- /docs -->
 
 Present findings as a prioritized list with:
 

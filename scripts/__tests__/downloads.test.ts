@@ -192,6 +192,14 @@ describe("consistency checks inclusion", () => {
       );
       expect(content).toContain("Consistency");
     });
+
+    it(`${variant}/refactor.md should include consistency checking guidance`, () => {
+      const content = fs.readFileSync(
+        path.join(DOWNLOADS_DIR, variant, "refactor.md"),
+        "utf8",
+      );
+      expect(content).toContain("Consistency");
+    });
   });
 });
 

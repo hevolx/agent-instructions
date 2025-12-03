@@ -16,3 +16,6 @@ Apply this document (specifically the Refactor phase), to the info given by user
 
 <!-- docs INCLUDE path='src/fragments/tdd-fundamentals.md' -->
 <!-- /docs -->
+
+<!-- docs INCLUDE path='src/fragments/consistency-check.md' -->
+<!-- /docs -->
