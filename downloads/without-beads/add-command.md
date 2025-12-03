@@ -57,8 +57,9 @@ echo "Review this code for bugs and suggest fixes" > ~/.claude/commands/review.m
 ```
 
 ### Command with Arguments
+**Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular `$` character.
 ```markdown
-Fix issue #ARGUMENTS following our coding standards
+Fix issue ＄ARGUMENTS following our coding standards
 ```
 
 ### Command with File References
@@ -81,9 +82,10 @@ Create commit for these changes.
 **Note**: Only works with commands in the current project directory.
 
 ### Namespaced Command
+**Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular `$` character.
 ```bash
 mkdir -p ~/.claude/commands/ai
-echo "Ask GPT-5 about: ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
+echo "Ask GPT-5 about: ＄ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
 # Creates: /ai:gpt5
 ```
 
