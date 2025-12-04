@@ -279,3 +279,23 @@ describe("beads-awareness inclusion", () => {
     });
   });
 });
+
+describe("without-beads variant should not contain beads references", () => {
+  const variantDir = path.join(DOWNLOADS_DIR, "without-beads");
+  const files = getMarkdownFiles(variantDir);
+  const BEADS_PATTERN = /\bbd\b|beads/i;
+
+  files.forEach((file) => {
+    it(`without-beads/${file} should not contain 'bd' or 'beads'`, () => {
+      const content = fs.readFileSync(path.join(variantDir, file), "utf8");
+      const lines = content.split("\n");
+
+      lines.forEach((line, index) => {
+        expect(
+          line,
+          `Line ${index + 1} contains beads reference: "${line.trim()}"`,
+        ).not.toMatch(BEADS_PATTERN);
+      });
+    });
+  });
+});

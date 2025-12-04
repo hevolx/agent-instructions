@@ -1,45 +1,45 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import os from 'os';
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+import os from "os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const VARIANTS = {
-  WITH_BEADS: 'with-beads',
-  WITHOUT_BEADS: 'without-beads'
+  WITH_BEADS: "with-beads",
+  WITHOUT_BEADS: "without-beads",
 } as const;
 
 export const SCOPES = {
-  PROJECT: 'project',
-  USER: 'user'
+  PROJECT: "project",
+  USER: "user",
 } as const;
 
 export const DIRECTORIES = {
-  CLAUDE: '.claude',
-  COMMANDS: 'commands',
-  DOWNLOADS: 'downloads'
+  CLAUDE: ".claude",
+  COMMANDS: "commands",
+  DOWNLOADS: "downloads",
 } as const;
 
-export const TEMPLATE_SOURCE_FILES = ['CLAUDE.md', 'AGENTS.md'] as const;
+export const TEMPLATE_SOURCE_FILES = ["CLAUDE.md", "AGENTS.md"] as const;
 
 export interface TemplateBlock {
   content: string;
   commands?: string[];
 }
 
-export type Variant = typeof VARIANTS[keyof typeof VARIANTS];
-export type Scope = typeof SCOPES[keyof typeof SCOPES];
+export type Variant = (typeof VARIANTS)[keyof typeof VARIANTS];
+export type Scope = (typeof SCOPES)[keyof typeof SCOPES];
 
-const ELLIPSIS = '...';
+const ELLIPSIS = "...";
 
 function truncatePathFromLeft(pathStr: string, maxLength: number): string {
   if (pathStr.length <= maxLength) {
     return pathStr;
   }
   const truncated = pathStr.slice(-(maxLength - ELLIPSIS.length));
-  const firstSlash = truncated.indexOf('/');
+  const firstSlash = truncated.indexOf("/");
   if (firstSlash > 0) {
     return ELLIPSIS + truncated.slice(firstSlash);
   }
@@ -47,17 +47,41 @@ function truncatePathFromLeft(pathStr: string, maxLength: number): string {
 }
 
 export const VARIANT_OPTIONS = [
-  { value: VARIANTS.WITH_BEADS, label: 'With Beads', hint: 'Includes Beads task tracking' },
-  { value: VARIANTS.WITHOUT_BEADS, label: 'Without Beads', hint: 'Standard commands only' }
+  {
+    value: VARIANTS.WITH_BEADS,
+    label: "With Beads",
+    hint: "Includes Beads task tracking",
+  },
+  {
+    value: VARIANTS.WITHOUT_BEADS,
+    label: "Without Beads",
+    hint: "Standard commands only",
+  },
 ] as const;
 
 export function getScopeOptions(terminalWidth: number = 80) {
-  const projectPath = path.join(process.cwd(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
-  const userPath = path.join(os.homedir(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
+  const projectPath = path.join(
+    process.cwd(),
+    DIRECTORIES.CLAUDE,
+    DIRECTORIES.COMMANDS,
+  );
+  const userPath = path.join(
+    os.homedir(),
+    DIRECTORIES.CLAUDE,
+    DIRECTORIES.COMMANDS,
+  );
 
   return [
-    { value: SCOPES.PROJECT, label: 'Project/Repository', hint: truncatePathFromLeft(projectPath, terminalWidth) },
-    { value: SCOPES.USER, label: 'User (Global)', hint: truncatePathFromLeft(userPath, terminalWidth) }
+    {
+      value: SCOPES.PROJECT,
+      label: "Project/Repository",
+      hint: truncatePathFromLeft(projectPath, terminalWidth),
+    },
+    {
+      value: SCOPES.USER,
+      label: "User (Global)",
+      hint: truncatePathFromLeft(userPath, terminalWidth),
+    },
   ];
 }
 
@@ -75,8 +99,15 @@ export interface GenerateResult {
   templateInjected?: boolean;
 }
 
-export async function getAvailableCommands(variant: Variant): Promise<string[]> {
-  const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
+export async function getAvailableCommands(
+  variant: Variant,
+): Promise<string[]> {
+  const sourcePath = path.join(
+    __dirname,
+    "..",
+    DIRECTORIES.DOWNLOADS,
+    variant || VARIANTS.WITH_BEADS,
+  );
   return fs.readdir(sourcePath);
 }
 
@@ -91,11 +122,18 @@ interface CommandMetadata {
   order: number;
 }
 
-export async function getCommandsGroupedByCategory(variant: Variant): Promise<Record<string, CommandOption[]>> {
-  const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
-  const metadataPath = path.join(sourcePath, 'commands-metadata.json');
+export async function getCommandsGroupedByCategory(
+  variant: Variant,
+): Promise<Record<string, CommandOption[]>> {
+  const sourcePath = path.join(
+    __dirname,
+    "..",
+    DIRECTORIES.DOWNLOADS,
+    variant || VARIANTS.WITH_BEADS,
+  );
+  const metadataPath = path.join(sourcePath, "commands-metadata.json");
 
-  const metadataContent = await fs.readFile(metadataPath, 'utf-8');
+  const metadataContent = await fs.readFile(metadataPath, "utf-8");
   const metadata: Record<string, CommandMetadata> = JSON.parse(metadataContent);
 
   const grouped: Record<string, CommandOption[]> = {};
@@ -107,7 +145,7 @@ export async function getCommandsGroupedByCategory(variant: Variant): Promise<Re
     }
     grouped[category].push({
       value: filename,
-      label: filename
+      label: filename,
     });
   }
 
@@ -123,7 +161,10 @@ export async function getCommandsGroupedByCategory(variant: Variant): Promise<Re
   return grouped;
 }
 
-function getDestinationPath(outputPath: string | undefined, scope: string | undefined): string | undefined {
+function getDestinationPath(
+  outputPath: string | undefined,
+  scope: string | undefined,
+): string | undefined {
   if (outputPath) {
     return outputPath;
   }
@@ -139,38 +180,62 @@ function getDestinationPath(outputPath: string | undefined, scope: string | unde
   return undefined;
 }
 
-export function extractTemplateBlocks(content: string): TemplateBlock | null {
-  const matchWithCommands = content.match(/<claude-commands-template\s+commands="([^"]+)">([\s\S]*?)<\/claude-commands-template>/);
-  if (matchWithCommands) {
-    return {
-      content: matchWithCommands[2].trim(),
-      commands: matchWithCommands[1].split(',').map(c => c.trim())
-    };
+export function extractTemplateBlocks(content: string): TemplateBlock[] {
+  const blocks: TemplateBlock[] = [];
+
+  // Match templates with commands attribute
+  const withCommandsRegex =
+    /<claude-commands-template\s+commands="([^"]+)">([\s\S]*?)<\/claude-commands-template>/g;
+  for (const match of content.matchAll(withCommandsRegex)) {
+    blocks.push({
+      content: match[2].trim(),
+      commands: match[1].split(",").map((c) => c.trim()),
+    });
   }
 
-  const match = content.match(/<claude-commands-template>([\s\S]*?)<\/claude-commands-template>/);
-  if (!match) {
-    return null;
+  // Match templates without commands attribute
+  const withoutCommandsRegex =
+    /<claude-commands-template>([\s\S]*?)<\/claude-commands-template>/g;
+  for (const match of content.matchAll(withoutCommandsRegex)) {
+    blocks.push({
+      content: match[1].trim(),
+    });
   }
-  return { content: match[1].trim() };
+
+  return blocks;
 }
 
-export async function generateToDirectory(outputPath?: string, variant?: Variant, scope?: Scope, options?: GenerateOptions): Promise<GenerateResult> {
-  const sourcePath = path.join(__dirname, '..', DIRECTORIES.DOWNLOADS, variant || VARIANTS.WITH_BEADS);
+export async function generateToDirectory(
+  outputPath?: string,
+  variant?: Variant,
+  scope?: Scope,
+  options?: GenerateOptions,
+): Promise<GenerateResult> {
+  const sourcePath = path.join(
+    __dirname,
+    "..",
+    DIRECTORIES.DOWNLOADS,
+    variant || VARIANTS.WITH_BEADS,
+  );
 
   const destinationPath = getDestinationPath(outputPath, scope);
 
   if (!destinationPath) {
-    throw new Error('Either outputPath or scope must be provided');
+    throw new Error("Either outputPath or scope must be provided");
   }
 
   const allFiles = await fs.readdir(sourcePath);
-  const files = options?.commands ? allFiles.filter(f => options.commands!.includes(f)) : allFiles;
+  const files = options?.commands
+    ? allFiles.filter((f) => options.commands!.includes(f))
+    : allFiles;
 
   if (options?.commands) {
     await fs.ensureDir(destinationPath);
     for (const file of files) {
-      await fs.copy(path.join(sourcePath, file), path.join(destinationPath, file));
+      await fs.copy(
+        path.join(sourcePath, file),
+        path.join(destinationPath, file),
+      );
     }
   } else {
     await fs.copy(sourcePath, destinationPath, {});
@@ -197,18 +262,27 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
     }
 
     if (templateSourcePath) {
-      const sourceContent = await fs.readFile(templateSourcePath, 'utf-8');
-      const template = extractTemplateBlocks(sourceContent);
-      if (template) {
+      const sourceContent = await fs.readFile(templateSourcePath, "utf-8");
+      const templates = extractTemplateBlocks(sourceContent);
+      if (templates.length > 0) {
         for (const file of files) {
-          const commandName = path.basename(file, '.md');
-          if (template.commands && !template.commands.includes(commandName)) {
-            continue;
-          }
-          const actualFileName = options?.commandPrefix ? options.commandPrefix + file : file;
+          const commandName = path.basename(file, ".md");
+          const actualFileName = options?.commandPrefix
+            ? options.commandPrefix + file
+            : file;
           const filePath = path.join(destinationPath, actualFileName);
-          const content = await fs.readFile(filePath, 'utf-8');
-          await fs.writeFile(filePath, content + '\n\n' + template.content);
+          let content = await fs.readFile(filePath, "utf-8");
+          let modified = false;
+          for (const template of templates) {
+            if (template.commands && !template.commands.includes(commandName)) {
+              continue;
+            }
+            content = content + "\n\n" + template.content;
+            modified = true;
+          }
+          if (modified) {
+            await fs.writeFile(filePath, content);
+          }
         }
         templateInjected = true;
       }
@@ -220,7 +294,6 @@ export async function generateToDirectory(outputPath?: string, variant?: Variant
     filesGenerated: files.length,
     variant,
     templateInjectionSkipped: options?.skipTemplateInjection,
-    templateInjected
+    templateInjected,
   };
 }
-

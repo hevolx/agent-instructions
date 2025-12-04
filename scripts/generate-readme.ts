@@ -37,6 +37,7 @@ interface TransformArgs {
   options: {
     path?: string;
     featureFlag?: string;
+    elsePath?: string;
     [key: string]: unknown;
   };
 }
@@ -95,13 +96,17 @@ const config: MarkdownMagicConfig = {
     // Include file content with optional feature flag filtering
     INCLUDE(args: TransformArgs): string {
       const { options } = args;
-      const filePath = path.join(PROJECT_ROOT, options.path || "");
 
-      // Check for conditional inclusion
+      // Check for conditional inclusion with optional else path
       if (options.featureFlag === "beads" && !WITH_BEADS) {
+        if (options.elsePath) {
+          const elsePath = path.join(PROJECT_ROOT, options.elsePath);
+          return fs.readFileSync(elsePath, "utf8");
+        }
         return "";
       }
 
+      const filePath = path.join(PROJECT_ROOT, options.path || "");
       return fs.readFileSync(filePath, "utf8");
     },
 

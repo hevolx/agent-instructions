@@ -7,6 +7,19 @@ import { generateToDirectory, VARIANTS } from "../cli-generator";
 
 const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
 
+/**
+ * Execute a function with a temporary working directory, restoring original cwd afterward.
+ */
+async function withCwd<T>(dir: string, fn: () => Promise<T>): Promise<T> {
+  const originalCwd = process.cwd();
+  process.chdir(dir);
+  try {
+    return await fn();
+  } finally {
+    process.chdir(originalCwd);
+  }
+}
+
 describe("Template Interpolation E2E", () => {
   let tempDir: string;
 
@@ -36,11 +49,7 @@ ${customInstructions}
 `;
     await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
 
-    // Change to temp directory so generateToDirectory finds the CLAUDE.md
-    const originalCwd = process.cwd();
-    process.chdir(tempDir);
-
-    try {
+    await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act: Generate commands to output directory
@@ -61,9 +70,7 @@ ${customInstructions}
       const commitMdPath = path.join(outputDir, "commit.md");
       const commitContent = await fs.readFile(commitMdPath, "utf-8");
       expect(commitContent).toContain(customInstructions);
-    } finally {
-      process.chdir(originalCwd);
-    }
+    });
   });
 
   it("should fallback to AGENTS.md when CLAUDE.md does not exist", async () => {
@@ -80,10 +87,7 @@ ${customInstructions}
 `;
     await fs.writeFile(path.join(tempDir, "AGENTS.md"), agentsMdContent);
 
-    const originalCwd = process.cwd();
-    process.chdir(tempDir);
-
-    try {
+    await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act: Generate commands
@@ -99,9 +103,7 @@ ${customInstructions}
       const commitMdPath = path.join(outputDir, "commit.md");
       const commitContent = await fs.readFile(commitMdPath, "utf-8");
       expect(commitContent).toContain(customInstructions);
-    } finally {
-      process.chdir(originalCwd);
-    }
+    });
   });
 
   it("should only inject template into specified commands when commands attribute is used", async () => {
@@ -116,10 +118,7 @@ ${commitOnlyInstructions}
 `;
     await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
 
-    const originalCwd = process.cwd();
-    process.chdir(tempDir);
-
-    try {
+    await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act: Generate commands
@@ -144,9 +143,7 @@ ${commitOnlyInstructions}
         "utf-8",
       );
       expect(redContent).not.toContain(commitOnlyInstructions);
-    } finally {
-      process.chdir(originalCwd);
-    }
+    });
   });
 
   it("should inject template into multiple specified commands", async () => {
@@ -160,10 +157,7 @@ ${tddInstructions}
 `;
     await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
 
-    const originalCwd = process.cwd();
-    process.chdir(tempDir);
-
-    try {
+    await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
@@ -195,9 +189,89 @@ ${tddInstructions}
         "utf-8",
       );
       expect(commitContent).not.toContain(tddInstructions);
-    } finally {
-      process.chdir(originalCwd);
-    }
+    });
+  });
+
+  it("should append content from multiple templates targeting the same command", async () => {
+    // Arrange: Create CLAUDE.md with two templates both targeting commit
+    const firstTemplate = "## General Rules\n\nUse conventional commits.";
+    const secondTemplate = "## Security Rules\n\nNever commit secrets.";
+    const claudeMdContent = `# Project Instructions
+
+<claude-commands-template commands="commit">
+${firstTemplate}
+</claude-commands-template>
+
+<claude-commands-template commands="commit">
+${secondTemplate}
+</claude-commands-template>
+`;
+    await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
+
+    await withCwd(tempDir, async () => {
+      const outputDir = path.join(tempDir, ".claude", "commands");
+
+      // Act
+      const result = await generateToDirectory(
+        outputDir,
+        VARIANTS.WITHOUT_BEADS,
+      );
+
+      // Assert: Template was injected
+      expect(result.templateInjected).toBe(true);
+
+      // Assert: commit.md contains BOTH templates appended
+      const commitContent = await fs.readFile(
+        path.join(outputDir, "commit.md"),
+        "utf-8",
+      );
+      expect(commitContent).toContain(firstTemplate);
+      expect(commitContent).toContain(secondTemplate);
+    });
+  });
+
+  it("should append content from three templates all targeting the same command", async () => {
+    // Arrange: Create CLAUDE.md with three templates all targeting commit
+    const firstTemplate = "## Style Guide\n\nUse imperative mood.";
+    const secondTemplate = "## Scope Rules\n\nAlways include scope.";
+    const thirdTemplate = "## Footer Rules\n\nInclude issue reference.";
+    const claudeMdContent = `# Project Instructions
+
+<claude-commands-template commands="commit">
+${firstTemplate}
+</claude-commands-template>
+
+<claude-commands-template commands="commit">
+${secondTemplate}
+</claude-commands-template>
+
+<claude-commands-template commands="commit">
+${thirdTemplate}
+</claude-commands-template>
+`;
+    await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
+
+    await withCwd(tempDir, async () => {
+      const outputDir = path.join(tempDir, ".claude", "commands");
+
+      // Act
+      const result = await generateToDirectory(
+        outputDir,
+        VARIANTS.WITHOUT_BEADS,
+      );
+
+      // Assert: Template was injected
+      expect(result.templateInjected).toBe(true);
+
+      // Assert: commit.md contains ALL THREE templates appended
+      const commitContent = await fs.readFile(
+        path.join(outputDir, "commit.md"),
+        "utf-8",
+      );
+      expect(commitContent).toContain(firstTemplate);
+      expect(commitContent).toContain(secondTemplate);
+      expect(commitContent).toContain(thirdTemplate);
+    });
   });
 
   it("should not inject when CLAUDE.md exists but has no template tag", async () => {
@@ -212,10 +286,7 @@ This is a project without any template blocks.
 `;
     await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
 
-    const originalCwd = process.cwd();
-    process.chdir(tempDir);
-
-    try {
+    await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
@@ -231,9 +302,7 @@ This is a project without any template blocks.
       // Assert: Commands were generated
       const files = await fs.readdir(outputDir);
       expect(files.filter((f) => f.endsWith(".md")).length).toBeGreaterThan(0);
-    } finally {
-      process.chdir(originalCwd);
-    }
+    });
   });
 });
 
