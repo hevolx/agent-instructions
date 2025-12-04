@@ -89,6 +89,55 @@ export interface GenerateOptions {
   skipTemplateInjection?: boolean;
   commandPrefix?: string;
   commands?: string[];
+  skipFiles?: string[];
+}
+
+export interface FileConflict {
+  filename: string;
+  existingContent: string;
+  newContent: string;
+}
+
+export async function checkForConflicts(
+  outputPath: string | undefined,
+  variant: Variant | undefined,
+  scope?: Scope,
+  _options?: GenerateOptions,
+): Promise<FileConflict[]> {
+  const sourcePath = path.join(
+    __dirname,
+    "..",
+    DIRECTORIES.DOWNLOADS,
+    variant || VARIANTS.WITH_BEADS,
+  );
+  const destinationPath = outputPath || getDestinationPath(outputPath, scope);
+
+  if (!destinationPath) {
+    return [];
+  }
+
+  const files = await fs.readdir(sourcePath);
+  const conflicts: FileConflict[] = [];
+
+  for (const file of files) {
+    const destFilePath = path.join(destinationPath, file);
+    const sourceFilePath = path.join(sourcePath, file);
+
+    if (await fs.pathExists(destFilePath)) {
+      const existingContent = await fs.readFile(destFilePath, "utf-8");
+      const newContent = await fs.readFile(sourceFilePath, "utf-8");
+
+      if (existingContent !== newContent) {
+        conflicts.push({
+          filename: file,
+          existingContent,
+          newContent,
+        });
+      }
+    }
+  }
+
+  return conflicts;
 }
 
 export interface GenerateResult {
@@ -225,11 +274,15 @@ export async function generateToDirectory(
   }
 
   const allFiles = await fs.readdir(sourcePath);
-  const files = options?.commands
+  let files = options?.commands
     ? allFiles.filter((f) => options.commands!.includes(f))
     : allFiles;
 
-  if (options?.commands) {
+  if (options?.skipFiles) {
+    files = files.filter((f) => !options.skipFiles!.includes(f));
+  }
+
+  if (options?.commands || options?.skipFiles) {
     await fs.ensureDir(destinationPath);
     for (const file of files) {
       await fs.copy(

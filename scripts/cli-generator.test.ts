@@ -13,7 +13,12 @@ vi.mock("fs-extra", () => ({
   },
 }));
 
-import { generateToDirectory, VARIANTS, SCOPES } from "./cli-generator.js";
+import {
+  generateToDirectory,
+  checkForConflicts,
+  VARIANTS,
+  SCOPES,
+} from "./cli-generator.js";
 
 describe("generateToDirectory", () => {
   const MOCK_OUTPUT_PATH = "/mock/output/path";
@@ -303,6 +308,78 @@ This should appear at the end.
     expect(fs.copy).toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
       expect.stringContaining("commit.md"),
+    );
+  });
+});
+
+describe("checkForConflicts", () => {
+  const MOCK_OUTPUT_PATH = "/mock/output/path";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return conflict when destination file already exists with different content", async () => {
+    const existingContent = "# My custom commit command";
+    const newContent = "# Standard commit process";
+
+    vi.mocked(fs.readdir).mockResolvedValue(["commit.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes(MOCK_OUTPUT_PATH)) {
+        return existingContent;
+      }
+      return newContent;
+    });
+
+    const conflicts = await checkForConflicts(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+    );
+
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0]).toEqual({
+      filename: "commit.md",
+      existingContent,
+      newContent,
+    });
+  });
+});
+
+describe("generateToDirectory with skipFiles", () => {
+  const MOCK_OUTPUT_PATH = "/mock/output/path";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should not copy files listed in skipFiles", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "commit.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    await generateToDirectory(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      SCOPES.PROJECT,
+      { skipFiles: ["commit.md"] },
+    );
+
+    expect(fs.copy).toHaveBeenCalledTimes(2);
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("red.md"),
+      expect.stringContaining("red.md"),
+    );
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("green.md"),
+      expect.stringContaining("green.md"),
+    );
+    expect(fs.copy).not.toHaveBeenCalledWith(
+      expect.stringContaining("commit.md"),
+      expect.anything(),
     );
   });
 });
