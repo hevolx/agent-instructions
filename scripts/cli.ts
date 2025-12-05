@@ -7,12 +7,16 @@ import {
   outro,
   confirm,
   note,
+  log,
 } from "@clack/prompts";
 import os from "os";
 import { diffLines } from "diff";
+import picocolors from "picocolors";
+
+const pc = process.env.FORCE_COLOR ? picocolors.createColors(true) : picocolors;
 import {
   generateToDirectory,
-  checkForConflicts,
+  checkExistingFiles,
   VARIANT_OPTIONS,
   getScopeOptions,
   getCommandsGroupedByCategory,
@@ -23,31 +27,55 @@ import {
 type LineInfo = {
   text: string;
   type: "added" | "removed" | "unchanged";
-  lineNum: number;
+  oldLineNum: number;
+  newLineNum: number;
 };
+
+type DiffStats = { added: number; removed: number };
+
+function splitChangeIntoLines(value: string): string[] {
+  const lines = value.split("\n");
+  if (lines[lines.length - 1] === "") lines.pop();
+  return lines;
+}
 
 function formatCompactDiff(
   oldContent: string,
   newContent: string,
-  contextLines = 2,
+  contextLines = 3,
 ): string {
   const changes = diffLines(oldContent, newContent);
   const lines: string[] = [];
 
   const allLines: LineInfo[] = [];
-  let lineNum = 1;
+  let oldLineNum = 1;
+  let newLineNum = 1;
 
   for (const change of changes) {
-    const changeLines = change.value.split("\n");
-    if (changeLines[changeLines.length - 1] === "") changeLines.pop();
+    const changeLines = splitChangeIntoLines(change.value);
 
     for (const text of changeLines) {
       if (change.added) {
-        allLines.push({ text, type: "added", lineNum: -1 });
+        allLines.push({
+          text,
+          type: "added",
+          oldLineNum: -1,
+          newLineNum: newLineNum++,
+        });
       } else if (change.removed) {
-        allLines.push({ text, type: "removed", lineNum: lineNum++ });
+        allLines.push({
+          text,
+          type: "removed",
+          oldLineNum: oldLineNum++,
+          newLineNum: -1,
+        });
       } else {
-        allLines.push({ text, type: "unchanged", lineNum: lineNum++ });
+        allLines.push({
+          text,
+          type: "unchanged",
+          oldLineNum: oldLineNum++,
+          newLineNum: newLineNum++,
+        });
       }
     }
   }
@@ -87,19 +115,27 @@ function formatCompactDiff(
     }
     hunkEnd = Math.min(allLines.length, hunkEnd + contextLines);
 
-    const firstLineNum =
-      allLines.slice(hunkStart, hunkEnd).find((l) => l.lineNum > 0)?.lineNum ||
-      1;
-    lines.push(`@@ -${firstLineNum} @@`);
+    const hunkLines = allLines.slice(hunkStart, hunkEnd);
+    const firstOldLine =
+      hunkLines.find((l) => l.oldLineNum > 0)?.oldLineNum || 1;
+    const firstNewLine =
+      hunkLines.find((l) => l.newLineNum > 0)?.newLineNum || 1;
+    const oldCount = hunkLines.filter((l) => l.type !== "added").length;
+    const newCount = hunkLines.filter((l) => l.type !== "removed").length;
+    lines.push(
+      pc.cyan(
+        `@@ -${firstOldLine},${oldCount} +${firstNewLine},${newCount} @@`,
+      ),
+    );
 
     for (let j = hunkStart; j < hunkEnd; j++) {
       const line = allLines[j];
       if (line.type === "added") {
-        lines.push(`+ ${line.text}`);
+        lines.push(pc.bgGreen(pc.black(`+ ${line.text}`)));
       } else if (line.type === "removed") {
-        lines.push(`- ${line.text}`);
+        lines.push(pc.bgRed(pc.black(`- ${line.text}`)));
       } else {
-        lines.push(`  ${line.text}`);
+        lines.push(pc.dim(`  ${line.text}`));
       }
     }
 
@@ -108,6 +144,21 @@ function formatCompactDiff(
   }
 
   return lines.join("\n").trimEnd();
+}
+
+function getDiffStats(oldContent: string, newContent: string): DiffStats {
+  const changes = diffLines(oldContent, newContent);
+  let added = 0;
+  let removed = 0;
+
+  for (const change of changes) {
+    const lineCount = splitChangeIntoLines(change.value).length;
+
+    if (change.added) added += lineCount;
+    else if (change.removed) removed += lineCount;
+  }
+
+  return { added, removed };
 }
 
 const BATMAN_LOGO = `
@@ -195,7 +246,7 @@ export async function main(args?: CliArgs): Promise<void> {
     }
   }
 
-  const conflicts = await checkForConflicts(
+  const existingFiles = await checkExistingFiles(
     undefined,
     variant as Variant,
     scope as Scope,
@@ -206,17 +257,23 @@ export async function main(args?: CliArgs): Promise<void> {
   );
 
   const skipFiles: string[] = [];
-  for (const conflict of conflicts) {
-    const diff = formatCompactDiff(
-      conflict.existingContent,
-      conflict.newContent,
-    );
-    note(diff, `Diff: ${conflict.filename}`);
+  for (const file of existingFiles) {
+    if (file.isIdentical) {
+      log.info(`${file.filename} is identical, skipping`);
+      skipFiles.push(file.filename);
+      continue;
+    }
+
+    const stats = getDiffStats(file.existingContent, file.newContent);
+
+    const diff = formatCompactDiff(file.existingContent, file.newContent);
+    note(diff, `Diff: ${file.filename}`);
+    log.info(`+${stats.added} -${stats.removed}`);
     const shouldOverwrite = await confirm({
-      message: `Overwrite ${conflict.filename}?`,
+      message: `Overwrite ${file.filename}?`,
     });
     if (!shouldOverwrite) {
-      skipFiles.push(conflict.filename);
+      skipFiles.push(file.filename);
     }
   }
 

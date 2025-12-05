@@ -98,12 +98,19 @@ export interface FileConflict {
   newContent: string;
 }
 
-export async function checkForConflicts(
+export interface ExistingFile {
+  filename: string;
+  existingContent: string;
+  newContent: string;
+  isIdentical: boolean;
+}
+
+export async function checkExistingFiles(
   outputPath: string | undefined,
   variant: Variant | undefined,
   scope?: Scope,
-  _options?: GenerateOptions,
-): Promise<FileConflict[]> {
+  options?: GenerateOptions,
+): Promise<ExistingFile[]> {
   const sourcePath = path.join(
     __dirname,
     "..",
@@ -117,27 +124,49 @@ export async function checkForConflicts(
   }
 
   const files = await fs.readdir(sourcePath);
-  const conflicts: FileConflict[] = [];
+  const existingFiles: ExistingFile[] = [];
+  const prefix = options?.commandPrefix || "";
 
   for (const file of files) {
-    const destFilePath = path.join(destinationPath, file);
+    const destFileName = prefix + file;
+    const destFilePath = path.join(destinationPath, destFileName);
     const sourceFilePath = path.join(sourcePath, file);
 
     if (await fs.pathExists(destFilePath)) {
       const existingContent = await fs.readFile(destFilePath, "utf-8");
       const newContent = await fs.readFile(sourceFilePath, "utf-8");
 
-      if (existingContent !== newContent) {
-        conflicts.push({
-          filename: file,
-          existingContent,
-          newContent,
-        });
-      }
+      existingFiles.push({
+        filename: destFileName,
+        existingContent,
+        newContent,
+        isIdentical: existingContent === newContent,
+      });
     }
   }
 
-  return conflicts;
+  return existingFiles;
+}
+
+export async function checkForConflicts(
+  outputPath: string | undefined,
+  variant: Variant | undefined,
+  scope?: Scope,
+  options?: GenerateOptions,
+): Promise<FileConflict[]> {
+  const existingFiles = await checkExistingFiles(
+    outputPath,
+    variant,
+    scope,
+    options,
+  );
+  return existingFiles
+    .filter((file) => !file.isIdentical)
+    .map(({ filename, existingContent, newContent }) => ({
+      filename,
+      existingContent,
+      newContent,
+    }));
 }
 
 export interface GenerateResult {

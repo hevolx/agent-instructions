@@ -344,6 +344,66 @@ describe("checkForConflicts", () => {
       newContent,
     });
   });
+
+  it("should detect conflict with prefixed filename when user chose a prefix", async () => {
+    const existingContent = "# My custom red command";
+    const newContent = "# Standard red phase";
+
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockImplementation(async (filePath: unknown) => {
+      return String(filePath).includes("my-red.md");
+    });
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("my-red.md")) {
+        return existingContent;
+      }
+      return newContent;
+    });
+
+    const conflicts = await checkForConflicts(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      "project",
+      { commandPrefix: "my-" },
+    );
+
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0]).toEqual({
+      filename: "my-red.md",
+      existingContent,
+      newContent,
+    });
+  });
+});
+
+describe("checkExistingFiles", () => {
+  const MOCK_OUTPUT_PATH = "/mock/output/path";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return existing file with isIdentical flag when content matches", async () => {
+    const sameContent = "# Same content";
+
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(fs.readFile).mockResolvedValue(sameContent as never);
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const files = await checkExistingFiles(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+    );
+
+    expect(files).toHaveLength(1);
+    expect(files[0]).toEqual({
+      filename: "red.md",
+      existingContent: sameContent,
+      newContent: sameContent,
+      isIdentical: true,
+    });
+  });
 });
 
 describe("generateToDirectory with skipFiles", () => {

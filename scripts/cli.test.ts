@@ -20,6 +20,7 @@ vi.mock("./cli-generator.js", () => ({
     .fn()
     .mockResolvedValue({ success: true, filesGenerated: 5 }),
   checkForConflicts: vi.fn().mockResolvedValue([]),
+  checkExistingFiles: vi.fn().mockResolvedValue([]),
   getAvailableCommands: vi
     .fn()
     .mockResolvedValue(["red.md", "green.md", "refactor.md"]),
@@ -300,14 +301,15 @@ describe("CLI", () => {
 
   it("should show diff and prompt for confirmation when file already exists", async () => {
     const { confirm, note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "commit.md",
         existingContent: "# My custom commit",
         newContent: "# Standard commit process",
+        isIdentical: false,
       },
     ]);
     vi.mocked(confirm).mockResolvedValueOnce(true);
@@ -327,15 +329,16 @@ describe("CLI", () => {
 
   it("should skip conflicting file when user declines overwrite", async () => {
     const { confirm } = await import("@clack/prompts");
-    const { checkForConflicts, generateToDirectory } =
+    const { checkExistingFiles, generateToDirectory } =
       await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "commit.md",
         existingContent: "# My custom commit",
         newContent: "# Standard commit process",
+        isIdentical: false,
       },
     ]);
     vi.mocked(confirm).mockResolvedValueOnce(false);
@@ -350,9 +353,9 @@ describe("CLI", () => {
     );
   });
 
-  it("should show compact diff with hunk headers and context lines", async () => {
+  it("should show compact diff with hunk headers and 3 context lines", async () => {
     const { note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
     const existingContent = `# Header
@@ -361,34 +364,42 @@ Line 2
 Line 3
 Old line here
 Line 5
-Line 6`;
+Line 6
+Line 7`;
     const newContent = `# Header
 Line 1
 Line 2
 Line 3
 New line here
 Line 5
-Line 6`;
+Line 6
+Line 7`;
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "test.md",
         existingContent,
         newContent,
+        isIdentical: false,
       },
     ]);
 
     await main({ variant: "with-beads", scope: "project", prefix: "" });
 
-    expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("@@ -"),
-      expect.stringContaining("test.md"),
-    );
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("test.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // With 3 context lines, should show Line 2 (3 lines before change at line 5)
+    expect(diffContent).toContain("Line 2");
+    // And Line 7 (3 lines after change at line 5)
+    expect(diffContent).toContain("Line 7");
   });
 
   it("should show multiple hunks for changes far apart in the file", async () => {
     const { note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
     const existingContent = `Line 1
@@ -416,11 +427,12 @@ Line 10
 NEW at bottom
 Line 12`;
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "multi-hunk.md",
         existingContent,
         newContent,
+        isIdentical: false,
       },
     ]);
 
@@ -431,40 +443,50 @@ Line 12`;
       .mock.calls.find((call) => String(call[1]).includes("multi-hunk.md"));
     const diffContent = String(noteCall?.[0] || "");
 
-    const hunkHeaders = diffContent.match(/@@ -\d+ @@/g) || [];
+    const hunkHeaders = diffContent.match(/@@ -\d+,\d+ \+\d+,\d+ @@/g) || [];
     expect(hunkHeaders.length).toBe(2);
   });
 
-  it("should show empty diff when files are identical", async () => {
-    const { note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+  it("should skip diff display when files are identical", async () => {
+    const { note, log } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
+
+    vi.mocked(note).mockClear();
+    vi.mocked(log.info).mockClear();
 
     const content = `# Same content
 Line 1
 Line 2`;
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "identical.md",
         existingContent: content,
         newContent: content,
+        isIdentical: true,
       },
     ]);
 
     await main({ variant: "with-beads", scope: "project", prefix: "" });
 
+    // Should not show diff note for identical files
     const noteCall = vi
       .mocked(note)
       .mock.calls.find((call) => String(call[1]).includes("identical.md"));
-    const diffContent = String(noteCall?.[0] || "");
+    expect(noteCall).toBeUndefined();
 
-    expect(diffContent).toBe("");
+    // Should show skip message
+    const logInfoCalls = vi.mocked(log.info).mock.calls;
+    const skipCall = logInfoCalls.find((call) =>
+      String(call[0]).includes("identical"),
+    );
+    expect(skipCall).toBeDefined();
   });
 
   it("should handle change at very first line with no preceding context", async () => {
     const { note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
     const existingContent = `OLD first line
@@ -474,11 +496,12 @@ Line 3`;
 Line 2
 Line 3`;
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "first-line.md",
         existingContent,
         newContent,
+        isIdentical: false,
       },
     ]);
 
@@ -489,14 +512,14 @@ Line 3`;
       .mock.calls.find((call) => String(call[1]).includes("first-line.md"));
     const diffContent = String(noteCall?.[0] || "");
 
-    expect(diffContent).toContain("@@ -1 @@");
+    expect(diffContent).toMatch(/@@ -1,\d+ \+1,\d+ @@/);
     expect(diffContent).toContain("- OLD first line");
     expect(diffContent).toContain("+ NEW first line");
   });
 
   it("should handle change at very last line with correct line number in hunk header", async () => {
     const { note } = await import("@clack/prompts");
-    const { checkForConflicts } = await import("./cli-generator.js");
+    const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
     const existingContent = `Line 1
@@ -510,11 +533,12 @@ Line 3
 Line 4
 NEW LAST`;
 
-    vi.mocked(checkForConflicts).mockResolvedValueOnce([
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
       {
         filename: "last-line.md",
         existingContent,
         newContent,
+        isIdentical: false,
       },
     ]);
 
@@ -525,11 +549,215 @@ NEW LAST`;
       .mock.calls.find((call) => String(call[1]).includes("last-line.md"));
     const diffContent = String(noteCall?.[0] || "");
 
-    // Hunk should reference line 3 or later (the context before the change at line 5)
-    expect(diffContent).toMatch(/@@ -[345] @@/);
+    // Hunk should reference line 2 or later (3 context lines before the change at line 5)
+    expect(diffContent).toMatch(/@@ -[2345],\d+ \+[2345],\d+ @@/);
     expect(diffContent).toContain("- OLD LAST");
     expect(diffContent).toContain("+ NEW LAST");
     // Should show some context before the change
     expect(diffContent).toContain("Line 4");
+  });
+
+  it("should show colored diff output with ANSI escape codes", async () => {
+    process.env.FORCE_COLOR = "1";
+    vi.resetModules();
+
+    const { note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "test.md",
+        existingContent: "old line",
+        newContent: "new line",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("test.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // ANSI escape codes start with \x1b[ (ESC[)
+    // eslint-disable-next-line no-control-regex
+    expect(diffContent).toMatch(/\x1b\[/);
+
+    delete process.env.FORCE_COLOR;
+  });
+
+  it("should use background colors for added/removed lines for theme compatibility", async () => {
+    process.env.FORCE_COLOR = "1";
+    vi.resetModules();
+
+    const { note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "test.md",
+        existingContent: "old line",
+        newContent: "new line",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("test.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // Background color codes: 42 = green bg, 41 = red bg
+    // eslint-disable-next-line no-control-regex
+    expect(diffContent).toMatch(/\x1b\[4[12]m/);
+
+    delete process.env.FORCE_COLOR;
+  });
+
+  it("should show diff stats summary with lines added and removed", async () => {
+    const { log } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "test.md",
+        existingContent: "line 1\nline 2\nline 3",
+        newContent: "line 1\nmodified line\nline 3\nnew line",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should show stats with added/removed counts
+    const logInfoCalls = vi.mocked(log.info).mock.calls;
+    const statsCall = logInfoCalls.find(
+      (call) => String(call[0]).includes("+") && String(call[0]).includes("-"),
+    );
+    expect(statsCall).toBeDefined();
+  });
+
+  it("should not show diff stats when files are identical", async () => {
+    const { log } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(log.info).mockClear();
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "test.md",
+        existingContent: "same content",
+        newContent: "same content",
+        isIdentical: true,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should NOT show stats when there are no changes
+    const logInfoCalls = vi.mocked(log.info).mock.calls;
+    const statsCall = logInfoCalls.find(
+      (call) =>
+        String(call[0]).includes("+0") && String(call[0]).includes("-0"),
+    );
+    expect(statsCall).toBeUndefined();
+  });
+
+  it("should skip confirm prompt and show message when files are identical", async () => {
+    const { log, confirm, note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(log.info).mockClear();
+    vi.mocked(confirm).mockClear();
+    vi.mocked(note).mockClear();
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "identical.md",
+        existingContent: "same content",
+        newContent: "same content",
+        isIdentical: true,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should NOT show diff or confirm prompt for identical files
+    expect(vi.mocked(note)).not.toHaveBeenCalled();
+    expect(vi.mocked(confirm)).not.toHaveBeenCalled();
+
+    // Should show a skip message
+    const logInfoCalls = vi.mocked(log.info).mock.calls;
+    const skipCall = logInfoCalls.find((call) =>
+      String(call[0]).includes("identical"),
+    );
+    expect(skipCall).toBeDefined();
+  });
+
+  it("should show git-style hunk headers with old and new line counts", async () => {
+    const { note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(note).mockClear();
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "test.md",
+        existingContent: "line 1\nline 2\nline 3",
+        newContent: "line 1\nmodified\nline 3\nnew line",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("test.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // Should have git-style format: @@ -oldStart,oldCount +newStart,newCount @@
+    expect(diffContent).toMatch(/@@ -\d+,\d+ \+\d+,\d+ @@/);
+  });
+
+  it("should show skip message when checkExistingFiles finds identical file", async () => {
+    const { log, confirm, note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(log.info).mockClear();
+    vi.mocked(confirm).mockClear();
+    vi.mocked(note).mockClear();
+
+    // checkExistingFiles returns file with isIdentical=true
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "identical.md",
+        existingContent: "same content",
+        newContent: "same content",
+        isIdentical: true,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should NOT show diff or confirm prompt
+    expect(vi.mocked(note)).not.toHaveBeenCalled();
+    expect(vi.mocked(confirm)).not.toHaveBeenCalled();
+
+    // Should show a skip message mentioning the file
+    const logInfoCalls = vi.mocked(log.info).mock.calls;
+    const skipCall = logInfoCalls.find(
+      (call) =>
+        String(call[0]).includes("identical.md") &&
+        String(call[0]).includes("identical"),
+    );
+    expect(skipCall).toBeDefined();
   });
 });
