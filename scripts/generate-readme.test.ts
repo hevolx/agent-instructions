@@ -201,6 +201,14 @@ describe("generateCommandsMetadata", () => {
       order: expect.any(Number),
     });
   });
+
+  it("should have cycle.md in same category as red.md", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+
+    const result = await generateCommandsMetadata();
+
+    expect(result["cycle.md"].category).toBe(result["red.md"].category);
+  });
 });
 
 describe("generateExampleConversations", () => {

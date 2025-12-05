@@ -190,10 +190,6 @@ flowchart TB
 - `/issue` - Analyze GitHub issue and create TDD implementation plan
 - `/plan` - Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
 
-### TDD Cycle
-
-- `/cycle` - Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
-
 ### Workflow
 
 - `/commit` - Create a git commit following project standards
@@ -209,6 +205,7 @@ flowchart TB
 - `/red` - Execute TDD Red Phase - write ONE failing test
 - `/green` - Execute TDD Green Phase - write minimal implementation to pass the failing test
 - `/refactor` - Execute TDD Refactor Phase - improve code structure while keeping tests green
+- `/cycle` - Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 
 ### Ship / Show / Ask
 

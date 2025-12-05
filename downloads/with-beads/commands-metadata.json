@@ -27,7 +27,7 @@
   },
   "cycle.md": {
     "description": "Execute complete TDD cycle - Red, Green, and Refactor phases in sequence",
-    "category": "TDD Cycle",
+    "category": "Test-Driven Development",
     "order": 5
   },
   "gap.md": {

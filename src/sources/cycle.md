@@ -1,7 +1,7 @@
 ---
 description: Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 argument-hint: <feature or requirement description>
-_category: TDD Cycle
+_category: Test-Driven Development
 _order: 5
 ---
 
