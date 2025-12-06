@@ -132,8 +132,54 @@ describe("src/fragments validation", () => {
         const content = fs.readFileSync(path.join(FRAGMENTS_DIR, file), "utf8");
         expect(content).not.toContain("$ARGUMENTS");
       });
+
+      it(`${file} should not include other fragments`, () => {
+        const content = fs.readFileSync(path.join(FRAGMENTS_DIR, file), "utf8");
+        const includePattern = /path='src\/fragments\//;
+        expect(
+          content,
+          `Fragment ${file} includes another fragment - fragments should be flat`,
+        ).not.toMatch(includePattern);
+      });
     });
   }
+});
+
+describe("src/fragments usage", () => {
+  it("all fragments should be referenced in at least one source file", () => {
+    const fragmentFiles = getMarkdownFiles(FRAGMENTS_DIR);
+    const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+    // Collect all fragment references from source files (including elsePath)
+    const referencedFragments = new Set<string>();
+    for (const sourceFile of sourceFiles) {
+      const content = fs.readFileSync(
+        path.join(SOURCES_DIR, sourceFile),
+        "utf8",
+      );
+      // Match both path='...' and elsePath='...'
+      const pathMatches = content.matchAll(/path='src\/fragments\/([^']+)'/g);
+      const elsePathMatches = content.matchAll(
+        /elsePath='src\/fragments\/([^']+)'/g,
+      );
+      for (const match of pathMatches) {
+        referencedFragments.add(match[1]);
+      }
+      for (const match of elsePathMatches) {
+        referencedFragments.add(match[1]);
+      }
+    }
+
+    // Check each fragment is referenced
+    const unusedFragments = fragmentFiles.filter(
+      (fragment) => !referencedFragments.has(fragment),
+    );
+
+    expect(
+      unusedFragments,
+      `Unused fragments found: ${unusedFragments.join(", ")}`,
+    ).toEqual([]);
+  });
 });
 
 describe("compiled commands $ARGUMENTS validation", () => {

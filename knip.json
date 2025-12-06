@@ -2,11 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["scripts/bin.ts", "scripts/generate-readme.ts", "scripts/build.ts"],
   "project": ["scripts/**/*.ts"],
-  "ignore": [
-    "scripts/**/*.test.ts",
-    "scripts/__tests__/**",
-    "scripts/post-process.ts"
-  ],
+  "ignore": ["scripts/**/*.test.ts", "scripts/__tests__/**"],
   "ignoreDependencies": ["markdownlint-cli"],
   "ignoreBinaries": ["semantic-release", "mktemp", "tar"]
 }

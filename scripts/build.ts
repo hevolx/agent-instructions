@@ -3,6 +3,11 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { processTarget } from "./post-process.js";
+import {
+  processMarkdownFiles,
+  writeCommandsMetadata,
+} from "./generate-readme.js";
 
 // Constants
 const SRC_DIR = "src/sources";
@@ -23,14 +28,14 @@ function listMarkdownFiles(dir: string): string[] {
     .sort();
 }
 
-function buildVariant(
+async function buildVariant(
   variant: string,
-  beadsFlag: string,
+  withBeads: boolean,
   outDir: string,
-): void {
+): Promise<void> {
   console.log("");
   console.log(`🔨 Building variant: ${variant}`);
-  console.log(`   📦 Beads integration: ${beadsFlag ? "DISABLED" : "ENABLED"}`);
+  console.log(`   📦 Beads integration: ${withBeads ? "ENABLED" : "DISABLED"}`);
   console.log("");
 
   // Ensure output directory exists
@@ -41,12 +46,9 @@ function buildVariant(
   const sourceFiles = fs
     .readdirSync(SRC_DIR)
     .filter((f) => f.endsWith(".md"))
-    .map((f) => path.join(SRC_DIR, f))
-    .join(" ");
+    .map((f) => path.join(SRC_DIR, f));
 
-  run(
-    `tsx scripts/generate-readme.ts ${beadsFlag} --output-dir "${outDir}" ${sourceFiles}`,
-  );
+  await processMarkdownFiles(sourceFiles, { withBeads, outputDir: outDir });
   console.log("   ✅ Generated command files");
 
   // Copy files without markdown-magic blocks
@@ -60,7 +62,8 @@ function buildVariant(
 
   // Remove markdown-magic comment blocks (workaround for markdown-magic bug)
   console.log("🧹 Removing comment blocks...");
-  run(`tsx scripts/post-process.ts "${outDir}"`);
+  const count = processTarget(outDir);
+  console.log(`   ✅ Removed comment blocks from ${count} file(s)`);
 
   // Fix markdown formatting issues
   console.log("🔧 Fixing markdown formatting...");
@@ -69,75 +72,82 @@ function buildVariant(
   console.log("");
 }
 
-console.log("🏗️  Building all variants...");
+async function main(): Promise<void> {
+  console.log("🏗️  Building all variants...");
 
-// Clean previous build
-console.log("🧹 Cleaning previous build...");
-run("pnpm clean");
-console.log("");
+  // Clean previous build
+  console.log("🧹 Cleaning previous build...");
+  run("pnpm clean");
+  console.log("");
 
-// Build with-beads variant
-buildVariant("with-beads", "", OUT_DIR_WITH_BEADS);
+  // Build with-beads variant
+  await buildVariant("with-beads", true, OUT_DIR_WITH_BEADS);
 
-// Build without-beads variant
-buildVariant("without-beads", "--without-beads", OUT_DIR_WITHOUT_BEADS);
+  // Build without-beads variant
+  await buildVariant("without-beads", false, OUT_DIR_WITHOUT_BEADS);
 
-// Generate commands metadata for both variants
-console.log("📋 Generating commands metadata...");
-run(
-  `tsx scripts/generate-readme.ts --generate-metadata "${OUT_DIR_WITH_BEADS}/commands-metadata.json"`,
-);
-run(
-  `tsx scripts/generate-readme.ts --generate-metadata "${OUT_DIR_WITHOUT_BEADS}/commands-metadata.json"`,
-);
-
-// Generate README
-console.log("📖 Updating README.md...");
-fs.copyFileSync("src/README.md", "README.md");
-run("tsx scripts/generate-readme.ts README.md", { silent: true });
-console.log("🧹 Removing comment blocks from README.md...");
-run("tsx scripts/post-process.ts README.md");
-console.log("🔧 Fixing markdown formatting...");
-run("pnpm exec markdownlint --fix README.md", { silent: true });
-console.log("   ✅ README.md updated");
-console.log("");
-
-// Copy to local .claude/commands for development
-console.log("📋 Updating .claude/commands (with-beads variant)...");
-fs.mkdirSync(".claude/commands", { recursive: true });
-for (const file of fs
-  .readdirSync(".claude/commands")
-  .filter((f) => f.endsWith(".md"))) {
-  fs.unlinkSync(path.join(".claude/commands", file));
-}
-for (const file of fs
-  .readdirSync(OUT_DIR_WITH_BEADS)
-  .filter((f) => f.endsWith(".md"))) {
-  fs.copyFileSync(
-    path.join(OUT_DIR_WITH_BEADS, file),
-    path.join(".claude/commands", file),
+  // Generate commands metadata for both variants
+  console.log("📋 Generating commands metadata...");
+  writeCommandsMetadata(
+    path.join(OUT_DIR_WITH_BEADS, "commands-metadata.json"),
   );
-}
-run('pnpm exec markdownlint --fix ".claude/commands"/*.md', { silent: true });
-console.log("   ✅ .claude/commands updated");
-console.log("");
+  writeCommandsMetadata(
+    path.join(OUT_DIR_WITHOUT_BEADS, "commands-metadata.json"),
+  );
 
-// Summary
-console.log("✅ Build complete!");
-console.log("");
-console.log("📂 Generated files:");
-console.log("");
-console.log("   With Beads (downloads/with-beads/):");
-for (const file of listMarkdownFiles(OUT_DIR_WITH_BEADS)) {
-  console.log(`     ✓ ${file}`);
+  // Generate README
+  console.log("📖 Updating README.md...");
+  fs.copyFileSync("src/README.md", "README.md");
+  await processMarkdownFiles(["README.md"]);
+  console.log("🧹 Removing comment blocks from README.md...");
+  processTarget("README.md");
+  console.log("🔧 Fixing markdown formatting...");
+  run("pnpm exec markdownlint --fix README.md", { silent: true });
+  console.log("   ✅ README.md updated");
+  console.log("");
+
+  // Copy to local .claude/commands for development
+  console.log("📋 Updating .claude/commands (with-beads variant)...");
+  fs.mkdirSync(".claude/commands", { recursive: true });
+  for (const file of fs
+    .readdirSync(".claude/commands")
+    .filter((f) => f.endsWith(".md"))) {
+    fs.unlinkSync(path.join(".claude/commands", file));
+  }
+  for (const file of fs
+    .readdirSync(OUT_DIR_WITH_BEADS)
+    .filter((f) => f.endsWith(".md"))) {
+    fs.copyFileSync(
+      path.join(OUT_DIR_WITH_BEADS, file),
+      path.join(".claude/commands", file),
+    );
+  }
+  run('pnpm exec markdownlint --fix ".claude/commands"/*.md', { silent: true });
+  console.log("   ✅ .claude/commands updated");
+  console.log("");
+
+  // Summary
+  console.log("✅ Build complete!");
+  console.log("");
+  console.log("📂 Generated files:");
+  console.log("");
+  console.log("   With Beads (downloads/with-beads/):");
+  for (const file of listMarkdownFiles(OUT_DIR_WITH_BEADS)) {
+    console.log(`     ✓ ${file}`);
+  }
+  console.log("");
+  console.log("   Without Beads (downloads/without-beads/):");
+  for (const file of listMarkdownFiles(OUT_DIR_WITHOUT_BEADS)) {
+    console.log(`     ✓ ${file}`);
+  }
+  console.log("");
+  console.log("   Local (.claude/commands/):");
+  for (const file of listMarkdownFiles(".claude/commands")) {
+    console.log(`     ✓ ${file}`);
+  }
 }
-console.log("");
-console.log("   Without Beads (downloads/without-beads/):");
-for (const file of listMarkdownFiles(OUT_DIR_WITHOUT_BEADS)) {
-  console.log(`     ✓ ${file}`);
-}
-console.log("");
-console.log("   Local (.claude/commands/):");
-for (const file of listMarkdownFiles(".claude/commands")) {
-  console.log(`     ✓ ${file}`);
-}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
