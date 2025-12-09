@@ -19,6 +19,7 @@ Analyze the current conversation context and identify things that have not yet b
 2. **Unused variables/results** - Values that were captured but never used
 3. **Missing tests** - Functionality without test coverage
 4. **Open issues** - Beads issues that are still open or in progress
+
 5. **User requests** - Things the user asked for that weren't fully completed
 6. **TODO comments** - Any TODOs mentioned in conversation
 7. **Error handling gaps** - Missing error cases or edge cases

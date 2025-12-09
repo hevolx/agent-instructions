@@ -1,4 +1,3 @@
-import { markdownMagic } from "markdown-magic";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,10 +11,9 @@ const SOURCES_DIR = "src/sources";
 const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---/;
 const CATEGORIES = {
   PLANNING: "Planning",
-  TDD_CYCLE: "TDD Cycle",
+  TDD: "Test-Driven Development",
   WORKFLOW: "Workflow",
-  WORKFLOW_TDD: "Test-Driven Development",
-  WORKFLOW_SHIP_SHOW_ASK: "Ship / Show / Ask",
+  SHIP_SHOW_ASK: "Ship / Show / Ask",
   WORKTREE: "Worktree Management",
   UTILITIES: "Utilities",
 } as const;
@@ -44,17 +42,11 @@ interface TransformArgs {
   };
 }
 
-interface MarkdownMagicConfig {
+interface TransformConfig {
   transforms: {
     INCLUDE: (args: TransformArgs) => string;
     COMMANDS_LIST: () => string;
     EXAMPLE_CONVERSATIONS: () => string;
-  };
-  outputFlatten?: boolean;
-  output?: {
-    directory: string;
-    removeComments: boolean;
-    applyTransformsToSource: boolean;
   };
 }
 
@@ -97,7 +89,7 @@ function getCategory(frontmatter: Frontmatter): string {
 /**
  * Create markdown-magic config with beads flag
  */
-function createConfig(withBeads: boolean): MarkdownMagicConfig {
+function createConfig(withBeads: boolean): TransformConfig {
   return {
     transforms: {
       // Include file content with optional feature flag filtering
@@ -151,6 +143,16 @@ function createConfig(withBeads: boolean): MarkdownMagicConfig {
 
 // Generate markdown from commands grouped by category
 function generateCommandsMarkdown(commands: Command[]): string {
+  const categoryOrder = Object.values(CATEGORIES);
+  const validCategories = new Set<string>(categoryOrder);
+
+  // Validate all categories before processing
+  for (const cmd of commands) {
+    if (!validCategories.has(cmd.category)) {
+      throw new Error(`Invalid category: ${cmd.category}`);
+    }
+  }
+
   const grouped: Record<string, Command[]> = commands.reduce(
     (acc, cmd) => {
       if (!acc[cmd.category]) acc[cmd.category] = [];
@@ -159,8 +161,6 @@ function generateCommandsMarkdown(commands: Command[]): string {
     },
     {} as Record<string, Command[]>,
   );
-
-  const categoryOrder = Object.values(CATEGORIES);
   let markdown = "";
 
   for (const category of categoryOrder) {
@@ -226,7 +226,7 @@ function generateExampleConversations(examplesDir?: string): string {
   const dir = examplesDir || path.join(PROJECT_ROOT, "example-conversations");
 
   if (!fs.existsSync(dir)) {
-    return "";
+    throw new Error(`Example conversations directory '${dir}' does not exist`);
   }
 
   const files = fs
@@ -255,8 +255,77 @@ export interface ProcessFilesOptions {
   outputDir?: string;
 }
 
+// Regex to match transform blocks: <!-- docs TRANSFORM_NAME key='value' -->...<!-- /docs -->
+const TRANSFORM_BLOCK_REGEX =
+  /<!--\s*docs\s+(\w+)([^>]*)-->([\s\S]*?)<!--\s*\/docs\s*-->/g;
+
+// Regex to match frontmatter fields with underscore prefix (build-only metadata)
+const UNDERSCORE_FIELD_REGEX = /^_[a-zA-Z0-9_-]+:.*$/gm;
+
+// Parse options from attribute string like: path='foo.md' featureFlag='beads'
+function parseOptions(attrString: string): Record<string, string> {
+  const options: Record<string, string> = {};
+  const attrRegex = /(\w+)=['"]([^'"]*)['"]/g;
+  let match;
+  while ((match = attrRegex.exec(attrString)) !== null) {
+    options[match[1]] = match[2];
+  }
+  return options;
+}
+
 /**
- * Process markdown files with markdown-magic transforms
+ * Clean markdown content by removing underscore-prefixed frontmatter fields.
+ */
+function cleanFrontmatter(content: string): string {
+  // Remove underscore-prefixed frontmatter fields
+  let cleaned = content.replace(UNDERSCORE_FIELD_REGEX, "");
+
+  // Clean up any double newlines in frontmatter that may result from field removal
+  cleaned = cleaned.replace(
+    /---\n([\s\S]*?)\n---/g,
+    (_match, frontmatterContent: string) => {
+      const cleanedFrontmatter = frontmatterContent
+        .replace(/\n\n+/g, "\n")
+        .trim();
+      return `---\n${cleanedFrontmatter}\n---`;
+    },
+  );
+
+  return cleaned;
+}
+
+/**
+ * Process a single markdown file, expanding transform blocks and cleaning output
+ */
+function processFile(
+  content: string,
+  transforms: TransformConfig["transforms"],
+): string {
+  // Expand transform blocks (this also removes the comment markers)
+  const expanded = content.replace(
+    TRANSFORM_BLOCK_REGEX,
+    (_match, transformName: string, attrString: string) => {
+      const options = parseOptions(attrString);
+
+      switch (transformName) {
+        case "INCLUDE":
+          return transforms.INCLUDE({ options });
+        case "COMMANDS_LIST":
+          return transforms.COMMANDS_LIST();
+        case "EXAMPLE_CONVERSATIONS":
+          return transforms.EXAMPLE_CONVERSATIONS();
+        default:
+          throw new Error(`Unknown transform: ${transformName}`);
+      }
+    },
+  );
+
+  // Clean underscore-prefixed frontmatter fields
+  return cleanFrontmatter(expanded);
+}
+
+/**
+ * Process markdown files with transforms
  */
 export async function processMarkdownFiles(
   files: string[],
@@ -265,19 +334,16 @@ export async function processMarkdownFiles(
   const { withBeads = true, outputDir } = options;
   const config = createConfig(withBeads);
 
-  const finalConfig = outputDir
-    ? {
-        ...config,
-        outputFlatten: true,
-        output: {
-          directory: outputDir,
-          removeComments: true, // Note: This option is broken in markdown-magic v4.0.4, we use post-process.ts instead
-          applyTransformsToSource: false,
-        },
-      }
-    : config;
+  for (const file of files) {
+    const content = fs.readFileSync(file, "utf8");
+    const processed = processFile(content, config.transforms);
 
-  await markdownMagic(files, finalConfig);
+    const outputPath = outputDir
+      ? path.join(outputDir, path.basename(file))
+      : file;
+
+    fs.writeFileSync(outputPath, processed, "utf8");
+  }
 }
 
 // Export for testing
@@ -287,5 +353,7 @@ export {
   generateCommandsMarkdown,
   generateCommandsMetadata,
   generateExampleConversations,
+  createConfig,
+  cleanFrontmatter,
   CATEGORIES,
 };

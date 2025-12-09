@@ -9,7 +9,7 @@ vi.mock("@clack/prompts", () => ({
   groupMultiselect: vi.fn(),
   confirm: vi.fn(),
   note: vi.fn(),
-  log: { info: vi.fn() },
+  log: { info: vi.fn(), warn: vi.fn() },
   isCancel: (value: unknown) => value === mockCancel,
   intro: vi.fn(),
   outro: vi.fn(),
@@ -800,6 +800,234 @@ NEW LAST`;
           "show.md",
           "ask.md",
         ]),
+      }),
+    );
+  });
+
+  it("should only show pre-existing commands in selection when updateExisting is true", async () => {
+    const { select, text, groupMultiselect } = await import("@clack/prompts");
+    const { getCommandsGroupedByCategory, checkExistingFiles } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Mock that only red.md and commit.md exist in the target directory
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "red.md",
+        existingContent: "# Red",
+        newContent: "# Red v2",
+        isIdentical: false,
+      },
+      {
+        filename: "commit.md",
+        existingContent: "# Commit",
+        newContent: "# Commit v2",
+        isIdentical: false,
+      },
+    ]);
+
+    // Mock grouped commands - includes commands that don't exist
+    vi.mocked(getCommandsGroupedByCategory).mockResolvedValueOnce({
+      "TDD Cycle": [
+        { value: "red.md", label: "red.md", selectedByDefault: true },
+        { value: "green.md", label: "green.md", selectedByDefault: true },
+      ],
+      Workflow: [
+        { value: "commit.md", label: "commit.md", selectedByDefault: true },
+        { value: "pr.md", label: "pr.md", selectedByDefault: true },
+      ],
+    });
+
+    vi.mocked(select)
+      .mockResolvedValueOnce("with-beads")
+      .mockResolvedValueOnce("project");
+    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md", "commit.md"]);
+    vi.mocked(text).mockResolvedValueOnce("");
+
+    await main({ updateExisting: true });
+
+    // groupMultiselect should only include commands that already exist
+    expect(groupMultiselect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: {
+          "TDD Cycle": [expect.objectContaining({ value: "red.md" })],
+          Workflow: [expect.objectContaining({ value: "commit.md" })],
+        },
+      }),
+    );
+    // Should NOT include green.md or pr.md since they don't exist
+    const callOptions = vi.mocked(groupMultiselect).mock.calls[0][0].options;
+    const allValues = Object.values(
+      callOptions as Record<string, { value: string }[]>,
+    )
+      .flat()
+      .map((opt) => opt.value);
+    expect(allValues).not.toContain("green.md");
+    expect(allValues).not.toContain("pr.md");
+  });
+
+  it("should warn and skip selection when updateExisting finds no existing commands", async () => {
+    const { select, text, groupMultiselect, log } =
+      await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Mock that no commands exist in the target directory
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
+
+    vi.mocked(select)
+      .mockResolvedValueOnce("with-beads")
+      .mockResolvedValueOnce("project");
+    vi.mocked(text).mockResolvedValueOnce("");
+
+    await main({ updateExisting: true });
+
+    // Should warn the user
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining("No existing commands"),
+    );
+    // Should NOT show command selection
+    expect(groupMultiselect).not.toHaveBeenCalled();
+    // Should NOT generate any files
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should filter to existing commands in non-interactive mode when updateExisting is true", async () => {
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Mock that only red.md exists in the target directory
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "red.md",
+        existingContent: "# Red",
+        newContent: "# Red v2",
+        isIdentical: false,
+      },
+    ]);
+
+    // Non-interactive mode: all args provided
+    await main({
+      variant: "with-beads",
+      scope: "project",
+      prefix: "",
+      updateExisting: true,
+    });
+
+    // Should only generate the existing command (red.md), not all commands
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({
+        commands: ["red.md"],
+      }),
+    );
+  });
+
+  it("should warn and skip generation in non-interactive mode when updateExisting finds no existing commands", async () => {
+    const { log } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Mock that no commands exist in the target directory
+    vi.mocked(checkExistingFiles).mockResolvedValue([]);
+
+    // Non-interactive mode: all args provided
+    await main({
+      variant: "with-beads",
+      scope: "project",
+      prefix: "",
+      updateExisting: true,
+    });
+
+    // Should warn the user
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining("No existing commands"),
+    );
+    // Should NOT generate any files
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should skip conflict prompts and overwrite when overwrite is true", async () => {
+    const { confirm, note } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(confirm).mockClear();
+    vi.mocked(note).mockClear();
+
+    // Mock that a conflicting file exists
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "commit.md",
+        existingContent: "# Old content",
+        newContent: "# New content",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({
+      variant: "with-beads",
+      scope: "project",
+      prefix: "",
+      overwrite: true,
+    });
+
+    // Should NOT show diff or prompt for confirmation
+    expect(note).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+    // Should still generate files (not skip the conflicting file)
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({
+        skipFiles: [],
+      }),
+    );
+  });
+
+  it("should skip conflicting files without prompting when skipOnConflict is true", async () => {
+    const { confirm, note } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(confirm).mockClear();
+    vi.mocked(note).mockClear();
+
+    // Mock that a conflicting file exists
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "commit.md",
+        existingContent: "# Old content",
+        newContent: "# New content",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({
+      variant: "with-beads",
+      scope: "project",
+      prefix: "",
+      skipOnConflict: true,
+    });
+
+    // Should NOT show diff or prompt for confirmation
+    expect(note).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+    // Should skip the conflicting file
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({
+        skipFiles: ["commit.md"],
       }),
     );
   });

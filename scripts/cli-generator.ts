@@ -243,6 +243,13 @@ export async function getCommandsGroupedByCategory(
     });
   }
 
+  // Validate all categories are in CATEGORY_ORDER
+  for (const category of Object.keys(grouped)) {
+    if (!CATEGORY_ORDER.includes(category)) {
+      throw new Error(`Unknown category: ${category}`);
+    }
+  }
+
   // Sort commands within each category by order
   for (const category of Object.keys(grouped)) {
     grouped[category].sort((a, b) => {
@@ -252,18 +259,9 @@ export async function getCommandsGroupedByCategory(
     });
   }
 
-  // Sort categories by CATEGORY_ORDER (unlisted categories at end, alphabetically)
+  // Sort categories by CATEGORY_ORDER
   const sortedCategories = Object.keys(grouped).sort((a, b) => {
-    const indexA = CATEGORY_ORDER.indexOf(a);
-    const indexB = CATEGORY_ORDER.indexOf(b);
-    // Both in order list: sort by position
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-    // Only a in order list: a comes first
-    if (indexA !== -1) return -1;
-    // Only b in order list: b comes first
-    if (indexB !== -1) return 1;
-    // Neither in order list: alphabetical
-    return a.localeCompare(b);
+    return CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b);
   });
 
   const sortedGrouped: Record<string, CommandOption[]> = {};

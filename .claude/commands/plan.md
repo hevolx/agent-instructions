@@ -21,8 +21,7 @@ Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues
 
 $ARGUMENTS
 
-(If no input provided, check conversation context or run `bd ready` to see existing work
-)
+(If no input provided, check conversation context or run `bd ready` to see existing work)
 
 ## Input Processing
 

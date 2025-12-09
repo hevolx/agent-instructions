@@ -194,14 +194,6 @@ flowchart TB
 - `/issue` - Analyze GitHub issue and create TDD implementation plan
 - `/plan` - Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
 
-### Workflow
-
-- `/commit` - Create a git commit following project standards
-- `/busycommit` - Create multiple atomic git commits, one logical change at a time
-- `/pr` - Creates a pull request using GitHub MCP
-- `/summarize` - Summarize conversation progress and next steps
-- `/gap` - Analyze conversation context for unaddressed items and gaps
-
 ### Test-Driven Development
 
 - `/spike` - Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
@@ -210,6 +202,14 @@ flowchart TB
 - `/green` - Execute TDD Green Phase - write minimal implementation to pass the failing test
 - `/refactor` - Execute TDD Refactor Phase - improve code structure while keeping tests green
 - `/cycle` - Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
+
+### Workflow
+
+- `/commit` - Create a git commit following project standards
+- `/busycommit` - Create multiple atomic git commits, one logical change at a time
+- `/pr` - Creates a pull request using GitHub MCP
+- `/summarize` - Summarize conversation progress and next steps
+- `/gap` - Analyze conversation context for unaddressed items and gaps
 
 ### Ship / Show / Ask
 

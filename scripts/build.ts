@@ -3,7 +3,6 @@
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { processTarget } from "./post-process.js";
 import {
   processMarkdownFiles,
   writeCommandsMetadata,
@@ -51,7 +50,7 @@ async function buildVariant(
   await processMarkdownFiles(sourceFiles, { withBeads, outputDir: outDir });
   console.log("   ✅ Generated command files");
 
-  // Copy files without markdown-magic blocks
+  // Copy files without transforms (plain markdown files)
   console.log("📄 Copying files without transforms...");
   for (const file of fs.readdirSync(SRC_DIR).filter((f) => f.endsWith(".md"))) {
     const destPath = path.join(outDir, file);
@@ -59,11 +58,6 @@ async function buildVariant(
       fs.copyFileSync(path.join(SRC_DIR, file), destPath);
     }
   }
-
-  // Remove markdown-magic comment blocks (workaround for markdown-magic bug)
-  console.log("🧹 Removing comment blocks...");
-  const count = processTarget(outDir);
-  console.log(`   ✅ Removed comment blocks from ${count} file(s)`);
 
   // Fix markdown formatting issues
   console.log("🔧 Fixing markdown formatting...");
@@ -99,9 +93,6 @@ async function main(): Promise<void> {
   console.log("📖 Updating README.md...");
   fs.copyFileSync("src/README.md", "README.md");
   await processMarkdownFiles(["README.md"]);
-  console.log("🧹 Removing comment blocks from README.md...");
-  processTarget("README.md");
-  console.log("🔧 Fixing markdown formatting...");
   run("pnpm exec markdownlint --fix README.md", { silent: true });
   console.log("   ✅ README.md updated");
   console.log("");

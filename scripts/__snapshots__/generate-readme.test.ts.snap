@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`generateCommandsMarkdown > should generate markdown for multiple categories 1`] = `
-"### TDD Cycle
+"### Test-Driven Development
 
 - \`/red\` - Write failing test
 
@@ -15,14 +15,14 @@ exports[`generateCommandsMarkdown > should generate markdown for multiple catego
 `;
 
 exports[`generateCommandsMarkdown > should generate markdown for single category 1`] = `
-"### TDD Cycle
+"### Test-Driven Development
 
 - \`/red\` - Write failing test
 - \`/green\` - Make test pass"
 `;
 
 exports[`generateCommandsMarkdown > should maintain category order 1`] = `
-"### TDD Cycle
+"### Test-Driven Development
 
 - \`/red\` - Write failing test
 
@@ -40,7 +40,7 @@ exports[`generateCommandsMarkdown > should maintain category order 1`] = `
 `;
 
 exports[`generateCommandsMarkdown > should sort commands by order within category 1`] = `
-"### TDD Cycle
+"### Test-Driven Development
 
 - \`/spike\` - Spike phase
 - \`/red\` - Write failing test

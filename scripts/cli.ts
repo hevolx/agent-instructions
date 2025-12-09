@@ -22,6 +22,7 @@ import {
   getCommandsGroupedByCategory,
   type Variant,
   type Scope,
+  type ExistingFile,
 } from "./cli-generator.js";
 
 type LineInfo = {
@@ -184,6 +185,9 @@ export interface CliArgs {
   prefix?: string;
   skipTemplateInjection?: boolean;
   commands?: string[];
+  updateExisting?: boolean;
+  overwrite?: boolean;
+  skipOnConflict?: boolean;
 }
 
 export async function main(args?: CliArgs): Promise<void> {
@@ -193,12 +197,28 @@ export async function main(args?: CliArgs): Promise<void> {
   let scope: string | symbol;
   let commandPrefix: string | symbol;
   let selectedCommands: string[] | symbol | undefined;
+  let cachedExistingFiles: ExistingFile[] | undefined;
 
   if (args?.variant && args?.scope && args?.prefix !== undefined) {
     variant = args.variant;
     scope = args.scope;
     commandPrefix = args.prefix;
     selectedCommands = args.commands;
+
+    if (args.updateExisting) {
+      cachedExistingFiles = await checkExistingFiles(
+        undefined,
+        variant as Variant,
+        scope as Scope,
+        { commandPrefix: commandPrefix || "" },
+      );
+      selectedCommands = cachedExistingFiles.map((f) => f.filename);
+
+      if (selectedCommands.length === 0) {
+        log.warn("No existing commands found in target directory");
+        return;
+      }
+    }
   } else {
     variant = await select({
       message: "Select variant",
@@ -229,9 +249,38 @@ export async function main(args?: CliArgs): Promise<void> {
       return;
     }
 
-    const groupedCommands = await getCommandsGroupedByCategory(
+    let groupedCommands = await getCommandsGroupedByCategory(
       variant as Variant,
     );
+
+    if (args?.updateExisting) {
+      cachedExistingFiles = await checkExistingFiles(
+        undefined,
+        variant as Variant,
+        scope as Scope,
+        { commandPrefix: (commandPrefix as string) || "" },
+      );
+      const existingFilenames = new Set(
+        cachedExistingFiles.map((f) => f.filename),
+      );
+
+      const filteredGrouped: typeof groupedCommands = {};
+      for (const [category, commands] of Object.entries(groupedCommands)) {
+        const filtered = commands.filter((cmd) =>
+          existingFilenames.has(cmd.value),
+        );
+        if (filtered.length > 0) {
+          filteredGrouped[category] = filtered;
+        }
+      }
+      groupedCommands = filteredGrouped;
+
+      if (Object.keys(groupedCommands).length === 0) {
+        log.warn("No existing commands found in target directory");
+        return;
+      }
+    }
+
     const enabledCommandValues = Object.values(groupedCommands)
       .flat()
       .filter((cmd) => cmd.selectedByDefault)
@@ -247,34 +296,39 @@ export async function main(args?: CliArgs): Promise<void> {
     }
   }
 
-  const existingFiles = await checkExistingFiles(
-    undefined,
-    variant as Variant,
-    scope as Scope,
-    {
+  const existingFiles =
+    cachedExistingFiles ??
+    (await checkExistingFiles(undefined, variant as Variant, scope as Scope, {
       commandPrefix: commandPrefix as string,
       commands: selectedCommands as string[],
-    },
-  );
+    }));
 
   const skipFiles: string[] = [];
-  for (const file of existingFiles) {
-    if (file.isIdentical) {
-      log.info(`${file.filename} is identical, skipping`);
-      skipFiles.push(file.filename);
-      continue;
+  if (!args?.overwrite && !args?.skipOnConflict) {
+    for (const file of existingFiles) {
+      if (file.isIdentical) {
+        log.info(`${file.filename} is identical, skipping`);
+        skipFiles.push(file.filename);
+        continue;
+      }
+
+      const stats = getDiffStats(file.existingContent, file.newContent);
+
+      const diff = formatCompactDiff(file.existingContent, file.newContent);
+      note(diff, `Diff: ${file.filename}`);
+      log.info(`+${stats.added} -${stats.removed}`);
+      const shouldOverwrite = await confirm({
+        message: `Overwrite ${file.filename}?`,
+      });
+      if (!shouldOverwrite) {
+        skipFiles.push(file.filename);
+      }
     }
-
-    const stats = getDiffStats(file.existingContent, file.newContent);
-
-    const diff = formatCompactDiff(file.existingContent, file.newContent);
-    note(diff, `Diff: ${file.filename}`);
-    log.info(`+${stats.added} -${stats.removed}`);
-    const shouldOverwrite = await confirm({
-      message: `Overwrite ${file.filename}?`,
-    });
-    if (!shouldOverwrite) {
-      skipFiles.push(file.filename);
+  } else if (args?.skipOnConflict) {
+    for (const file of existingFiles) {
+      if (!file.isIdentical) {
+        skipFiles.push(file.filename);
+      }
     }
   }
 

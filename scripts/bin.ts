@@ -1,9 +1,12 @@
-import { main, type CliArgs } from './cli.js';
+import { main, type CliArgs } from "./cli.js";
 
-const STRING_ARGS = ['variant', 'scope', 'prefix'] as const;
-const ARRAY_ARGS = ['commands'] as const;
+const STRING_ARGS = ["variant", "scope", "prefix"] as const;
+const ARRAY_ARGS = ["commands"] as const;
 const BOOLEAN_FLAGS: { flag: string; key: keyof CliArgs }[] = [
-  { flag: '--skip-template-injection', key: 'skipTemplateInjection' }
+  { flag: "--skip-template-injection", key: "skipTemplateInjection" },
+  { flag: "--update-existing", key: "updateExisting" },
+  { flag: "--overwrite", key: "overwrite" },
+  { flag: "--skip-on-conflict", key: "skipOnConflict" },
 ];
 
 export function parseArgs(argv: string[]): CliArgs {
@@ -24,7 +27,9 @@ export function parseArgs(argv: string[]): CliArgs {
     for (const key of ARRAY_ARGS) {
       const prefix = `--${key}=`;
       if (arg.startsWith(prefix)) {
-        (args as Record<string, string[]>)[key] = arg.slice(prefix.length).split(',');
+        (args as Record<string, string[]>)[key] = arg
+          .slice(prefix.length)
+          .split(",");
       }
     }
   }
