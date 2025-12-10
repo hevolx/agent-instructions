@@ -1035,6 +1035,155 @@ NEW LAST`;
       }),
     );
   });
+
+  it("should show 'Overwrite all' and 'Skip all' options when multiple files conflict", async () => {
+    const { select, note } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(select).mockClear();
+    vi.mocked(note).mockClear();
+
+    // Mock multiple conflicting files
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "commit.md",
+        existingContent: "# Old commit",
+        newContent: "# New commit",
+        isIdentical: false,
+      },
+      {
+        filename: "red.md",
+        existingContent: "# Old red",
+        newContent: "# New red",
+        isIdentical: false,
+      },
+      {
+        filename: "green.md",
+        existingContent: "# Old green",
+        newContent: "# New green",
+        isIdentical: false,
+      },
+    ]);
+
+    // User selects "Yes" for first file
+    vi.mocked(select).mockResolvedValueOnce("yes");
+    // User selects "Skip all" for remaining files
+    vi.mocked(select).mockResolvedValueOnce("skip_all");
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should use select (not confirm) with 4 options
+    expect(select).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("commit.md"),
+        options: expect.arrayContaining([
+          expect.objectContaining({ value: "yes" }),
+          expect.objectContaining({ value: "no" }),
+          expect.objectContaining({ value: "overwrite_all" }),
+          expect.objectContaining({ value: "skip_all" }),
+        ]),
+      }),
+    );
+
+    // After "Skip all", should skip remaining files (red.md, green.md)
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({
+        skipFiles: expect.arrayContaining(["red.md", "green.md"]),
+      }),
+    );
+  });
+
+  it("should overwrite all remaining files when 'Overwrite all' is selected", async () => {
+    const { select } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(select).mockClear();
+
+    // Mock multiple conflicting files
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "commit.md",
+        existingContent: "# Old commit",
+        newContent: "# New commit",
+        isIdentical: false,
+      },
+      {
+        filename: "red.md",
+        existingContent: "# Old red",
+        newContent: "# New red",
+        isIdentical: false,
+      },
+      {
+        filename: "green.md",
+        existingContent: "# Old green",
+        newContent: "# New green",
+        isIdentical: false,
+      },
+    ]);
+
+    // User selects "Overwrite all" for first file
+    vi.mocked(select).mockResolvedValueOnce("overwrite_all");
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should only prompt once (for first file)
+    expect(select).toHaveBeenCalledTimes(1);
+
+    // Should not skip any files (all overwritten)
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({
+        skipFiles: [],
+      }),
+    );
+  });
+
+  it("should use confirm() instead of select() when only one file conflicts", async () => {
+    const { select, confirm } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(select).mockClear();
+    vi.mocked(confirm).mockClear();
+
+    // Mock single conflicting file
+    vi.mocked(checkExistingFiles).mockResolvedValue([
+      {
+        filename: "commit.md",
+        existingContent: "# Old commit",
+        newContent: "# New commit",
+        isIdentical: false,
+      },
+    ]);
+
+    vi.mocked(confirm).mockResolvedValueOnce(true);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    // Should use confirm (not select) for single file
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("Overwrite"),
+      }),
+    );
+    // Should NOT use select with 4 options
+    expect(select).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.arrayContaining([
+          expect.objectContaining({ value: "overwrite_all" }),
+        ]),
+      }),
+    );
+  });
 });
 
 describe("allowed tools prompt", () => {
@@ -1070,8 +1219,12 @@ describe("allowed tools prompt", () => {
   it("should pass selected allowed tools to generator", async () => {
     const { select, text, groupMultiselect, multiselect } =
       await import("@clack/prompts");
-    const { generateToDirectory } = await import("./cli-generator.js");
+    const { generateToDirectory, checkExistingFiles } =
+      await import("./cli-generator.js");
     const { main } = await import("./cli.js");
+
+    // Ensure no conflicting files to avoid triggering conflict resolution
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
 
     vi.mocked(select)
       .mockResolvedValueOnce("with-beads")

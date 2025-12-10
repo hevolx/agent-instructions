@@ -323,9 +323,23 @@ export async function main(args?: CliArgs): Promise<void> {
 
   const skipFiles: string[] = [];
   if (!args?.overwrite && !args?.skipOnConflict) {
+    const conflictingFiles = existingFiles.filter((f) => !f.isIdentical);
+    const hasMultipleConflicts = conflictingFiles.length > 1;
+    let overwriteAllSelected = false;
+    let skipAllSelected = false;
+
     for (const file of existingFiles) {
       if (file.isIdentical) {
         log.info(`${file.filename} is identical, skipping`);
+        skipFiles.push(file.filename);
+        continue;
+      }
+
+      if (overwriteAllSelected) {
+        continue;
+      }
+
+      if (skipAllSelected) {
         skipFiles.push(file.filename);
         continue;
       }
@@ -335,11 +349,40 @@ export async function main(args?: CliArgs): Promise<void> {
       const diff = formatCompactDiff(file.existingContent, file.newContent);
       note(diff, `Diff: ${file.filename}`);
       log.info(`+${stats.added} -${stats.removed}`);
-      const shouldOverwrite = await confirm({
-        message: `Overwrite ${file.filename}?`,
-      });
-      if (!shouldOverwrite) {
-        skipFiles.push(file.filename);
+
+      if (hasMultipleConflicts) {
+        const choice = await select({
+          message: `Overwrite ${file.filename}?`,
+          options: [
+            { value: "yes", label: "Yes" },
+            { value: "no", label: "No" },
+            { value: "overwrite_all", label: "Overwrite all" },
+            { value: "skip_all", label: "Skip all" },
+          ],
+        });
+
+        if (isCancel(choice)) {
+          return;
+        }
+
+        if (choice === "no") {
+          skipFiles.push(file.filename);
+        } else if (choice === "overwrite_all") {
+          overwriteAllSelected = true;
+        } else if (choice === "skip_all") {
+          skipAllSelected = true;
+          skipFiles.push(file.filename);
+        }
+      } else {
+        const shouldOverwrite = await confirm({
+          message: `Overwrite ${file.filename}?`,
+        });
+        if (isCancel(shouldOverwrite)) {
+          return;
+        }
+        if (!shouldOverwrite) {
+          skipFiles.push(file.filename);
+        }
       }
     }
   } else if (args?.skipOnConflict) {
