@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { generateMarkdownTable } from "./cli-options.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +48,7 @@ interface TransformConfig {
     INCLUDE: (args: TransformArgs) => string;
     COMMANDS_LIST: () => string;
     EXAMPLE_CONVERSATIONS: () => string;
+    CLI_OPTIONS: () => string;
   };
 }
 
@@ -136,6 +138,11 @@ function createConfig(withBeads: boolean): TransformConfig {
       // Generate example conversations
       EXAMPLE_CONVERSATIONS(): string {
         return generateExampleConversations();
+      },
+
+      // Generate CLI options table
+      CLI_OPTIONS(): string {
+        return generateMarkdownTable();
       },
     },
   };
@@ -314,6 +321,8 @@ function processFile(
           return transforms.COMMANDS_LIST();
         case "EXAMPLE_CONVERSATIONS":
           return transforms.EXAMPLE_CONVERSATIONS();
+        case "CLI_OPTIONS":
+          return transforms.CLI_OPTIONS();
         default:
           throw new Error(`Unknown transform: ${transformName}`);
       }

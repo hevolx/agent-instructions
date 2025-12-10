@@ -1,33 +1,29 @@
 import { main, type CliArgs } from "./cli.js";
-
-const STRING_ARGS = ["variant", "scope", "prefix"] as const;
-const ARRAY_ARGS = ["commands"] as const;
-const BOOLEAN_FLAGS: { flag: string; key: keyof CliArgs }[] = [
-  { flag: "--skip-template-injection", key: "skipTemplateInjection" },
-  { flag: "--update-existing", key: "updateExisting" },
-  { flag: "--overwrite", key: "overwrite" },
-  { flag: "--skip-on-conflict", key: "skipOnConflict" },
-];
+import { CLI_OPTIONS, generateHelpText } from "./cli-options.js";
 
 export function parseArgs(argv: string[]): CliArgs {
   const args: CliArgs = {};
 
+  const booleanOpts = CLI_OPTIONS.filter((o) => o.type === "boolean");
+  const stringOpts = CLI_OPTIONS.filter((o) => o.type === "string");
+  const arrayOpts = CLI_OPTIONS.filter((o) => o.type === "array");
+
   for (const arg of argv) {
-    for (const { flag, key } of BOOLEAN_FLAGS) {
-      if (arg === flag) {
-        (args as Record<string, boolean>)[key] = true;
+    for (const opt of booleanOpts) {
+      if (arg === opt.flag) {
+        (args as Record<string, boolean>)[opt.key] = true;
       }
     }
-    for (const key of STRING_ARGS) {
-      const prefix = `--${key}=`;
+    for (const opt of stringOpts) {
+      const prefix = `${opt.flag}=`;
       if (arg.startsWith(prefix)) {
-        args[key] = arg.slice(prefix.length);
+        (args as Record<string, string>)[opt.key] = arg.slice(prefix.length);
       }
     }
-    for (const key of ARRAY_ARGS) {
-      const prefix = `--${key}=`;
+    for (const opt of arrayOpts) {
+      const prefix = `${opt.flag}=`;
       if (arg.startsWith(prefix)) {
-        (args as Record<string, string[]>)[key] = arg
+        (args as Record<string, string[]>)[opt.key] = arg
           .slice(prefix.length)
           .split(",");
       }
@@ -38,6 +34,11 @@ export function parseArgs(argv: string[]): CliArgs {
 }
 
 export async function run(argv: string[]) {
+  if (argv.includes("--help") || argv.includes("-h")) {
+    console.log(generateHelpText());
+    return;
+  }
+
   const args = parseArgs(argv);
   await main(args);
 }

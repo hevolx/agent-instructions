@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import fs from "fs";
 import path from "path";
+import { CLI_OPTIONS } from "../cli-options.js";
 
 const PATHS = {
   readme: path.join(process.cwd(), "README.md"),
@@ -71,5 +72,11 @@ describe("README example conversations", () => {
 
     // Source should NOT have example conversation content
     expect(readmeSource).not.toContain("# Conversation:");
+  });
+
+  it("should document all CLI parameters from CLI_OPTIONS", () => {
+    for (const opt of CLI_OPTIONS) {
+      expect(readme).toContain(opt.flag);
+    }
   });
 });

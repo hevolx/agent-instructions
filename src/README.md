@@ -59,15 +59,8 @@ This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm 
 
 **CLI Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--variant=with-beads` | Include Beads MCP integration |
-| `--variant=without-beads` | Standard commands only |
-| `--scope=project` | Install to `.claude/commands` in current directory |
-| `--scope=user` | Install to `~/.claude/commands` (global) |
-| `--prefix=my-` | Add prefix to command names (e.g., `my-commit.md`) |
-| `--skip-template-injection` | Don't inject CLAUDE.md template content |
-| `--commands=commit,red,green` | Install only specific commands |
+<!-- docs CLI_OPTIONS -->
+<!-- /docs -->
 
 ## Customizing Commands
 

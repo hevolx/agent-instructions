@@ -61,13 +61,14 @@ This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm 
 
 | Option | Description |
 |--------|-------------|
-| `--variant=with-beads` | Include Beads MCP integration |
-| `--variant=without-beads` | Standard commands only |
-| `--scope=project` | Install to `.claude/commands` in current directory |
-| `--scope=user` | Install to `~/.claude/commands` (global) |
-| `--prefix=my-` | Add prefix to command names (e.g., `my-commit.md`) |
-| `--skip-template-injection` | Don't inject CLAUDE.md template content |
+| `--variant=with-beads` | Command variant (with-beads, without-beads) |
+| `--scope=project` | Installation scope (project, user) |
+| `--prefix=my-` | Add prefix to command names |
 | `--commands=commit,red,green` | Install only specific commands |
+| `--skip-template-injection` | Skip injecting project CLAUDE.md customizations |
+| `--update-existing` | Only update already-installed commands |
+| `--overwrite` | Overwrite conflicting files without prompting |
+| `--skip-on-conflict` | Skip conflicting files without prompting |
 
 ## Customizing Commands
 

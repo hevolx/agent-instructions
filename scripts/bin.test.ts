@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { parseArgs } from "./bin.js";
+import { CLI_OPTIONS } from "./cli-options.js";
+import type { CliArgs } from "./cli.js";
 
 vi.mock("./cli.js", () => ({
   main: vi.fn().mockResolvedValue(undefined),
@@ -73,5 +75,58 @@ describe("run", () => {
       scope: "project",
       prefix: "my-",
     });
+  });
+
+  it("should print help and not call main when --help is passed", async () => {
+    const { run } = await import("./bin.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(main).mockClear();
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await run(["--help"]);
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Usage:"));
+    expect(main).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
+
+  it("should print all parameters from CLI_OPTIONS in help output", async () => {
+    const { run } = await import("./bin.js");
+
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await run(["--help"]);
+
+    const output = consoleSpy.mock.calls[0][0];
+    for (const opt of CLI_OPTIONS) {
+      expect(output).toContain(opt.flag);
+    }
+
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("CLI_OPTIONS consistency", () => {
+  it("should have CLI_OPTIONS keys matching CliArgs interface keys", () => {
+    const cliOptionsKeys = CLI_OPTIONS.map((opt) => opt.key).sort();
+
+    // This object uses `satisfies` to ensure compile-time type checking
+    // that all CliArgs keys are present. At runtime, we extract and compare.
+    const cliArgsKeysObject: Record<string, undefined> = {
+      variant: undefined,
+      scope: undefined,
+      prefix: undefined,
+      commands: undefined,
+      skipTemplateInjection: undefined,
+      updateExisting: undefined,
+      overwrite: undefined,
+      skipOnConflict: undefined,
+    } satisfies Record<keyof Required<CliArgs>, undefined>;
+
+    const cliArgsKeys = Object.keys(cliArgsKeysObject).sort();
+
+    expect(cliOptionsKeys).toEqual(cliArgsKeys);
   });
 });
