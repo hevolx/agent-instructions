@@ -124,9 +124,20 @@ export async function checkExistingFiles(
     return [];
   }
 
-  const files = await fs.readdir(sourcePath);
+  const allFiles = await fs.readdir(sourcePath);
+  const files = options?.commands
+    ? allFiles.filter((f) => options.commands!.includes(f))
+    : allFiles;
   const existingFiles: ExistingFile[] = [];
   const prefix = options?.commandPrefix || "";
+
+  let metadata: Record<string, CommandMetadata> | null = null;
+  let allowedToolsSet: Set<string> | null = null;
+
+  if (options?.allowedTools && options.allowedTools.length > 0) {
+    metadata = await loadCommandsMetadata(variant || VARIANTS.WITH_BEADS);
+    allowedToolsSet = new Set(options.allowedTools);
+  }
 
   for (const file of files) {
     const destFileName = prefix + file;
@@ -135,7 +146,23 @@ export async function checkExistingFiles(
 
     if (await fs.pathExists(destFilePath)) {
       const existingContent = await fs.readFile(destFilePath, "utf-8");
-      const newContent = await fs.readFile(sourceFilePath, "utf-8");
+      let newContent = await fs.readFile(sourceFilePath, "utf-8");
+
+      if (metadata && allowedToolsSet) {
+        const commandMetadata = metadata[file];
+        const requestedTools = commandMetadata?.["_requested-tools"] || [];
+        const toolsForCommand = requestedTools.filter((tool: string) =>
+          allowedToolsSet!.has(tool),
+        );
+
+        if (toolsForCommand.length > 0) {
+          const allowedToolsYaml = `allowed-tools: ${toolsForCommand.join(", ")}`;
+          newContent = newContent.replace(
+            /^---\n/,
+            `---\n${allowedToolsYaml}\n`,
+          );
+        }
+      }
 
       existingFiles.push({
         filename: destFileName,
@@ -393,15 +420,18 @@ export async function generateToDirectory(
     : allFiles;
 
   if (options?.skipFiles) {
-    files = files.filter((f) => !options.skipFiles!.includes(f));
+    const prefix = options?.commandPrefix || "";
+    files = files.filter((f) => !options.skipFiles!.includes(prefix + f));
   }
 
-  if (options?.commands || options?.skipFiles) {
+  const prefix = options?.commandPrefix || "";
+
+  if (options?.commands || options?.skipFiles || options?.commandPrefix) {
     await fs.ensureDir(destinationPath);
     for (const file of files) {
       await fs.copy(
         path.join(sourcePath, file),
-        path.join(destinationPath, file),
+        path.join(destinationPath, prefix + file),
       );
     }
   } else {
@@ -409,23 +439,28 @@ export async function generateToDirectory(
   }
 
   if (options?.allowedTools && options.allowedTools.length > 0) {
-    for (const file of files) {
-      const filePath = path.join(destinationPath, file);
-      const content = await fs.readFile(filePath, "utf-8");
-      const allowedToolsYaml = `allowed-tools: ${options.allowedTools.join(", ")}`;
-      const modifiedContent = content.replace(
-        /^---\n/,
-        `---\n${allowedToolsYaml}\n`,
-      );
-      await fs.writeFile(filePath, modifiedContent);
-    }
-  }
+    const metadata = await loadCommandsMetadata(variant || VARIANTS.WITH_BEADS);
+    const allowedToolsSet = new Set(options.allowedTools);
 
-  if (options?.commandPrefix) {
     for (const file of files) {
-      const oldPath = path.join(destinationPath, file);
-      const newPath = path.join(destinationPath, options.commandPrefix + file);
-      await fs.rename(oldPath, newPath);
+      const commandMetadata = metadata[file];
+      const requestedTools = commandMetadata?.["_requested-tools"] || [];
+
+      // Only inject tools that this command requested AND user selected
+      const toolsForCommand = requestedTools.filter((tool: string) =>
+        allowedToolsSet.has(tool),
+      );
+
+      if (toolsForCommand.length > 0) {
+        const filePath = path.join(destinationPath, prefix + file);
+        const content = await fs.readFile(filePath, "utf-8");
+        const allowedToolsYaml = `allowed-tools: ${toolsForCommand.join(", ")}`;
+        const modifiedContent = content.replace(
+          /^---\n/,
+          `---\n${allowedToolsYaml}\n`,
+        );
+        await fs.writeFile(filePath, modifiedContent);
+      }
     }
   }
 

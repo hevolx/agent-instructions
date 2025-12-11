@@ -10,6 +10,7 @@ vi.mock("fs-extra", () => ({
     readFile: vi.fn().mockResolvedValue(""),
     writeFile: vi.fn(),
     rename: vi.fn(),
+    remove: vi.fn(),
   },
 }));
 
@@ -193,7 +194,7 @@ This should appear at the end.
     );
   });
 
-  it("should rename files with prefix when commandPrefix option is provided", async () => {
+  it("should copy files directly to prefixed path when commandPrefix option is provided", async () => {
     vi.mocked(fs.readdir).mockResolvedValue(["red.md", "green.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
@@ -204,11 +205,11 @@ This should appear at the end.
       { commandPrefix: "my-" },
     );
 
-    expect(fs.rename).toHaveBeenCalledWith(
+    expect(fs.copy).toHaveBeenCalledWith(
       expect.stringContaining("red.md"),
       expect.stringContaining("my-red.md"),
     );
-    expect(fs.rename).toHaveBeenCalledWith(
+    expect(fs.copy).toHaveBeenCalledWith(
       expect.stringContaining("green.md"),
       expect.stringContaining("my-green.md"),
     );
@@ -405,6 +406,115 @@ describe("checkExistingFiles", () => {
       isIdentical: true,
     });
   });
+
+  it("should only check files specified in commands option", async () => {
+    const existingContent = "# Existing";
+    const newContent = "# New";
+
+    // Source has 3 files
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "add-command.md",
+    ] as never);
+    // All 3 exist in destination
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes(MOCK_OUTPUT_PATH)) {
+        return existingContent;
+      }
+      return newContent;
+    });
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    // User only selected red.md - should only check that file
+    const files = await checkExistingFiles(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      undefined,
+      { commands: ["red.md"] },
+    );
+
+    // Should only return red.md, not green.md or add-command.md
+    expect(files).toHaveLength(1);
+    expect(files[0].filename).toBe("red.md");
+  });
+
+  it("should include allowedTools in newContent when command has matching _requested-tools", async () => {
+    const sourceContent = "---\ndescription: Code review\n---\n# Code Review";
+    const existingWithAllowedTools =
+      "---\nallowed-tools: Bash(git diff:*)\ndescription: Code review\n---\n# Code Review";
+    const mockMetadata = {
+      "code-review.md": {
+        description: "Code review",
+        category: "Workflow",
+        order: 1,
+        "_requested-tools": ["Bash(git diff:*)", "Bash(git status:*)"],
+      },
+    };
+
+    vi.mocked(fs.readdir).mockResolvedValue(["code-review.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("commands-metadata.json")) {
+        return JSON.stringify(mockMetadata);
+      }
+      if (String(filePath).includes(MOCK_OUTPUT_PATH)) {
+        return existingWithAllowedTools;
+      }
+      return sourceContent;
+    });
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const files = await checkExistingFiles(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      undefined,
+      { allowedTools: ["Bash(git diff:*)"] },
+    );
+
+    expect(files).toHaveLength(1);
+    // newContent should include allowedTools header (command has _requested-tools)
+    expect(files[0].newContent).toContain("allowed-tools: Bash(git diff:*)");
+    // With allowedTools applied, content should match
+    expect(files[0].isIdentical).toBe(true);
+  });
+
+  it("should NOT include allowedTools in newContent when command has no _requested-tools", async () => {
+    const sourceContent = "---\ndescription: Red phase\n---\n# Red";
+    const mockMetadata = {
+      "red.md": {
+        description: "Red phase",
+        category: "TDD",
+        order: 1,
+        // No _requested-tools!
+      },
+    };
+
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("commands-metadata.json")) {
+        return JSON.stringify(mockMetadata);
+      }
+      if (String(filePath).includes(MOCK_OUTPUT_PATH)) {
+        return sourceContent;
+      }
+      return sourceContent;
+    });
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const files = await checkExistingFiles(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      undefined,
+      { allowedTools: ["Bash(pnpm test:*)"] },
+    );
+
+    expect(files).toHaveLength(1);
+    // newContent should NOT include allowedTools (command has no _requested-tools)
+    expect(files[0].newContent).not.toContain("allowed-tools:");
+  });
 });
 
 describe("getCommandsGroupedByCategory", () => {
@@ -496,16 +606,29 @@ describe("generateToDirectory with allowedTools", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should inject allowed-tools into command frontmatter", async () => {
+  it("should inject allowed-tools into command frontmatter when command has _requested-tools", async () => {
     const commandContent = `---
-description: Test command
+description: Code review
 ---
 
-# Test Command`;
+# Code Review`;
+    const mockMetadata = {
+      "code-review.md": {
+        description: "Code review",
+        category: "Workflow",
+        order: 1,
+        "_requested-tools": ["Bash(git diff:*)", "Bash(git status:*)"],
+      },
+    };
 
-    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.readdir).mockResolvedValue(["code-review.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
-    vi.mocked(fs.readFile).mockResolvedValue(commandContent as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("commands-metadata.json")) {
+        return JSON.stringify(mockMetadata);
+      }
+      return commandContent;
+    });
 
     await generateToDirectory(
       MOCK_OUTPUT_PATH,
@@ -517,10 +640,50 @@ description: Test command
     );
 
     expect(fs.writeFile).toHaveBeenCalledWith(
-      expect.stringContaining("red.md"),
+      expect.stringContaining("code-review.md"),
       expect.stringContaining(
         "allowed-tools: Bash(git diff:*), Bash(git status:*)",
       ),
+    );
+  });
+
+  it("should NOT inject allowed-tools into command without _requested-tools", async () => {
+    const commandContent = `---
+description: Red phase
+---
+
+# Red Phase`;
+    const mockMetadata = {
+      "red.md": {
+        description: "Red phase",
+        category: "TDD",
+        order: 1,
+        // No _requested-tools!
+      },
+    };
+
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("commands-metadata.json")) {
+        return JSON.stringify(mockMetadata);
+      }
+      return commandContent;
+    });
+
+    await generateToDirectory(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      SCOPES.PROJECT,
+      {
+        allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+      },
+    );
+
+    // Should NOT write to red.md since it has no _requested-tools
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining("red.md"),
+      expect.anything(),
     );
   });
 });
@@ -559,6 +722,91 @@ describe("generateToDirectory with skipFiles", () => {
     expect(fs.copy).not.toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
       expect.anything(),
+    );
+  });
+
+  it("should copy files directly to prefixed paths when skipFiles is empty and prefix is used", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "commit.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    // This simulates user selecting "Yes" or "Overwrite all" for all conflicts
+    // with a prefix - skipFiles should be empty, all files should be copied
+    await generateToDirectory(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      SCOPES.PROJECT,
+      { commandPrefix: "my-", skipFiles: [] },
+    );
+
+    // All 3 files should be copied directly to prefixed paths
+    expect(fs.copy).toHaveBeenCalledTimes(3);
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("red.md"),
+      expect.stringContaining("my-red.md"),
+    );
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("green.md"),
+      expect.stringContaining("my-green.md"),
+    );
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("commit.md"),
+      expect.stringContaining("my-commit.md"),
+    );
+  });
+
+  it("should skip files when skipFiles contains prefixed names from conflict resolver", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "commit.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    // Simulates the actual CLI flow with prefix:
+    // 1. User runs CLI with prefix "my-"
+    // 2. checkExistingFiles finds existing "my-commit.md" and returns { filename: "my-commit.md", ... }
+    // 3. User says "No" to skip that file (or file is identical)
+    // 4. CLI adds "my-commit.md" to skipFiles
+    // 5. generateToDirectory should NOT copy "commit.md" (the source file)
+    await generateToDirectory(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      SCOPES.PROJECT,
+      { commandPrefix: "my-", skipFiles: ["my-commit.md"] },
+    );
+
+    // commit.md should NOT be copied because "my-commit.md" is in skipFiles
+    expect(fs.copy).not.toHaveBeenCalledWith(
+      expect.stringContaining("commit.md"),
+      expect.anything(),
+    );
+  });
+
+  it("should copy directly to prefixed path to enable overwriting existing files", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue(["add-command.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    // Simulates overwriting an existing prefixed file:
+    // 1. User has existing "my-add-command.md" with different content
+    // 2. User selects "Yes" or "Overwrite all"
+    // 3. skipFiles is empty (file should be overwritten)
+    // 4. File should be copied directly to "my-add-command.md" (not copy then rename)
+    // 5. fs.copy with default overwrite:true handles overwriting existing files
+    await generateToDirectory(
+      MOCK_OUTPUT_PATH,
+      VARIANTS.WITH_BEADS,
+      SCOPES.PROJECT,
+      { commandPrefix: "my-", skipFiles: [] },
+    );
+
+    // Should copy directly to the prefixed destination path
+    expect(fs.copy).toHaveBeenCalledWith(
+      expect.stringContaining("add-command.md"),
+      expect.stringContaining("my-add-command.md"),
     );
   });
 });

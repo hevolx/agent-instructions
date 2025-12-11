@@ -1,7 +1,6 @@
 import {
   select,
   text,
-  multiselect,
   groupMultiselect,
   isCancel,
   intro,
@@ -303,9 +302,11 @@ export async function main(args?: CliArgs): Promise<void> {
     );
 
     if (requestedToolsOptions.length > 0) {
-      selectedAllowedTools = await multiselect({
+      selectedAllowedTools = await groupMultiselect({
         message: "Select allowed tools for commands (optional)",
-        options: requestedToolsOptions,
+        options: {
+          "All tools": requestedToolsOptions,
+        },
         required: false,
       });
 
@@ -320,6 +321,7 @@ export async function main(args?: CliArgs): Promise<void> {
     (await checkExistingFiles(undefined, variant as Variant, scope as Scope, {
       commandPrefix: commandPrefix as string,
       commands: selectedCommands as string[],
+      allowedTools: selectedAllowedTools as string[] | undefined,
     }));
 
   const skipFiles: string[] = [];

@@ -306,6 +306,86 @@ This is a project without any template blocks.
   });
 });
 
+describe("Allowed Tools Conflict Detection E2E", () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "claude-instructions-allowed-tools-"),
+    );
+  });
+
+  afterEach(async () => {
+    if (tempDir && (await fs.pathExists(tempDir))) {
+      await fs.remove(tempDir);
+    }
+  });
+
+  it("should detect files as identical when re-generating with same allowed tools", async () => {
+    const { checkExistingFiles } = await import("../cli-generator.js");
+    const outputDir = path.join(tempDir, ".claude", "commands");
+    // Use tools that code-review.md actually requests in _requested-tools
+    const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
+
+    // First generation with allowed tools - use code-review.md which has _requested-tools
+    await generateToDirectory(outputDir, VARIANTS.WITHOUT_BEADS, undefined, {
+      commands: ["code-review.md"],
+      allowedTools,
+    });
+
+    // Verify file was created with allowed-tools header
+    const firstContent = await fs.readFile(
+      path.join(outputDir, "code-review.md"),
+      "utf-8",
+    );
+    expect(firstContent).toContain(
+      "allowed-tools: Bash(git diff:*), Bash(git status:*)",
+    );
+
+    // Check for conflicts with same allowed tools - should be identical
+    const existingFiles = await checkExistingFiles(
+      outputDir,
+      VARIANTS.WITHOUT_BEADS,
+      undefined,
+      {
+        commands: ["code-review.md"],
+        allowedTools,
+      },
+    );
+
+    expect(existingFiles).toHaveLength(1);
+    expect(existingFiles[0].isIdentical).toBe(true);
+  });
+
+  it("should only inject allowed-tools into commands that requested them via _requested-tools", async () => {
+    const outputDir = path.join(tempDir, ".claude", "commands");
+    // These are tools that code-review.md requests in its _requested-tools
+    const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
+
+    // Generate both code-review.md (has _requested-tools) and red.md (no _requested-tools)
+    await generateToDirectory(outputDir, VARIANTS.WITHOUT_BEADS, undefined, {
+      commands: ["code-review.md", "red.md"],
+      allowedTools,
+    });
+
+    // code-review.md SHOULD have allowed-tools (it has matching _requested-tools)
+    const codeReviewContent = await fs.readFile(
+      path.join(outputDir, "code-review.md"),
+      "utf-8",
+    );
+    expect(codeReviewContent).toContain(
+      "allowed-tools: Bash(git diff:*), Bash(git status:*)",
+    );
+
+    // red.md should NOT have allowed-tools (it has no _requested-tools)
+    const redContent = await fs.readFile(
+      path.join(outputDir, "red.md"),
+      "utf-8",
+    );
+    expect(redContent).not.toContain("allowed-tools:");
+  });
+});
+
 describe("Postinstall Workflow E2E", () => {
   let tempDir: string;
 
