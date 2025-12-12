@@ -6,6 +6,10 @@
 [![codecov](https://codecov.io/gh/wbern/claude-instructions/graph/badge.svg)](https://codecov.io/gh/wbern/claude-instructions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[![Made with Claude Code](https://img.shields.io/badge/Made%20with-Claude%20Code-blueviolet)](https://claude.ai/code)
+[![Contributors](https://img.shields.io/github/contributors/wbern/claude-instructions)](https://github.com/wbern/claude-instructions/graphs/contributors)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/wbern/claude-instructions/pulls)
+
 ```
        _==/          i     i          \==_
      /XX/            |\___/|            \XX\
