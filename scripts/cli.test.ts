@@ -55,6 +55,10 @@ vi.mock("./cli-generator.js", () => ({
   ]),
 }));
 
+vi.mock("./tty.js", () => ({
+  isInteractiveTTY: vi.fn().mockReturnValue(true),
+}));
+
 describe("CLI", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1408,5 +1412,45 @@ describe("allowed tools prompt", () => {
         allowedTools: [],
       }),
     );
+  });
+});
+
+describe("non-TTY mode", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should error with helpful message when required arguments are missing in non-TTY", async () => {
+    const { isInteractiveTTY } = await import("./tty.js");
+    const { log } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Simulate non-TTY environment
+    vi.mocked(isInteractiveTTY).mockReturnValue(false);
+
+    // Call with partial args (variant only) - should error instead of prompting
+    await main({ variant: "with-beads" });
+
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--variant"));
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--scope"));
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--prefix"));
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should error with helpful message when no arguments provided in non-TTY", async () => {
+    const { isInteractiveTTY } = await import("./tty.js");
+    const { log } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Simulate non-TTY environment
+    vi.mocked(isInteractiveTTY).mockReturnValue(false);
+
+    // Call with no args at all - should error instead of prompting
+    await main();
+
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--variant"));
+    expect(generateToDirectory).not.toHaveBeenCalled();
   });
 });

@@ -129,4 +129,13 @@ describe("CLI_OPTIONS consistency", () => {
 
     expect(cliOptionsKeys).toEqual(cliArgsKeys);
   });
+
+  it("should mark variant, scope, and prefix as required for non-interactive mode", () => {
+    const requiredOptions = CLI_OPTIONS.filter(
+      (opt) => opt.requiredForNonInteractive,
+    );
+    const requiredKeys = requiredOptions.map((opt) => opt.key).sort();
+
+    expect(requiredKeys).toEqual(["prefix", "scope", "variant"]);
+  });
 });

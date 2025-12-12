@@ -4,6 +4,7 @@ interface CliOption {
   type: "string" | "boolean" | "array";
   description: string;
   example?: string;
+  requiredForNonInteractive?: boolean;
 }
 
 export const CLI_OPTIONS: CliOption[] = [
@@ -13,6 +14,7 @@ export const CLI_OPTIONS: CliOption[] = [
     type: "string",
     description: "Command variant (with-beads, without-beads)",
     example: "--variant=with-beads",
+    requiredForNonInteractive: true,
   },
   {
     flag: "--scope",
@@ -20,6 +22,7 @@ export const CLI_OPTIONS: CliOption[] = [
     type: "string",
     description: "Installation scope (project, user)",
     example: "--scope=project",
+    requiredForNonInteractive: true,
   },
   {
     flag: "--prefix",
@@ -27,6 +30,7 @@ export const CLI_OPTIONS: CliOption[] = [
     type: "string",
     description: "Add prefix to command names",
     example: "--prefix=my-",
+    requiredForNonInteractive: true,
   },
   {
     flag: "--commands",

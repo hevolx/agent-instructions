@@ -25,6 +25,8 @@ import {
   type Scope,
   type ExistingFile,
 } from "./cli-generator.js";
+import { CLI_OPTIONS } from "./cli-options.js";
+import { isInteractiveTTY } from "./tty.js";
 
 type LineInfo = {
   text: string;
@@ -222,6 +224,17 @@ export async function main(args?: CliArgs): Promise<void> {
       }
     }
   } else {
+    // In non-TTY mode, we can't prompt - error out with helpful message
+    if (!isInteractiveTTY()) {
+      const requiredFlags = CLI_OPTIONS.filter(
+        (opt) => opt.requiredForNonInteractive,
+      )
+        .map((opt) => opt.flag)
+        .join(", ");
+      log.warn(`Non-interactive mode requires ${requiredFlags} arguments`);
+      return;
+    }
+
     variant = await select({
       message: "Select variant",
       options: [...VARIANT_OPTIONS],

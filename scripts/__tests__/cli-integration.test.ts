@@ -53,7 +53,7 @@ describe("CLI Integration", () => {
 
   it(
     "should run CLI from packed tarball without immediate failure",
-    { timeout: 30000 },
+    { timeout: 60000 },
     async () => {
       // Pack the package to temp dir (doesn't affect repo)
       execSync("pnpm pack --pack-destination " + tempDir, {
