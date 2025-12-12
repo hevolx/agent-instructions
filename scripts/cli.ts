@@ -415,6 +415,6 @@ export async function main(args?: CliArgs): Promise<void> {
       : `${os.homedir()}/.claude/commands`;
 
   outro(
-    `Installed ${result.filesGenerated} commands to ${fullPath}\n\nIf Claude Code is already running, restart it to pick up the new commands.\n\nHappy TDD'ing!`,
+    `Installed ${result.filesGenerated} commands to ${fullPath}\n\nIf Claude Code is already running, restart it to pick up the new commands.\n\nTry it out: /red clicking submit with empty email shows validation error\n\nHappy TDD'ing!`,
   );
 }
