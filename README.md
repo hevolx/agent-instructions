@@ -1,5 +1,11 @@
 # @wbern/claude-instructions
 
+[![npm version](https://img.shields.io/npm/v/@wbern/claude-instructions)](https://www.npmjs.com/package/@wbern/claude-instructions)
+[![npm downloads](https://img.shields.io/npm/dm/@wbern/claude-instructions)](https://www.npmjs.com/package/@wbern/claude-instructions)
+[![CI](https://github.com/wbern/claude-instructions/actions/workflows/release.yml/badge.svg)](https://github.com/wbern/claude-instructions/actions/workflows/release.yml)
+[![codecov](https://codecov.io/gh/wbern/claude-instructions/graph/badge.svg)](https://codecov.io/gh/wbern/claude-instructions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ```
        _==/          i     i          \==_
      /XX/            |\___/|            \XX\
