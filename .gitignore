@@ -1,6 +1,9 @@
 # Source archive
 src/archive/
 
+# Temp directory
+tmp/
+
 # Dependencies
 node_modules/
 pnpm-lock.yaml
