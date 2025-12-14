@@ -18,6 +18,7 @@ import {
   generateToDirectory,
   checkForConflicts,
   getRequestedToolsOptions,
+  getAvailableCommands,
   VARIANTS,
   SCOPES,
 } from "./cli-generator.js";
@@ -906,5 +907,85 @@ describe("getRequestedToolsOptions", () => {
     expect(gitStatusOption?.hint).toBe("/red");
     // Tool used by 1 command: just show the command
     expect(gitLogOption?.hint).toBe("/code-review");
+  });
+});
+
+describe("getAvailableCommands", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should return list of command files for with-beads variant", async () => {
+    const mockFiles = ["red.md", "green.md", "refactor.md"];
+    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
+
+    const commands = await getAvailableCommands(VARIANTS.WITH_BEADS);
+
+    expect(commands).toEqual(mockFiles);
+    expect(fs.readdir).toHaveBeenCalledWith(
+      expect.stringContaining("downloads/with-beads"),
+    );
+  });
+
+  it("should return list of command files for without-beads variant", async () => {
+    const mockFiles = ["red.md", "green.md"];
+    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
+
+    const commands = await getAvailableCommands(VARIANTS.WITHOUT_BEADS);
+
+    expect(commands).toEqual(mockFiles);
+    expect(fs.readdir).toHaveBeenCalledWith(
+      expect.stringContaining("downloads/without-beads"),
+    );
+  });
+
+  it("should default to with-beads when variant is undefined", async () => {
+    const mockFiles = ["commit.md"];
+    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
+
+    const commands = await getAvailableCommands(undefined as never);
+
+    expect(commands).toEqual(mockFiles);
+    expect(fs.readdir).toHaveBeenCalledWith(
+      expect.stringContaining("downloads/with-beads"),
+    );
+  });
+});
+
+describe("generateToDirectory edge cases", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should throw error when neither outputPath nor scope is provided", async () => {
+    await expect(
+      generateToDirectory(undefined, VARIANTS.WITH_BEADS, undefined),
+    ).rejects.toThrow("Either outputPath or scope must be provided");
+  });
+});
+
+describe("getScopeOptions", () => {
+  it("should truncate long paths with ellipsis for narrow terminal widths", async () => {
+    const { getScopeOptions } = await import("./cli-generator.js");
+
+    // Use a narrow width to force truncation of the project path
+    // Project path is longer due to repo structure, so it gets truncated
+    const options = getScopeOptions(30);
+
+    expect(options).toHaveLength(2);
+    // Project path (options[0]) should be truncated with slash handling (line 47)
+    expect(options[0].hint).toMatch(/^\.\.\.\//);
+  });
+
+  it("should not truncate paths for wide terminal widths", async () => {
+    const { getScopeOptions } = await import("./cli-generator.js");
+
+    // Use a very wide width
+    const options = getScopeOptions(200);
+
+    expect(options).toHaveLength(2);
+    // Paths should NOT be truncated (no ellipsis)
+    expect(options[0].hint).not.toMatch(/^\.\.\./);
+    expect(options[1].hint).not.toMatch(/^\.\.\./);
   });
 });

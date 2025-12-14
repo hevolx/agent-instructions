@@ -1413,6 +1413,176 @@ describe("allowed tools prompt", () => {
       }),
     );
   });
+
+  it("should exit gracefully when user cancels on command selection", async () => {
+    const { select, text, groupMultiselect } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(select)
+      .mockResolvedValueOnce("with-beads")
+      .mockResolvedValueOnce("project");
+    vi.mocked(text).mockResolvedValueOnce("");
+    // User cancels on command selection
+    vi.mocked(groupMultiselect).mockResolvedValueOnce(mockCancel);
+
+    await main();
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should exit gracefully when user cancels on single-file overwrite confirm", async () => {
+    const { confirm } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "commit.md",
+        existingContent: "# Existing",
+        newContent: "# New",
+        isIdentical: false,
+      },
+    ]);
+    // User cancels on confirm prompt
+    vi.mocked(confirm).mockResolvedValueOnce(mockCancel as never);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should exit gracefully when user cancels on multi-file overwrite select", async () => {
+    const { select } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Multiple conflicting files trigger select() instead of confirm()
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "commit.md",
+        existingContent: "# Existing 1",
+        newContent: "# New 1",
+        isIdentical: false,
+      },
+      {
+        filename: "red.md",
+        existingContent: "# Existing 2",
+        newContent: "# New 2",
+        isIdentical: false,
+      },
+    ]);
+    // User cancels on first file overwrite dialog
+    vi.mocked(select).mockResolvedValueOnce(mockCancel);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should skip file when user selects 'no' on multi-file overwrite dialog", async () => {
+    const { select } = await import("@clack/prompts");
+    const { checkExistingFiles, generateToDirectory } =
+      await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Multiple conflicting files trigger select() with yes/no/overwrite_all/skip_all
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "commit.md",
+        existingContent: "# Existing 1",
+        newContent: "# New 1",
+        isIdentical: false,
+      },
+      {
+        filename: "red.md",
+        existingContent: "# Existing 2",
+        newContent: "# New 2",
+        isIdentical: false,
+      },
+    ]);
+    // User selects "no" for first file, "yes" for second
+    vi.mocked(select).mockResolvedValueOnce("no").mockResolvedValueOnce("yes");
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "with-beads",
+      "project",
+      expect.objectContaining({ skipFiles: ["commit.md"] }),
+    );
+  });
+
+  it("should exit gracefully when user cancels on scope selection", async () => {
+    const { select } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(select)
+      .mockResolvedValueOnce("with-beads") // variant
+      .mockResolvedValueOnce(mockCancel); // cancel on scope
+
+    await main();
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should merge nearby hunks into single hunk when changes are close", async () => {
+    const { note } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    // Create content with two changes 4 lines apart (within contextLines*2+1=7 range)
+    // This should trigger the hunk extension logic at line 114
+    const existingContent = `Line 1
+Line 2
+Line 3
+OLD first change
+Line 5
+Line 6
+Line 7
+OLD second change
+Line 9
+Line 10`;
+    const newContent = `Line 1
+Line 2
+Line 3
+NEW first change
+Line 5
+Line 6
+Line 7
+NEW second change
+Line 9
+Line 10`;
+
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "nearby-hunks.md",
+        existingContent,
+        newContent,
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ variant: "with-beads", scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("nearby-hunks.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // With nearby changes, should have only 1 hunk (merged)
+    const hunkHeaders = diffContent.match(/@@ -\d+,\d+ \+\d+,\d+ @@/g) || [];
+    expect(hunkHeaders.length).toBe(1);
+    // Both changes should be in the diff
+    expect(diffContent).toContain("OLD first change");
+    expect(diffContent).toContain("NEW first change");
+    expect(diffContent).toContain("OLD second change");
+    expect(diffContent).toContain("NEW second change");
+  });
 });
 
 describe("non-TTY mode", () => {

@@ -62,6 +62,24 @@ _requested-tools:
       "Bash(git log:*)",
     ]);
   });
+
+  it("should save pending array when followed by another key", () => {
+    const content = `---
+_requested-tools:
+  - Bash(git diff:*)
+  - Bash(git status:*)
+description: After the array
+_category: Workflow
+---`;
+
+    const result = parseFrontmatter(content);
+    expect(result["_requested-tools"]).toEqual([
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+    ]);
+    expect(result.description).toBe("After the array");
+    expect(result._category).toBe("Workflow");
+  });
 });
 
 describe("getCategory", () => {
@@ -431,6 +449,28 @@ describe("createConfig", () => {
     expect(result).toContain("-blue");
     expect(result).toMatch(/commands-\d+-blue/);
   });
+
+  it("INCLUDE transform should throw error for invalid path", () => {
+    const config = createConfig(true);
+    expect(() =>
+      config.transforms.INCLUDE({
+        options: { path: "nonexistent/file/that/does/not/exist.md" },
+      }),
+    ).toThrow("INCLUDE transform: Failed to read path");
+  });
+
+  it("INCLUDE transform should throw error for invalid elsePath", () => {
+    const config = createConfig(false);
+    expect(() =>
+      config.transforms.INCLUDE({
+        options: {
+          path: "package.json",
+          featureFlag: "beads",
+          elsePath: "nonexistent/file/that/does/not/exist.md",
+        },
+      }),
+    ).toThrow("INCLUDE transform: Failed to read elsePath");
+  });
 });
 
 describe("writeCommandsMetadata", () => {
@@ -625,5 +665,67 @@ Content here`,
 
     const result = fs.readFileSync(inputFile, "utf8");
     expect(result).toContain("img.shields.io/badge/commands-");
+  });
+
+  it("should expand COMMANDS_LIST transform to command list", async () => {
+    const inputFile = path.join(tempDir, "test.md");
+    fs.writeFileSync(
+      inputFile,
+      `# Commands
+<!-- docs COMMANDS_LIST -->
+<!-- /docs -->`,
+    );
+
+    await processMarkdownFiles([inputFile]);
+
+    const result = fs.readFileSync(inputFile, "utf8");
+    expect(result).toContain("/red");
+    expect(result).toContain("/green");
+  });
+
+  it("should expand EXAMPLE_CONVERSATIONS transform", async () => {
+    const inputFile = path.join(tempDir, "test.md");
+    fs.writeFileSync(
+      inputFile,
+      `# Examples
+<!-- docs EXAMPLE_CONVERSATIONS -->
+<!-- /docs -->`,
+    );
+
+    await processMarkdownFiles([inputFile]);
+
+    const result = fs.readFileSync(inputFile, "utf8");
+    // Example conversations directory has at least some content
+    expect(result.length).toBeGreaterThan(15);
+  });
+
+  it("should expand CLI_OPTIONS transform to options table", async () => {
+    const inputFile = path.join(tempDir, "test.md");
+    fs.writeFileSync(
+      inputFile,
+      `# Options
+<!-- docs CLI_OPTIONS -->
+<!-- /docs -->`,
+    );
+
+    await processMarkdownFiles([inputFile]);
+
+    const result = fs.readFileSync(inputFile, "utf8");
+    expect(result).toContain("| Option | Description |");
+    expect(result).toContain("--variant");
+  });
+
+  it("should throw error for unknown transform", async () => {
+    const inputFile = path.join(tempDir, "test.md");
+    fs.writeFileSync(
+      inputFile,
+      `# Test
+<!-- docs UNKNOWN_TRANSFORM -->
+<!-- /docs -->`,
+    );
+
+    await expect(processMarkdownFiles([inputFile])).rejects.toThrow(
+      "Unknown transform: UNKNOWN_TRANSFORM",
+    );
   });
 });

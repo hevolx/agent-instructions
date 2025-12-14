@@ -123,10 +123,6 @@ export async function checkExistingFiles(
   );
   const destinationPath = outputPath || getDestinationPath(outputPath, scope);
 
-  if (!destinationPath) {
-    return [];
-  }
-
   const allFiles = await fs.readdir(sourcePath);
   const files = options?.commands
     ? allFiles.filter((f) => options.commands!.includes(f))
@@ -357,7 +353,7 @@ export async function getRequestedToolsOptions(
 function getDestinationPath(
   outputPath: string | undefined,
   scope: string | undefined,
-): string | undefined {
+): string {
   if (outputPath) {
     return outputPath;
   }
@@ -370,7 +366,7 @@ function getDestinationPath(
     return path.join(os.homedir(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
   }
 
-  return undefined;
+  throw new Error("Either outputPath or scope must be provided");
 }
 
 export function extractTemplateBlocks(content: string): TemplateBlock[] {
@@ -412,10 +408,6 @@ export async function generateToDirectory(
   );
 
   const destinationPath = getDestinationPath(outputPath, scope);
-
-  if (!destinationPath) {
-    throw new Error("Either outputPath or scope must be provided");
-  }
 
   const allFiles = await fs.readdir(sourcePath);
   let files = options?.commands
