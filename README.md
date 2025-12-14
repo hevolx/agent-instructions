@@ -9,6 +9,7 @@
 [![Made with Claude Code](https://img.shields.io/badge/Made%20with-Claude%20Code-blueviolet)](https://claude.ai/code)
 [![Contributors](https://img.shields.io/github/contributors/wbern/claude-instructions)](https://github.com/wbern/claude-instructions/graphs/contributors)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/wbern/claude-instructions/pulls)
+[![Commands](https://img.shields.io/badge/commands-21-blue)](https://github.com/wbern/claude-instructions#available-commands)
 
 ```
        _==/          i     i          \==_

@@ -49,6 +49,7 @@ interface TransformConfig {
     COMMANDS_LIST: () => string;
     EXAMPLE_CONVERSATIONS: () => string;
     CLI_OPTIONS: () => string;
+    COMMANDS_BADGE: () => string;
   };
 }
 
@@ -171,6 +172,16 @@ function createConfig(withBeads: boolean): TransformConfig {
       // Generate CLI options table
       CLI_OPTIONS(): string {
         return generateMarkdownTable();
+      },
+
+      // Generate commands count badge
+      COMMANDS_BADGE(): string {
+        const sourcesDir = path.join(PROJECT_ROOT, SOURCES_DIR);
+        const count = fs
+          .readdirSync(sourcesDir)
+          .filter((f) => f.endsWith(".md")).length;
+
+        return `[![Commands](https://img.shields.io/badge/commands-${count}-blue)](https://github.com/wbern/claude-instructions#available-commands)`;
       },
     },
   };
@@ -357,6 +368,8 @@ function processFile(
           return transforms.EXAMPLE_CONVERSATIONS();
         case "CLI_OPTIONS":
           return transforms.CLI_OPTIONS();
+        case "COMMANDS_BADGE":
+          return transforms.COMMANDS_BADGE();
         default:
           throw new Error(`Unknown transform: ${transformName}`);
       }

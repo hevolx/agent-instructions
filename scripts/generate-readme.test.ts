@@ -345,6 +345,18 @@ describe("generateExampleConversations", () => {
   });
 });
 
+describe("src/README.md structure", () => {
+  it("should have COMMANDS_BADGE transform block in badges section", () => {
+    const content = fs.readFileSync(
+      path.join(__dirname, "..", "src", "README.md"),
+      "utf8",
+    );
+
+    expect(content).toContain("<!-- docs COMMANDS_BADGE -->");
+    expect(content).toContain("<!-- /docs -->");
+  });
+});
+
 describe("createConfig", () => {
   it("should return config with INCLUDE transform that reads files", () => {
     const config = createConfig(true);
@@ -409,6 +421,15 @@ describe("createConfig", () => {
     const result = config.transforms.EXAMPLE_CONVERSATIONS();
 
     expect(result.length).toBeGreaterThan(0);
+  });
+
+  it("COMMANDS_BADGE transform should generate shields.io badge with command count", () => {
+    const config = createConfig(true);
+    const result = config.transforms.COMMANDS_BADGE();
+
+    expect(result).toContain("img.shields.io/badge/commands-");
+    expect(result).toContain("-blue");
+    expect(result).toMatch(/commands-\d+-blue/);
   });
 });
 
@@ -589,5 +610,20 @@ Content here`,
     expect(result).toContain("description: Test command");
     expect(result).not.toContain("_category");
     expect(result).not.toContain("_order");
+  });
+
+  it("should expand COMMANDS_BADGE transform to shields.io badge", async () => {
+    const inputFile = path.join(tempDir, "test.md");
+    fs.writeFileSync(
+      inputFile,
+      `# Test
+<!-- docs COMMANDS_BADGE -->
+<!-- /docs -->`,
+    );
+
+    await processMarkdownFiles([inputFile]);
+
+    const result = fs.readFileSync(inputFile, "utf8");
+    expect(result).toContain("img.shields.io/badge/commands-");
   });
 });
