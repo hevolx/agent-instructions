@@ -133,13 +133,25 @@ function createConfig(withBeads: boolean): TransformConfig {
         if (options.featureFlag === "beads" && !withBeads) {
           if (options.elsePath) {
             const elsePath = path.join(PROJECT_ROOT, options.elsePath);
-            return fs.readFileSync(elsePath, "utf8");
+            try {
+              return fs.readFileSync(elsePath, "utf8");
+            } catch (err) {
+              throw new Error(
+                `INCLUDE transform: Failed to read elsePath '${options.elsePath}': ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
           }
           return "";
         }
 
         const filePath = path.join(PROJECT_ROOT, options.path || "");
-        return fs.readFileSync(filePath, "utf8");
+        try {
+          return fs.readFileSync(filePath, "utf8");
+        } catch (err) {
+          throw new Error(
+            `INCLUDE transform: Failed to read path '${options.path}': ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
       },
 
       // Generate commands list

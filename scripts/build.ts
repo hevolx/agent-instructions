@@ -94,7 +94,14 @@ async function main(): Promise<void> {
   console.log("📋 Updating .claude/commands (with-beads variant)...");
   fs.mkdirSync(".claude/commands", { recursive: true });
   for (const file of getMarkdownFiles(".claude/commands")) {
-    fs.unlinkSync(path.join(".claude/commands", file));
+    try {
+      fs.unlinkSync(path.join(".claude/commands", file));
+    } catch (err) {
+      // Ignore ENOENT (file already deleted), rethrow others
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw err;
+      }
+    }
   }
   for (const file of getMarkdownFiles(OUT_DIR_WITH_BEADS)) {
     fs.copyFileSync(
