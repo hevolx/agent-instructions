@@ -68,6 +68,16 @@
     "category": "Planning",
     "order": 1
   },
+  "kata.md": {
+    "description": "Generate a TDD practice challenge with boilerplate test setup",
+    "hint": "Practice kata",
+    "category": "Utilities",
+    "order": 10,
+    "_requested-tools": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)"
+    ]
+  },
   "plan.md": {
     "description": "Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria",
     "hint": "Plan feature",

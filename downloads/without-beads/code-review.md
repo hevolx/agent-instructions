@@ -1,12 +1,6 @@
 ---
 description: Code review using dynamic category detection and domain-specific analysis
 argument-hint: (optional) [branch, PR#, or PR URL] - defaults to current branch
-  - Bash(git diff:*)
-  - Bash(git status:*)
-  - Bash(git log:*)
-  - Bash(git rev-parse:*)
-  - Bash(git merge-base:*)
-  - Bash(git branch:*)
 ---
 
 ## General Guidelines

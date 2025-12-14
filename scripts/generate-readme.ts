@@ -319,7 +319,8 @@ const TRANSFORM_BLOCK_REGEX =
   /<!--\s*docs\s+(\w+)([^>]*)-->([\s\S]*?)<!--\s*\/docs\s*-->/g;
 
 // Regex to match frontmatter fields with underscore prefix (build-only metadata)
-const UNDERSCORE_FIELD_REGEX = /^_[a-zA-Z0-9_-]+:.*$/gm;
+// This matches the key line AND any following indented array items
+const UNDERSCORE_FIELD_REGEX = /^_[a-zA-Z0-9_-]+:.*$(\n {2}- .*$)*/gm;
 
 // Parse options from attribute string like: path='foo.md' featureFlag='beads'
 function parseOptions(attrString: string): Record<string, string> {
