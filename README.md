@@ -184,18 +184,22 @@ flowchart TB
 Available anytime during your workflow:
 
 ```mermaid
-flowchart TB
-    Utils[<b>UTILITIES</b>]
-    Utils --> Spike[🔬 /spike<br/>Exploratory coding before TDD]
-    Utils --> TDD[📚 /tdd<br/>Remind agent about TDD]
-    Utils --> AddCommand[➕ /add-command<br/>Create custom commands]
-    Utils --> Summarize[📄 /summarize<br/>Summarize conversation<br/><i>Optional: Beads MCP</i>]
-    Utils --> Gap[🔍 /gap<br/>Find unaddressed items<br/><i>Optional: Beads MCP</i>]
-    Utils --> Beepboop[🤖 /beepboop<br/>AI attribution]
+flowchart LR
+    subgraph Utils [<b>UTILITIES</b>]
+        direction TB
+        Spike[🔬 /spike<br/>Exploratory coding]
+        TDD[📚 /tdd<br/>TDD reminder]
+        AddCommand[➕ /add-command<br/>Custom commands]
+        Summarize[📄 /summarize<br/>Summarize conversation]
+        Gap[🔍 /gap<br/>Find unaddressed items]
+        Beepboop[🤖 /beepboop<br/>AI attribution]
+    end
 
-    Worktree[<b>WORKTREE MANAGEMENT</b>]
-    Worktree --> WorktreeAdd[➕ /worktree-add<br/>Create new worktree<br/><i>Requires: GitHub MCP</i>]
-    Worktree --> WorktreeCleanup[🧹 /worktree-cleanup<br/>Clean up merged worktrees<br/><i>Requires: GitHub MCP</i>]
+    subgraph Worktree [<b>WORKTREE</b>]
+        direction TB
+        WorktreeAdd[➕ /worktree-add<br/>Create worktree]
+        WorktreeCleanup[🧹 /worktree-cleanup<br/>Clean up merged]
+    end
 
     style Utils fill:#fff9c4
     style Worktree fill:#f3e5f5
