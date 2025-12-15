@@ -74,7 +74,10 @@ describe("CLI Integration", () => {
       const packageDir = path.join(extractDir, "package");
 
       // Install dependencies in isolated temp dir (package.json already exists from tarball)
-      execSync("pnpm install", { cwd: packageDir, stdio: "pipe" });
+      execSync("pnpm install --prefer-offline --ignore-scripts", {
+        cwd: packageDir,
+        stdio: "pipe",
+      });
 
       // Run the CLI with a timeout - it should start and wait for input, not crash
       const cliPath = path.join(packageDir, "bin", "cli.js");
