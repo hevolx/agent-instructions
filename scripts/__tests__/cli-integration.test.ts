@@ -56,7 +56,8 @@ describe("CLI Integration", () => {
     { timeout: 60000 },
     async () => {
       // Pack the package to temp dir (doesn't affect repo)
-      execSync("pnpm pack --pack-destination " + tempDir, {
+      // Use --pack-gzip-level 0 for faster compression (level 6 default is slow)
+      execSync("pnpm pack --pack-gzip-level 0 --pack-destination " + tempDir, {
         cwd: PROJECT_ROOT,
         stdio: "pipe",
       });
