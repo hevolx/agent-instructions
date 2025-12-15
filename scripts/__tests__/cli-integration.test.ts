@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
+import { main } from "../cli.js";
 
 const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
 const BIN_PATH = path.join(PROJECT_ROOT, "bin", "cli.js");
@@ -29,8 +30,7 @@ describe("CLI Integration", () => {
     expect(content.startsWith("#!/usr/bin/env node")).toBe(true);
   });
 
-  it("should export main function from cli module", async () => {
-    const { main } = await import("../cli.js");
+  it("should export main function from cli module", () => {
     expect(typeof main).toBe("function");
   });
 
