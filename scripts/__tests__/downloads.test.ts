@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { lint, readConfig } from "markdownlint/async";
+import { promisify } from "util";
+
+const lintAsync = promisify(lint);
+const readConfigAsync = promisify(readConfig);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -299,28 +303,46 @@ describe("fallback-arguments inclusion", () => {
 });
 
 describe("markdownlint validation", () => {
-  ["with-beads", "without-beads"].forEach((variant) => {
-    it(`${variant} should pass markdownlint`, () => {
-      const variantDir = path.join(DOWNLOADS_DIR, variant);
+  it("all markdown files should pass markdownlint", async () => {
+    const withBeadsDir = path.join(DOWNLOADS_DIR, "with-beads");
+    const withoutBeadsDir = path.join(DOWNLOADS_DIR, "without-beads");
+    const readmePath = path.join(PROJECT_ROOT, "README.md");
+    const configPath = path.join(PROJECT_ROOT, ".markdownlint.json");
 
-      // Run markdownlint on the variant directory
-      // This will throw if there are any errors
-      expect(() => {
-        execSync(`pnpm exec markdownlint "${variantDir}"/*.md`, {
-          encoding: "utf-8",
-          stdio: "pipe",
-        });
-      }).not.toThrow();
-    });
-  });
+    const withBeadsFiles = getMarkdownFiles(withBeadsDir).map((f) =>
+      path.join(withBeadsDir, f),
+    );
+    const withoutBeadsFiles = getMarkdownFiles(withoutBeadsDir).map((f) =>
+      path.join(withoutBeadsDir, f),
+    );
 
-  it("README.md should pass markdownlint", () => {
-    expect(() => {
-      execSync(`pnpm exec markdownlint README.md`, {
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-    }).not.toThrow();
+    const allFiles = [...withBeadsFiles, ...withoutBeadsFiles, readmePath];
+    const config = await readConfigAsync(configPath);
+
+    const results = await lintAsync({ files: allFiles, config });
+
+    const errors: string[] = [];
+    for (const [file, issues] of Object.entries(
+      results as Record<
+        string,
+        Array<{
+          lineNumber: number;
+          ruleNames: string[];
+          ruleDescription: string;
+        }>
+      >,
+    )) {
+      if (issues.length > 0) {
+        const relativePath = path.relative(PROJECT_ROOT, file);
+        for (const issue of issues) {
+          errors.push(
+            `${relativePath}:${issue.lineNumber}: ${issue.ruleNames.join("/")} ${issue.ruleDescription}`,
+          );
+        }
+      }
+    }
+
+    expect(errors, errors.join("\n")).toEqual([]);
   });
 });
 
