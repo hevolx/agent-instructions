@@ -210,8 +210,9 @@ Uncommitted changes: `git status --short`
     <description>Create the worktree</description>
     <option_a_new_branch>
       <condition>Remote branch does NOT exist</condition>
-      <command>git worktree add ${parent_path}/${branch_name} -b ${branch_name} ${base_branch}</command>
-      <example>git worktree add ../fix/issue-123-main-content-area-visually-clipped -b fix/issue-123-main-content-area-visually-clipped main</example>
+      <command>git worktree add ${parent_path}/${branch_name} -b ${branch_name} --no-track ${base_branch}</command>
+      <example>git worktree add ../fix/issue-123 -b fix/issue-123 --no-track origin/main</example>
+      <note>--no-track prevents git from setting upstream to base_branch (which would make git push target main!)</note>
     </option_a_new_branch>
     <option_b_existing_branch>
       <condition>Remote branch EXISTS</condition>
