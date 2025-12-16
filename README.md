@@ -26,7 +26,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
        "\       "      \X/      "       /"
 ```
 
-TDD workflow commands for Claude Code CLI.
+**TDD workflow commands for Claude Code CLI.**
+
+Test-Driven Development (TDD) gives you structure and confidence—a discipline proven by decades of practitioners from Extreme Programming to modern teams. These commands let Claude do the typing while you do the thinking.
 
 ## Installation
 
