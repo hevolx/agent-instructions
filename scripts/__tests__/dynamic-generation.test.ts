@@ -1,0 +1,369 @@
+import { describe, it, expect } from "vitest";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { lint, readConfig } from "markdownlint/async";
+import { promisify } from "util";
+import { expandContent } from "../fragment-expander.js";
+
+// Used for markdownlint validation of README
+const lintAsync = promisify(lint);
+const readConfigAsync = promisify(readConfig);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, "../..");
+
+const SOURCES_DIR = path.join(PROJECT_ROOT, "src", "sources");
+
+const getMarkdownFiles = (dir: string): string[] =>
+  fs.existsSync(dir)
+    ? fs.readdirSync(dir).filter((f) => f.endsWith(".md"))
+    : [];
+
+describe("dynamic generation snapshots", () => {
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  describe("with beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`should match snapshot for ${file}`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: ["beads"],
+          baseDir: PROJECT_ROOT,
+        });
+        expect(expanded).toMatchSnapshot();
+      });
+    });
+  });
+
+  describe("without beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`should match snapshot for ${file}`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: [],
+          baseDir: PROJECT_ROOT,
+        });
+        expect(expanded).toMatchSnapshot();
+      });
+    });
+  });
+});
+
+describe("dynamic generation content validation", () => {
+  const COMMENT_BLOCK_PATTERN = /<!--\s*docs\s+\w+[^>]*-->/;
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  describe("expanded content should not contain INCLUDE directives", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} with beads flag`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: ["beads"],
+          baseDir: PROJECT_ROOT,
+        });
+
+        expect(expanded).not.toMatch(COMMENT_BLOCK_PATTERN);
+      });
+
+      it(`${file} without beads flag`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: [],
+          baseDir: PROJECT_ROOT,
+        });
+
+        expect(expanded).not.toMatch(COMMENT_BLOCK_PATTERN);
+      });
+    });
+  });
+});
+
+describe("beads content conditional inclusion", () => {
+  it("should include Beads content when beads flag is enabled", () => {
+    const prSource = fs.readFileSync(path.join(SOURCES_DIR, "pr.md"), "utf8");
+    const expanded = expandContent(prSource, {
+      flags: ["beads"],
+      baseDir: PROJECT_ROOT,
+    });
+
+    expect(expanded).toContain("Beads");
+  });
+
+  it("should NOT include Beads content when beads flag is disabled", () => {
+    const prSource = fs.readFileSync(path.join(SOURCES_DIR, "pr.md"), "utf8");
+    const expanded = expandContent(prSource, {
+      flags: [],
+      baseDir: PROJECT_ROOT,
+    });
+
+    expect(expanded).not.toContain("### Beads Integration");
+    expect(expanded).not.toContain("bd ready");
+  });
+});
+
+describe("expanded commands $ARGUMENTS validation", () => {
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  describe("with beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} should have exactly one $ARGUMENTS`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: ["beads"],
+          baseDir: PROJECT_ROOT,
+        });
+        const matches = expanded.match(/\$ARGUMENTS/g) || [];
+        expect(matches.length).toBe(1);
+      });
+    });
+  });
+
+  describe("without beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} should have exactly one $ARGUMENTS`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: [],
+          baseDir: PROJECT_ROOT,
+        });
+        const matches = expanded.match(/\$ARGUMENTS/g) || [];
+        expect(matches.length).toBe(1);
+      });
+    });
+  });
+});
+
+describe("universal-guidelines inclusion", () => {
+  const UNIVERSAL_GUIDELINES_MARKER = "Never explicitly mention TDD";
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  describe("with beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} should include universal-guidelines content`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: ["beads"],
+          baseDir: PROJECT_ROOT,
+        });
+        expect(expanded).toContain(UNIVERSAL_GUIDELINES_MARKER);
+      });
+    });
+  });
+
+  describe("without beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} should include universal-guidelines content`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: [],
+          baseDir: PROJECT_ROOT,
+        });
+        expect(expanded).toContain(UNIVERSAL_GUIDELINES_MARKER);
+      });
+    });
+  });
+});
+
+describe("beads-awareness inclusion", () => {
+  const BEADS_AWARENESS_MARKER = "Beads is available for task tracking";
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  sourceFiles.forEach((file) => {
+    it(`${file} with beads flag should include beads-awareness content`, () => {
+      const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+      const expanded = expandContent(source, {
+        flags: ["beads"],
+        baseDir: PROJECT_ROOT,
+      });
+      expect(expanded).toContain(BEADS_AWARENESS_MARKER);
+    });
+  });
+});
+
+describe("without-beads should not contain beads references", () => {
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+  const BEADS_PATTERN = /\bbd\b|beads/i;
+
+  sourceFiles.forEach((file) => {
+    it(`${file} without beads flag should not contain 'bd' or 'beads'`, () => {
+      const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+      const expanded = expandContent(source, {
+        flags: [],
+        baseDir: PROJECT_ROOT,
+      });
+      const lines = expanded.split("\n");
+
+      lines.forEach((line, index) => {
+        expect(
+          line,
+          `Line ${index + 1} contains beads reference: "${line.trim()}"`,
+        ).not.toMatch(BEADS_PATTERN);
+      });
+    });
+  });
+});
+
+describe("consistency checks inclusion", () => {
+  it("gap.md with beads should include consistency checking guidance", () => {
+    const source = fs.readFileSync(path.join(SOURCES_DIR, "gap.md"), "utf8");
+    const expanded = expandContent(source, {
+      flags: ["beads"],
+      baseDir: PROJECT_ROOT,
+    });
+    expect(expanded).toContain("Consistency");
+  });
+
+  it("gap.md without beads should include consistency checking guidance", () => {
+    const source = fs.readFileSync(path.join(SOURCES_DIR, "gap.md"), "utf8");
+    const expanded = expandContent(source, {
+      flags: [],
+      baseDir: PROJECT_ROOT,
+    });
+    expect(expanded).toContain("Consistency");
+  });
+
+  it("refactor.md with beads should include consistency checking guidance", () => {
+    const source = fs.readFileSync(
+      path.join(SOURCES_DIR, "refactor.md"),
+      "utf8",
+    );
+    const expanded = expandContent(source, {
+      flags: ["beads"],
+      baseDir: PROJECT_ROOT,
+    });
+    expect(expanded).toContain("Consistency");
+  });
+
+  it("refactor.md without beads should include consistency checking guidance", () => {
+    const source = fs.readFileSync(
+      path.join(SOURCES_DIR, "refactor.md"),
+      "utf8",
+    );
+    const expanded = expandContent(source, {
+      flags: [],
+      baseDir: PROJECT_ROOT,
+    });
+    expect(expanded).toContain("Consistency");
+  });
+});
+
+describe("fallback-arguments inclusion", () => {
+  const TDD_CYCLE_COMMANDS = [
+    "red.md",
+    "green.md",
+    "cycle.md",
+    "refactor.md",
+    "spike.md",
+  ];
+  const FALLBACK_MARKER = "bd ready";
+
+  TDD_CYCLE_COMMANDS.forEach((file) => {
+    it(`${file} with beads should include fallback-arguments content`, () => {
+      const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+      const expanded = expandContent(source, {
+        flags: ["beads"],
+        baseDir: PROJECT_ROOT,
+      });
+      expect(expanded).toContain(FALLBACK_MARKER);
+    });
+  });
+});
+
+describe("allowed-tools should not contain Bash commands", () => {
+  const BASH_PATTERN = /Bash\([^)]*\)/;
+  const sourceFiles = getMarkdownFiles(SOURCES_DIR);
+
+  describe("with beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} allowed-tools should not contain Bash commands`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: ["beads"],
+          baseDir: PROJECT_ROOT,
+        });
+        // Extract frontmatter (between --- markers at start of file)
+        const frontmatterMatch = expanded.match(/^---\n([\s\S]*?)\n---/);
+
+        if (frontmatterMatch) {
+          const frontmatter = frontmatterMatch[1];
+          const allowedToolsMatch = frontmatter.match(
+            /^allowed-tools:\s*(.*)$/m,
+          );
+
+          if (allowedToolsMatch) {
+            const allowedTools = allowedToolsMatch[1];
+            expect(
+              allowedTools,
+              `allowed-tools contains Bash command: "${allowedTools}"`,
+            ).not.toMatch(BASH_PATTERN);
+          }
+        }
+      });
+    });
+  });
+
+  describe("without beads flag", () => {
+    sourceFiles.forEach((file) => {
+      it(`${file} allowed-tools should not contain Bash commands`, () => {
+        const source = fs.readFileSync(path.join(SOURCES_DIR, file), "utf8");
+        const expanded = expandContent(source, {
+          flags: [],
+          baseDir: PROJECT_ROOT,
+        });
+        // Extract frontmatter (between --- markers at start of file)
+        const frontmatterMatch = expanded.match(/^---\n([\s\S]*?)\n---/);
+
+        if (frontmatterMatch) {
+          const frontmatter = frontmatterMatch[1];
+          const allowedToolsMatch = frontmatter.match(
+            /^allowed-tools:\s*(.*)$/m,
+          );
+
+          if (allowedToolsMatch) {
+            const allowedTools = allowedToolsMatch[1];
+            expect(
+              allowedTools,
+              `allowed-tools contains Bash command: "${allowedTools}"`,
+            ).not.toMatch(BASH_PATTERN);
+          }
+        }
+      });
+    });
+  });
+});
+
+describe("markdownlint validation", () => {
+  // Note: Dynamically expanded files may have extra blank lines where conditional
+  // content was removed. The CLI applies post-processing to fix these issues.
+  // These tests only validate the README which is generated through the build process.
+
+  it("README should pass markdownlint", async () => {
+    const readmePath = path.join(PROJECT_ROOT, "README.md");
+    const configPath = path.join(PROJECT_ROOT, ".markdownlint.json");
+    const config = await readConfigAsync(configPath);
+
+    const results = await lintAsync({ files: [readmePath], config });
+
+    const errors: string[] = [];
+    for (const issues of Object.values(
+      results as Record<
+        string,
+        Array<{
+          lineNumber: number;
+          ruleNames: string[];
+          ruleDescription: string;
+        }>
+      >,
+    )) {
+      for (const issue of issues) {
+        errors.push(
+          `README.md:${issue.lineNumber}: ${issue.ruleNames.join("/")} ${issue.ruleDescription}`,
+        );
+      }
+    }
+
+    expect(errors, errors.join("\n")).toEqual([]);
+  });
+});

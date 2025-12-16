@@ -34,10 +34,10 @@ describe("CLI Integration", () => {
     expect(typeof main).toBe("function");
   });
 
-  it("should have downloads directory with variants", () => {
-    const downloadsDir = path.join(PROJECT_ROOT, "downloads");
-    expect(fs.existsSync(path.join(downloadsDir, "with-beads"))).toBe(true);
-    expect(fs.existsSync(path.join(downloadsDir, "without-beads"))).toBe(true);
+  it("should have src directory with sources and fragments", () => {
+    const srcDir = path.join(PROJECT_ROOT, "src");
+    expect(fs.existsSync(path.join(srcDir, "sources"))).toBe(true);
+    expect(fs.existsSync(path.join(srcDir, "fragments"))).toBe(true);
   });
 
   it("should have package.json with correct bin entry", () => {
@@ -45,10 +45,10 @@ describe("CLI Integration", () => {
     expect(pkgJson.bin).toBe("./bin/cli.js");
   });
 
-  it("should have package.json with files array including bin and downloads", () => {
+  it("should have package.json with files array including bin and src", () => {
     const pkgJson = fs.readJsonSync(path.join(PROJECT_ROOT, "package.json"));
     expect(pkgJson.files).toContain("bin");
-    expect(pkgJson.files).toContain("downloads");
+    expect(pkgJson.files).toContain("src");
   });
 
   it(
@@ -62,10 +62,15 @@ describe("CLI Integration", () => {
         stdio: "pipe",
       });
 
-      // Find the tarball
+      // Find the tarball and verify size
       const files = fs.readdirSync(tempDir);
       const tarball = files.find((f) => f.endsWith(".tgz"));
       expect(tarball).toBeDefined();
+
+      // Check tarball size (compressed) - current ~480KB, allow up to 600KB
+      const tarballStats = fs.statSync(path.join(tempDir, tarball!));
+      const tarballSizeKB = tarballStats.size / 1024;
+      expect(tarballSizeKB).toBeLessThan(600);
 
       // Extract it
       const extractDir = path.join(tempDir, "extracted");

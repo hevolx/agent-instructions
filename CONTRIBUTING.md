@@ -23,8 +23,7 @@ pnpm build
 ```
 
 This generates:
-- `downloads/with-beads/` - Commands with Beads MCP integration
-- `downloads/without-beads/` - Standalone TDD workflow
+- `.claude/commands/` - Local commands for development
 - Updates README.md with command list
 
 ### 4. Test locally
@@ -41,19 +40,19 @@ pnpm test
 ```
 
 Ensures:
-- All snapshot tests pass for downloads
+- All snapshot tests pass
 - Unit tests pass for generator functions
 
 ### 6. Commit changes
 
 **Commit source files and build artifacts:**
 ```bash
-git add src/ scripts/ downloads/ .claude/commands/ package.json README.md
+git add src/ scripts/ .claude/commands/ package.json README.md
 git commit -m "feat: update TDD fundamentals fragment"
 ```
 
 **Important workflow notes:**
-- **Build artifacts** (`downloads/`, `.claude/commands/`) contain fully expanded content and ARE committed for easy distribution
+- **Build artifacts** (`.claude/commands/`) contain fully expanded content and ARE committed for easy distribution
 - After editing sources/fragments, always run `pnpm build` before committing to regenerate artifacts
 - Source files should remain clean - the build process expands fragments into artifacts only
 
@@ -113,13 +112,12 @@ This content will only be included when building with Beads integration enabled.
 - **Faster updates** - edit once in fragments/, rebuild all affected commands
 - **Guaranteed consistency** - fragments ensure identical content across commands
 - **Auto-generated README** - command list generated from source descriptions
-- **Multiple build variants** - with-beads and without-beads from single source
+- **Dynamic generation** - CLI generates commands on-the-fly with optional feature flags
 - **Snapshot testing** - catch unintended changes in generated output
 
 ## Available Build Commands
 
-- `pnpm build` - Build both variants to `downloads/` and copy with-beads to `.claude/commands/`
-- `pnpm clean` - Clean `downloads/`
+- `pnpm build` - Build README.md and copy commands to `.claude/commands/`
 - `pnpm test` - Run all tests including snapshot tests
 - `pnpm test:watch` - Run tests in watch mode
 - `pnpm generate` - Run interactive command generator

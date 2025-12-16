@@ -17,11 +17,10 @@ const pc = process.env.FORCE_COLOR ? picocolors.createColors(true) : picocolors;
 import {
   generateToDirectory,
   checkExistingFiles,
-  VARIANT_OPTIONS,
   getScopeOptions,
   getCommandsGroupedByCategory,
   getRequestedToolsOptions,
-  type Variant,
+  getFlagsGroupedByCategory,
   type Scope,
   type ExistingFile,
 } from "./cli-generator.js";
@@ -183,7 +182,6 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 `;
 
 export interface CliArgs {
-  variant?: string;
   scope?: string;
   prefix?: string;
   skipTemplateInjection?: boolean;
@@ -191,30 +189,31 @@ export interface CliArgs {
   updateExisting?: boolean;
   overwrite?: boolean;
   skipOnConflict?: boolean;
+  flags?: string[];
 }
 
 export async function main(args?: CliArgs): Promise<void> {
   intro(BATMAN_LOGO);
 
-  let variant: string | symbol;
   let scope: string | symbol;
   let commandPrefix: string | symbol;
   let selectedCommands: string[] | symbol | undefined;
   let selectedAllowedTools: string[] | symbol | undefined;
+  let selectedFlags: string[] | symbol | undefined;
   let cachedExistingFiles: ExistingFile[] | undefined;
 
-  if (args?.variant && args?.scope) {
-    variant = args.variant;
+  if (args?.scope) {
+    // Non-interactive mode (scope is the only required flag)
     scope = args.scope;
     commandPrefix = args.prefix ?? "";
     selectedCommands = args.commands;
+    selectedFlags = args.flags;
 
     if (args.updateExisting) {
       cachedExistingFiles = await checkExistingFiles(
         undefined,
-        variant as Variant,
         scope as Scope,
-        { commandPrefix: commandPrefix || "" },
+        { commandPrefix: commandPrefix || "", flags: selectedFlags },
       );
       selectedCommands = cachedExistingFiles.map((f) => f.filename);
 
@@ -235,15 +234,7 @@ export async function main(args?: CliArgs): Promise<void> {
       return;
     }
 
-    variant = await select({
-      message: "Select variant",
-      options: [...VARIANT_OPTIONS],
-    });
-
-    if (isCancel(variant)) {
-      return;
-    }
-
+    // Interactive mode: scope first, then flags
     const terminalWidth = process.stdout.columns || 80;
     const uiOverhead = 25; // checkbox, label, padding
     scope = await select({
@@ -264,16 +255,28 @@ export async function main(args?: CliArgs): Promise<void> {
       return;
     }
 
-    let groupedCommands = await getCommandsGroupedByCategory(
-      variant as Variant,
-    );
+    // Select feature flags (replaces variant selection)
+    const flagOptions = getFlagsGroupedByCategory();
+    selectedFlags = await groupMultiselect({
+      message: "Select feature flags (optional)",
+      options: flagOptions,
+      required: false,
+    });
+
+    if (isCancel(selectedFlags)) {
+      return;
+    }
+
+    let groupedCommands = await getCommandsGroupedByCategory();
 
     if (args?.updateExisting) {
       cachedExistingFiles = await checkExistingFiles(
         undefined,
-        variant as Variant,
         scope as Scope,
-        { commandPrefix: (commandPrefix as string) || "" },
+        {
+          commandPrefix: (commandPrefix as string) || "",
+          flags: selectedFlags as string[],
+        },
       );
       const existingFilenames = new Set(
         cachedExistingFiles.map((f) => f.filename),
@@ -310,9 +313,7 @@ export async function main(args?: CliArgs): Promise<void> {
       return;
     }
 
-    const requestedToolsOptions = await getRequestedToolsOptions(
-      variant as Variant,
-    );
+    const requestedToolsOptions = await getRequestedToolsOptions();
 
     if (requestedToolsOptions.length > 0) {
       selectedAllowedTools = await groupMultiselect({
@@ -331,10 +332,11 @@ export async function main(args?: CliArgs): Promise<void> {
 
   const existingFiles =
     cachedExistingFiles ??
-    (await checkExistingFiles(undefined, variant as Variant, scope as Scope, {
+    (await checkExistingFiles(undefined, scope as Scope, {
       commandPrefix: commandPrefix as string,
       commands: selectedCommands as string[],
       allowedTools: selectedAllowedTools as string[] | undefined,
+      flags: selectedFlags as string[] | undefined,
     }));
 
   const skipFiles: string[] = [];
@@ -422,18 +424,14 @@ export async function main(args?: CliArgs): Promise<void> {
     }
   }
 
-  const result = await generateToDirectory(
-    undefined,
-    variant as Variant,
-    scope as Scope,
-    {
-      commandPrefix: commandPrefix as string,
-      skipTemplateInjection: args?.skipTemplateInjection,
-      commands: selectedCommands as string[],
-      skipFiles,
-      allowedTools: selectedAllowedTools as string[] | undefined,
-    },
-  );
+  const result = await generateToDirectory(undefined, scope as Scope, {
+    commandPrefix: commandPrefix as string,
+    skipTemplateInjection: args?.skipTemplateInjection,
+    commands: selectedCommands as string[],
+    skipFiles,
+    allowedTools: selectedAllowedTools as string[] | undefined,
+    flags: selectedFlags as string[] | undefined,
+  });
 
   const fullPath =
     scope === "project"

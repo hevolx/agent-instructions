@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import { execSync } from "child_process";
-import { generateToDirectory, VARIANTS } from "../cli-generator";
+import { generateToDirectory } from "../cli-generator";
 
 const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
 
@@ -52,11 +52,10 @@ ${customInstructions}
     await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
-      // Act: Generate commands to output directory
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      // Act: Generate commands to output directory using dynamic generation
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected
       expect(result.templateInjected).toBe(true);
@@ -90,11 +89,10 @@ ${customInstructions}
     await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
-      // Act: Generate commands
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      // Act: Generate commands using dynamic generation
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected from AGENTS.md
       expect(result.templateInjected).toBe(true);
@@ -121,11 +119,10 @@ ${commitOnlyInstructions}
     await withCwd(tempDir, async () => {
       const outputDir = path.join(tempDir, ".claude", "commands");
 
-      // Act: Generate commands
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      // Act: Generate commands using dynamic generation
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected
       expect(result.templateInjected).toBe(true);
@@ -161,10 +158,9 @@ ${tddInstructions}
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected
       expect(result.templateInjected).toBe(true);
@@ -212,10 +208,9 @@ ${secondTemplate}
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected
       expect(result.templateInjected).toBe(true);
@@ -255,10 +250,9 @@ ${thirdTemplate}
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Template was injected
       expect(result.templateInjected).toBe(true);
@@ -290,10 +284,9 @@ This is a project without any template blocks.
       const outputDir = path.join(tempDir, ".claude", "commands");
 
       // Act
-      const result = await generateToDirectory(
-        outputDir,
-        VARIANTS.WITHOUT_BEADS,
-      );
+      const result = await generateToDirectory(outputDir, undefined, {
+        flags: [],
+      });
 
       // Assert: Generation succeeded but no template was injected
       expect(result.success).toBe(true);
@@ -328,7 +321,8 @@ describe("Allowed Tools Conflict Detection E2E", () => {
     const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
 
     // First generation with allowed tools - use code-review.md which has _requested-tools
-    await generateToDirectory(outputDir, VARIANTS.WITHOUT_BEADS, undefined, {
+    await generateToDirectory(outputDir, undefined, {
+      flags: [],
       commands: ["code-review.md"],
       allowedTools,
     });
@@ -343,15 +337,11 @@ describe("Allowed Tools Conflict Detection E2E", () => {
     );
 
     // Check for conflicts with same allowed tools - should be identical
-    const existingFiles = await checkExistingFiles(
-      outputDir,
-      VARIANTS.WITHOUT_BEADS,
-      undefined,
-      {
-        commands: ["code-review.md"],
-        allowedTools,
-      },
-    );
+    const existingFiles = await checkExistingFiles(outputDir, undefined, {
+      flags: [],
+      commands: ["code-review.md"],
+      allowedTools,
+    });
 
     expect(existingFiles).toHaveLength(1);
     expect(existingFiles[0].isIdentical).toBe(true);
@@ -363,7 +353,8 @@ describe("Allowed Tools Conflict Detection E2E", () => {
     const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
 
     // Generate both code-review.md (has _requested-tools) and red.md (no _requested-tools)
-    await generateToDirectory(outputDir, VARIANTS.WITHOUT_BEADS, undefined, {
+    await generateToDirectory(outputDir, undefined, {
+      flags: [],
       commands: ["code-review.md", "red.md"],
       allowedTools,
     });
@@ -424,7 +415,7 @@ describe("Postinstall Workflow E2E", () => {
         version: "1.0.0",
         scripts: {
           postinstall:
-            "npx @wbern/claude-instructions --variant=without-beads --scope=project --prefix= --skip-template-injection",
+            "npx @wbern/claude-instructions --scope=project --prefix= --skip-template-injection",
         },
         devDependencies: {
           "@wbern/claude-instructions": `file:${path.join(tempDir, tarball!)}`,

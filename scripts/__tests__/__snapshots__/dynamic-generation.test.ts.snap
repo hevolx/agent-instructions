@@ -1,27 +1,29 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`downloads/with-beads > should match snapshot for add-command.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for add-command.md 1`] = `
 "---
 description: Guide for creating new slash commands
 argument-hint: <command-name> <description>
+_hint: Create command
+_category: Utilities
+_order: 3
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 # Slash Command Creator Guide
 
 ## How This Command Works
-
 The \`/add-command\` command shows this guide for creating new slash commands. It includes:
-
 - Command structure and syntax
 - Common patterns and examples
 - Security restrictions and limitations
@@ -30,7 +32,6 @@ The \`/add-command\` command shows this guide for creating new slash commands. I
 **Note for AI**: When creating commands, you CAN use bash tools like \`Bash(mkdir:*)\`, \`Bash(ls:*)\`, \`Bash(git status:*)\` in the \`allowed-tools\` frontmatter of NEW commands - but ONLY for operations within the current project directory. This command itself doesn't need bash tools since it's just documentation.
 
 ## Command Locations
-
 - **Personal**: \`~/.claude/commands/\` (available across all projects)
 - **Project**: \`.claude/commands/\` (shared with team, shows "(project)")
 
@@ -57,26 +58,22 @@ Bash command output: (exclamation)git status(backticks)
 ## ⚠️ Security Restrictions
 
 **Bash Commands (exclamation prefix)**: Limited to current working directory only.
-
 - ✅ Works: \`! + backtick + git status + backtick\` (in project dir)
 - ❌ Blocked: \`! + backtick + ls /outside/project + backtick\` (outside project)  
 - ❌ Blocked: \`! + backtick + pwd + backtick\` (if referencing dirs outside project)
 
 **File References (\`@\` prefix)**: No directory restrictions.
-
 - ✅ Works: \`@/path/to/system/file.md\`
 - ✅ Works: \`@../other-project/file.js\`
 
 ## Common Patterns
 
 ### Simple Command
-
 \`\`\`bash
 echo "Review this code for bugs and suggest fixes" > ~/.claude/commands/review.md
 \`\`\`
 
 ### Command with Arguments
-
 **Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular \`$\` character.
 
 \`\`\`markdown
@@ -84,13 +81,11 @@ Fix issue ＄ARGUMENTS following our coding standards
 \`\`\`
 
 ### Command with File References
-
 \`\`\`markdown
 Compare @src/old.js with @src/new.js and explain differences
 \`\`\`
 
 ### Command with Bash Output (Project Directory Only)
-
 \`\`\`markdown
 ---
 allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git log:*)
@@ -105,7 +100,6 @@ Create commit for these changes.
 **Note**: Only works with commands in the current project directory.
 
 ### Namespaced Command
-
 **Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular \`$\` character.
 
 \`\`\`bash
@@ -115,7 +109,6 @@ echo "Ask GPT-5 about: ＄ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
 \`\`\`
 
 ## Frontmatter Options
-
 - \`allowed-tools\`: Tools this command can use
   - **Important**: Intrusive tools like \`Write\`, \`Edit\`, \`NotebookEdit\` should NEVER be allowed in commands unless the user explicitly requests them. These tools modify files and should only be used when the command's purpose is to make changes.
   - ✅ Safe for most commands: \`Read\`, \`Glob\`, \`Grep\`, \`Bash(git status:*)\`, \`Task\`, \`AskUserQuestion\`
@@ -126,7 +119,6 @@ echo "Ask GPT-5 about: ＄ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
 ## Best Practices
 
 ### Safe Commands (No Security Issues)
-
 \`\`\`markdown
 # System prompt editor (file reference only)  
 (@)path/to/system/prompt.md
@@ -135,7 +127,6 @@ Edit your system prompt above.
 \`\`\`
 
 ### Project-Specific Commands (Bash OK)
-
 \`\`\`markdown
 ---
 allowed-tools: Bash(git status:*), Bash(npm list:*)
@@ -147,7 +138,6 @@ Review project state and suggest next steps.
 \`\`\`
 
 ### Cross-Directory File Access (Use @ not !)
-
 \`\`\`markdown
 # Compare config files
 Compare (@)path/to/system.md with (@)project/config.md
@@ -156,17 +146,20 @@ Show differences and suggest improvements.
 \`\`\`
 
 ## Usage
-
 After creating: \`/<command-name> [arguments]\`
 
 Example: \`/review\` or \`/ai:gpt5 "explain this code"\`
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for ask.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for ask.md 1`] = `
 "---
 description: Request team review and approval - for complex changes needing discussion
 argument-hint: [optional-pr-title-and-description]
+_hint: Request review
+_category: Ship / Show / Ask
+_order: 3
+_selectedByDefault: false
 ---
 
 # Ask - Request Review and Approval
@@ -174,12 +167,13 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 **Ship/Show/Ask Pattern - ASK**
 
@@ -302,19 +296,22 @@ Use **/ship** instead if: change is tiny, obvious, and safe
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for beepboop.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for beepboop.md 1`] = `
 "---
 description: Communicate AI-generated content with transparent attribution
 argument-hint: <task-description>
+_hint: AI attribution
+_category: Utilities
+_order: 2
 ---
 
 # AI-Attributed Communication Command
@@ -324,12 +321,13 @@ Execute the user's requested task (e.g., posting PR comments, GitHub issue comme
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 ## Instructions
 
@@ -362,21 +360,25 @@ This command ensures transparency about AI usage while maintaining that the user
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for busycommit.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for busycommit.md 1`] = `
 "---
 description: Create multiple atomic git commits, one logical change at a time
 argument-hint: [optional-commit-description]
+_hint: Atomic commits
+_category: Workflow
+_order: 2
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Create multiple atomic git commits, committing the smallest possible logical unit at a time
 
@@ -413,6 +415,7 @@ git add <files>
 git commit -m "feat(#123): add validation to user input form"
 \`\`\`
 
+
 ## Atomic Commit Approach
 
 Each commit should represent ONE logical change. Do NOT bundle multiple unrelated changes into one commit.
@@ -444,21 +447,32 @@ git commit -m "refactor: extract user lookup to helper"
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for code-review.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for code-review.md 1`] = `
 "---
 description: Code review using dynamic category detection and domain-specific analysis
 argument-hint: (optional) [branch, PR#, or PR URL] - defaults to current branch
+_hint: Review code
+_category: Workflow
+_order: 35
+_requested-tools:
+  - Bash(git diff:*)
+  - Bash(git status:*)
+  - Bash(git log:*)
+  - Bash(git rev-parse:*)
+  - Bash(git merge-base:*)
+  - Bash(git branch:*)
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 # Code Review
 
@@ -635,6 +649,7 @@ For each detected category with changes, run a targeted review. Skip categories 
 - **Act**: Single action being tested
 - **Assert**: Specific, behavior-focused assertions
 
+
 ### Docs Review Criteria
 
 - Technical accuracy: Code examples work, APIs documented correctly
@@ -711,21 +726,25 @@ Review target (branch name, PR number, or PR URL - leave empty for current branc
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for commit.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for commit.md 1`] = `
 "---
 description: Create a git commit following project standards
 argument-hint: [optional-commit-description]
+_hint: Git commit
+_category: Workflow
+_order: 1
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Create a git commit following project standards
 
@@ -761,13 +780,17 @@ Follows [Conventional Commits](https://www.conventionalcommits.org/) standard.
 git add <files>
 git commit -m "feat(#123): add validation to user input form"
 \`\`\`
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for cycle.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for cycle.md 1`] = `
 "---
 description: Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 argument-hint: <feature or requirement description>
+_hint: Full TDD cycle
+_category: Test-Driven Development
+_order: 5
 ---
 
 RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input here:
@@ -777,17 +800,18 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -860,24 +884,29 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for gap.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for gap.md 1`] = `
 "---
 description: Analyze conversation context for unaddressed items and gaps
 argument-hint: [optional additional info]
+_hint: Find gaps
+_category: Workflow
+_order: 11
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Analyze the current conversation context and identify things that have not yet been addressed. Look for:
 
@@ -886,11 +915,12 @@ Analyze the current conversation context and identify things that have not yet b
 3. **Missing tests** - Functionality without test coverage
 4. **Open issues** - Beads issues that are still open or in progress
 
-5. **User requests** - Things the user asked for that weren't fully completed
-6. **TODO comments** - Any TODOs mentioned in conversation
-7. **Error handling gaps** - Missing error cases or edge cases
-8. **Documentation gaps** - Undocumented APIs or features
-9. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+4. **User requests** - Things the user asked for that weren't fully completed
+5. **TODO comments** - Any TODOs mentioned in conversation
+6. **Error handling gaps** - Missing error cases or edge cases
+7. **Documentation gaps** - Undocumented APIs or features
+8. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
 
 Present findings as a prioritized list with:
 
@@ -905,10 +935,13 @@ $ARGUMENTS
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for green.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for green.md 1`] = `
 "---
 description: Execute TDD Green Phase - write minimal implementation to pass the failing test
 argument-hint: <implementation description>
+_hint: Make it pass
+_category: Test-Driven Development
+_order: 3
 ---
 
 GREEN PHASE! Apply the below to the info given by user input here:
@@ -918,17 +951,18 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -1001,13 +1035,17 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for issue.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for issue.md 1`] = `
 "---
 description: Analyze GitHub issue and create TDD implementation plan
 argument-hint: [optional-issue-number]
+_hint: Analyze issue
+_category: Planning
+_order: 1
 ---
 
 Analyze GitHub issue and create TDD implementation plan.
@@ -1015,12 +1053,13 @@ Analyze GitHub issue and create TDD implementation plan.
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Process:
 
@@ -1031,12 +1070,11 @@ Process:
 - Or from this bullet point with custom info: $ARGUMENTS
 - If not found: ask user
 
-1. Fetch Issue
+2. Fetch Issue
 
 Try to fetch the issue using GitHub MCP (mcp__github__issue_read tool).
 
 If GitHub MCP is not configured, show:
-
 \`\`\`
 GitHub MCP not configured!
 See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
@@ -1045,7 +1083,8 @@ Trying GitHub CLI fallback...
 
 Then try using \`gh issue view [ISSUE_NUMBER] --json\` as fallback.
 
-1. Analyze and Plan
+
+3. Analyze and Plan
 
 Summarize the issue and requirements, then:
 
@@ -1054,37 +1093,34 @@ Summarize the issue and requirements, then:
 Understand the requirement by asking (use AskUserQuestion if needed):
 
 **Problem Statement**
-
 - What problem does this solve?
 - Who experiences this problem?
 - What's the current pain point?
 
 **Desired Outcome**
-
 - What should happen after this is built?
 - How will users interact with it?
 - What does success look like?
 
 **Scope & Constraints**
-
 - What's in scope vs. out of scope?
 - Any technical constraints?
 - Dependencies on other systems/features?
 
 **Context Check**
-
 - Search codebase for related features/modules
 - Check for existing test files that might be relevant
+
 
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 
 ## TDD Fundamentals
 
@@ -1157,19 +1193,25 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for kata.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for kata.md 1`] = `
 "---
 description: Generate a TDD practice challenge with boilerplate test setup
 argument-hint: (no arguments - interactive)
+_hint: Practice kata
+_category: Utilities
+_order: 10
+_requested-tools:
+  - WebFetch(domain:raw.githubusercontent.com)
+  - WebFetch(domain:api.github.com)
 ---
 
 # Kata: TDD Practice Challenge Generator
 
 Generate a complete TDD practice setup:
-
 - \`CHALLENGE.md\` - Problem description
 - Test file with first test placeholder
 - Implementation file with empty function
@@ -1177,12 +1219,13 @@ Generate a complete TDD practice setup:
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 ## Input
 
@@ -1477,11 +1520,9 @@ Use conversational AskUserQuestion flow. User can skip to suggestions at any poi
 # Kata: {$SELECTED_KATA}
 
 ## Difficulty
-
 {$DIFFICULTY_STARS based on category}
 
 ## Problem
-
 {$KATA_CONTENT from readme.txt}
 
 ## TDD Approach
@@ -1608,10 +1649,13 @@ class TestKata:
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for plan.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for plan.md 1`] = `
 "---
 description: Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
 argument-hint: <feature/requirement description or GitHub issue URL/number>
+_hint: Plan feature
+_category: Planning
+_order: 2
 ---
 
 # Plan: PRD-Informed Task Planning for TDD
@@ -1621,12 +1665,13 @@ Create structured implementation plan that bridges product thinking (PRD) with t
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 ## Input
 
@@ -1637,7 +1682,6 @@ $ARGUMENTS
 ## Input Processing
 
 The input can be one of:
-
 1. **GitHub Issue URL** (e.g., \`https://github.com/owner/repo/issues/123\`)
 2. **GitHub Issue Number** (e.g., \`#123\` or \`123\`)
 3. **Feature Description** (e.g., "Add user authentication")
@@ -1648,14 +1692,12 @@ The input can be one of:
 If input looks like a GitHub issue:
 
 **Step 1: Extract Issue Number**
-
 - From URL: extract owner/repo/number
 - From number: try to infer repo from git remote
 - From branch name: check patterns like \`issue-123\`, \`123-feature\`, \`feature/123\`
 
 **Step 2: Fetch Issue**
 Try GitHub MCP first:
-
 - If available: use \`mcp__github__issue_read\` to fetch issue details
 - If not available: show message and try \`gh issue view <number>\`
 
@@ -1666,7 +1708,6 @@ Trying GitHub CLI fallback...
 \`\`\`
 
 **Step 3: Use Issue as Discovery Input**
-
 - Title → Feature name
 - Description → Problem statement and context
 - Labels → Type/priority hints
@@ -1674,7 +1715,6 @@ Trying GitHub CLI fallback...
 - Linked issues → Dependencies
 
 Extract from GitHub issue:
-
 - Problem statement and context
 - Acceptance criteria (if present)
 - Technical notes (if present)
@@ -1687,27 +1727,24 @@ Extract from GitHub issue:
 Understand the requirement by asking (use AskUserQuestion if needed):
 
 **Problem Statement**
-
 - What problem does this solve?
 - Who experiences this problem?
 - What's the current pain point?
 
 **Desired Outcome**
-
 - What should happen after this is built?
 - How will users interact with it?
 - What does success look like?
 
 **Scope & Constraints**
-
 - What's in scope vs. out of scope?
 - Any technical constraints?
 - Dependencies on other systems/features?
 
 **Context Check**
-
 - Search codebase for related features/modules
 - Check for existing test files that might be relevant
+
 
 ### Create Beads Issues
 
@@ -1725,32 +1762,27 @@ bd create "Task title" \\
 **Issue Structure Best Practices:**
 
 **Title**: Action-oriented, specific
-
 - ✅ "Add JWT token validation middleware"
 - ❌ "Authentication stuff"
 
 **Description**: Provide context
-
 - Why this task exists
 - How it fits into the larger feature
 - Links to related issues/docs
 
 **Design**: Technical approach
-
 - Key interfaces/types needed
 - Algorithm or approach
 - Libraries or patterns to use
 - Known gotchas or considerations
 
 **Acceptance Criteria**: Test-ready scenarios
-
 - Given-When-Then format
 - Concrete, verifiable conditions
 - Cover main case + edge cases
 - Map 1:1 to future tests
 
 **Dependencies**: Link related issues
-
 \`\`\`bash
 bd dep add ISSUE-123 ISSUE-456 --type blocks
 \`\`\`
@@ -1758,23 +1790,21 @@ bd dep add ISSUE-123 ISSUE-456 --type blocks
 ### Validation
 
 After creating issues, verify:
-
 - ✅ Each issue has clear acceptance criteria
 - ✅ Dependencies are mapped (use \`bd dep add\`)
 - ✅ Issues are ordered by implementation sequence
 - ✅ First few issues are ready to start (\`bd ready\` shows them)
 - ✅ Each issue is small enough for TDD (if too big, break down more)
 
+
 ## Key Principles
 
 **From PRD World:**
-
 - Start with user problems, not solutions
 - Define success criteria upfront
 - Understand constraints and scope
 
 **From TDD World:**
-
 - Make acceptance criteria test-ready
 - Break work into small, testable pieces
 - Each task should map to test(s)
@@ -1782,12 +1812,12 @@ After creating issues, verify:
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 
 ## Integration with Other Commands
 
@@ -1795,13 +1825,17 @@ See <https://github.com/steveyegge/beads> for more information.
 - **After /plan**: Use \`/red\` to start TDD on first task
 - **During work**: Use \`bd update\` to add notes/findings back to issues
 - **When stuck**: Check \`bd show ISSUE-ID\` to review acceptance criteria
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for pr.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for pr.md 1`] = `
 "---
 description: Creates a pull request using GitHub MCP
 argument-hint: [optional-pr-title-and-description]
+_hint: Create PR
+_category: Workflow
+_order: 5
 ---
 
 # Create Pull Request
@@ -1809,12 +1843,13 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Create a pull request for the current branch using GitHub MCP tools.
 
@@ -1875,19 +1910,22 @@ Arguments: $ARGUMENTS
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for red.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for red.md 1`] = `
 "---
 description: Execute TDD Red Phase - write ONE failing test
 argument-hint: [optional additional info]
+_hint: Failing test
+_category: Test-Driven Development
+_order: 2
 ---
 
 RED PHASE! Apply the below to the info given by user input here:
@@ -1897,17 +1935,18 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -1980,6 +2019,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 
 ### Test Structure (AAA Pattern)
 
@@ -1988,13 +2028,17 @@ Structure each test with clear phases:
 - **Arrange**: Set up test data and preconditions (keep minimal)
 - **Act**: Execute the single action being tested
 - **Assert**: Verify the expected outcome with specific assertions
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for refactor.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for refactor.md 1`] = `
 "---
 description: Execute TDD Refactor Phase - improve code structure while keeping tests green
 argument-hint: <refactoring description>
+_hint: Clean up code
+_category: Test-Driven Development
+_order: 4
 ---
 
 Apply this document (specifically the Refactor phase), to the info given by user input here: $ARGUMENTS
@@ -2002,17 +2046,18 @@ Apply this document (specifically the Refactor phase), to the info given by user
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -2085,6 +2130,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 
 ### Watch for Brittle Tests
 
@@ -2096,14 +2142,20 @@ When refactoring implementation, watch for **Peeping Tom** tests that:
 
 If tests fail after a pure refactoring (no behavior change), consider whether the tests are testing implementation rather than behavior.
 
-1. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
+8. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for ship.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for ship.md 1`] = `
 "---
 description: Ship code directly to main - for small, obvious changes that don't need review
 argument-hint: [optional-commit-message]
+_hint: Direct to main
+_category: Ship / Show / Ask
+_order: 1
+_selectedByDefault: false
 ---
 
 # Ship - Direct Merge to Main
@@ -2111,12 +2163,13 @@ argument-hint: [optional-commit-message]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 **Ship/Show/Ask Pattern - SHIP**
 
@@ -2193,19 +2246,23 @@ If tests fail, linter fails, or changes are large/complex, STOP and suggest:
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for show.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for show.md 1`] = `
 "---
 description: Show code to team with auto-merge - for changes that should be visible but don't need approval
 argument-hint: [optional-pr-title-and-description]
+_hint: Auto-merge PR
+_category: Ship / Show / Ask
+_order: 2
+_selectedByDefault: false
 ---
 
 # Show - Visible Merge with Optional Feedback
@@ -2213,12 +2270,13 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 **Ship/Show/Ask Pattern - SHOW**
 
@@ -2311,19 +2369,22 @@ Use **/ask** instead if: change needs discussion, breaks APIs, or you're uncerta
 ### Beads Integration
 
 Use Beads MCP to:
-
 - Track work with \`bd ready\` to find next task
 - Create issues with \`bd create "description"\`
 - Track dependencies with \`bd dep add\`
 
-See <https://github.com/steveyegge/beads> for more information.
+See https://github.com/steveyegge/beads for more information.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for spike.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for spike.md 1`] = `
 "---
 description: Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
 argument-hint: <exploration description>
+_hint: Explore first
+_category: Test-Driven Development
+_order: 1
 ---
 
 SPIKE PHASE! Apply the below to the info given by user input here:
@@ -2333,17 +2394,18 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 ## TDD Fundamentals
 
@@ -2416,24 +2478,29 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for summarize.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for summarize.md 1`] = `
 "---
 description: Summarize conversation progress and next steps
 argument-hint: [optional additional info]
+_hint: Summarize chat
+_category: Workflow
+_order: 10
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Create a concise summary of the current conversation suitable for transferring context to a new conversation.
 
@@ -2444,19 +2511,16 @@ Additional info: $ARGUMENTS
 Provide a summary with these sections:
 
 ### What We Did
-
 - Key accomplishments and changes made
 - Important decisions or discoveries
 - Files created, modified, or analyzed
 
 ### What We're Doing Next
-
 - Immediate next steps
 - Pending tasks or work in progress
 - Goals or objectives to continue
 
 ### Blockers & User Input Needed
-
 - Any issues requiring user intervention
 - Decisions that need to be made
 - Missing information or clarifications needed
@@ -2465,10 +2529,10 @@ Provide a summary with these sections:
 
 Keep the summary concise and actionable - suitable for pasting into a new conversation to quickly restore context without needing the full conversation history.
 
+
 ## Beads Integration
 
 If Beads MCP is available, check for task tracking status and ask if the user wants to:
-
 1. Review current task status
 2. Update task states based on conversation progress
 3. Include Beads context in the summary
@@ -2477,10 +2541,13 @@ Use AskUserQuestion to confirm Beads integration preferences.
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for tdd.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for tdd.md 1`] = `
 "---
 description: Remind agent about TDD approach and continue conversation
 argument-hint: [optional-response-to-last-message]
+_hint: TDD reminder
+_category: Test-Driven Development
+_order: 1
 ---
 
 # TDD Reminder
@@ -2488,12 +2555,13 @@ argument-hint: [optional-response-to-last-message]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 ## TDD Fundamentals
 
@@ -2567,6 +2635,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
 
+
 ## Continue Conversation
 
 User response to the last message: $ARGUMENTS
@@ -2575,26 +2644,30 @@ Please continue with TDD approach based on the above response.
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for tdd-review.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for tdd-review.md 1`] = `
 "---
 description: Review test suite quality against FIRST principles and TDD anti-patterns
 argument-hint: [optional test file or directory path]
+_hint: Review tests
+_category: Test-Driven Development
+_order: 45
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
-(If there was no info above, fallback to:
 
+(If there was no info above, fallback to:
 1. Context of the conversation, if there's an immediate thing
 2. \`bd ready\` to see what to work on next and start from there)
+
 
 # Test Quality Review
 
@@ -2643,6 +2716,7 @@ For each test file, check against these criteria:
 - **Act**: Single action being tested
 - **Assert**: Specific, behavior-focused assertions
 
+
 ## Phase 3: Report
 
 Output a structured report:
@@ -2681,10 +2755,13 @@ Test path (leave empty for all tests): $ARGUMENTS
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for worktree-add.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for worktree-add.md 1`] = `
 "---
 description: Add a new git worktree from branch name or issue URL, copy settings, install deps, and open in current IDE
 argument-hint: <branch-name-or-issue-url> [optional-base-branch]
+_hint: Add worktree
+_category: Worktree Management
+_order: 1
 ---
 
 # Git Worktree Setup
@@ -2692,12 +2769,13 @@ argument-hint: <branch-name-or-issue-url> [optional-base-branch]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Create a new git worktree for branch: $ARGUMENTS
 
@@ -2802,9 +2880,9 @@ Uncommitted changes: \`git status --short\`
       <bitbucket>Check if argument contains "bitbucket.org" and "/issues/"</bitbucket>
     </url_detection>
     <url_parsing>
-      <github_pattern><https://github.com/{owner}/{repo}/issues/{issue_number}></github_pattern>
-      <gitlab_pattern><https://gitlab.com/{owner}/{repo}/-/issues/{issue_number}></gitlab_pattern>
-      <bitbucket_pattern><https://bitbucket.org/{owner}/{repo}/issues/{issue_number}></bitbucket_pattern>
+      <github_pattern>https://github.com/{owner}/{repo}/issues/{issue_number}</github_pattern>
+      <gitlab_pattern>https://gitlab.com/{owner}/{repo}/-/issues/{issue_number}</gitlab_pattern>
+      <bitbucket_pattern>https://bitbucket.org/{owner}/{repo}/issues/{issue_number}</bitbucket_pattern>
       <extract>owner, repo, issue_number from URL</extract>
     </url_parsing>
     <fetch_issue_details>
@@ -2949,7 +3027,7 @@ Uncommitted changes: \`git status --short\`
       - packages/*/.env.local
       - (any other .env.local files found)
     </common_locations>
-    <copy_command>find . -name ".env.local" -type f -exec sh -c 'mkdir -p "$(dirname "\${parent_path}/\${branch_name}/$1")" && cp "$1" "\${parent_path}/\${branch_name}/$1"'_ {} \\;</copy_command>
+    <copy_command>find . -name ".env.local" -type f -exec sh -c 'mkdir -p "$(dirname "\${parent_path}/\${branch_name}/$1")" && cp "$1" "\${parent_path}/\${branch_name}/$1"' _ {} \\;</copy_command>
     <purpose>Preserve local environment configurations for development</purpose>
     <note>Only copies files that exist; ignores missing ones</note>
   </step_9>
@@ -3033,7 +3111,6 @@ EOF</create_file_command>
 - New branches are automatically pushed with \`-u\` to set up remote tracking
 
 Limitations:
-
 - Assumes remote is named "origin" (most common convention)
 - Supports macOS and Linux only (no Windows support)
 - Requires MCP server or CLI for git hosting provider when using issue URLs (GitHub, GitLab, etc.)
@@ -3042,10 +3119,13 @@ Limitations:
 "
 `;
 
-exports[`downloads/with-beads > should match snapshot for worktree-cleanup.md 1`] = `
+exports[`dynamic generation snapshots > with beads flag > should match snapshot for worktree-cleanup.md 1`] = `
 "---
 description: Clean up merged worktrees by verifying PR/issue status, consolidating settings, and removing stale worktrees
 argument-hint: (no arguments)
+_hint: Cleanup worktree
+_category: Worktree Management
+_order: 2
 ---
 
 # Worktree Cleanup
@@ -3053,12 +3133,13 @@ argument-hint: (no arguments)
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
+
 
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
@@ -3288,7 +3369,6 @@ Current worktrees: \`git worktree list\`
 - Must be run from default branch for safety
 
 Limitations:
-
 - Assumes remote is named "origin" (most common convention)
 - Supports macOS and Linux only (no Windows support)
 - Requires MCP server or CLI for git hosting provider (GitHub, GitLab, etc.)
@@ -3296,26 +3376,29 @@ Limitations:
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for add-command.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for add-command.md 1`] = `
 "---
 description: Guide for creating new slash commands
 argument-hint: <command-name> <description>
+_hint: Create command
+_category: Utilities
+_order: 3
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 # Slash Command Creator Guide
 
 ## How This Command Works
-
 The \`/add-command\` command shows this guide for creating new slash commands. It includes:
-
 - Command structure and syntax
 - Common patterns and examples
 - Security restrictions and limitations
@@ -3324,7 +3407,6 @@ The \`/add-command\` command shows this guide for creating new slash commands. I
 **Note for AI**: When creating commands, you CAN use bash tools like \`Bash(mkdir:*)\`, \`Bash(ls:*)\`, \`Bash(git status:*)\` in the \`allowed-tools\` frontmatter of NEW commands - but ONLY for operations within the current project directory. This command itself doesn't need bash tools since it's just documentation.
 
 ## Command Locations
-
 - **Personal**: \`~/.claude/commands/\` (available across all projects)
 - **Project**: \`.claude/commands/\` (shared with team, shows "(project)")
 
@@ -3351,26 +3433,22 @@ Bash command output: (exclamation)git status(backticks)
 ## ⚠️ Security Restrictions
 
 **Bash Commands (exclamation prefix)**: Limited to current working directory only.
-
 - ✅ Works: \`! + backtick + git status + backtick\` (in project dir)
 - ❌ Blocked: \`! + backtick + ls /outside/project + backtick\` (outside project)  
 - ❌ Blocked: \`! + backtick + pwd + backtick\` (if referencing dirs outside project)
 
 **File References (\`@\` prefix)**: No directory restrictions.
-
 - ✅ Works: \`@/path/to/system/file.md\`
 - ✅ Works: \`@../other-project/file.js\`
 
 ## Common Patterns
 
 ### Simple Command
-
 \`\`\`bash
 echo "Review this code for bugs and suggest fixes" > ~/.claude/commands/review.md
 \`\`\`
 
 ### Command with Arguments
-
 **Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular \`$\` character.
 
 \`\`\`markdown
@@ -3378,13 +3456,11 @@ Fix issue ＄ARGUMENTS following our coding standards
 \`\`\`
 
 ### Command with File References
-
 \`\`\`markdown
 Compare @src/old.js with @src/new.js and explain differences
 \`\`\`
 
 ### Command with Bash Output (Project Directory Only)
-
 \`\`\`markdown
 ---
 allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git log:*)
@@ -3399,7 +3475,6 @@ Create commit for these changes.
 **Note**: Only works with commands in the current project directory.
 
 ### Namespaced Command
-
 **Note for AI**: The example below uses a fullwidth dollar sign (＄, U+FF04) to prevent interpolation in this documentation. When creating actual commands, use the regular \`$\` character.
 
 \`\`\`bash
@@ -3409,7 +3484,6 @@ echo "Ask GPT-5 about: ＄ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
 \`\`\`
 
 ## Frontmatter Options
-
 - \`allowed-tools\`: Tools this command can use
   - **Important**: Intrusive tools like \`Write\`, \`Edit\`, \`NotebookEdit\` should NEVER be allowed in commands unless the user explicitly requests them. These tools modify files and should only be used when the command's purpose is to make changes.
   - ✅ Safe for most commands: \`Read\`, \`Glob\`, \`Grep\`, \`Bash(git status:*)\`, \`Task\`, \`AskUserQuestion\`
@@ -3420,7 +3494,6 @@ echo "Ask GPT-5 about: ＄ARGUMENTS" > ~/.claude/commands/ai/gpt5.md
 ## Best Practices
 
 ### Safe Commands (No Security Issues)
-
 \`\`\`markdown
 # System prompt editor (file reference only)  
 (@)path/to/system/prompt.md
@@ -3429,7 +3502,6 @@ Edit your system prompt above.
 \`\`\`
 
 ### Project-Specific Commands (Bash OK)
-
 \`\`\`markdown
 ---
 allowed-tools: Bash(git status:*), Bash(npm list:*)
@@ -3441,7 +3513,6 @@ Review project state and suggest next steps.
 \`\`\`
 
 ### Cross-Directory File Access (Use @ not !)
-
 \`\`\`markdown
 # Compare config files
 Compare (@)path/to/system.md with (@)project/config.md
@@ -3450,17 +3521,20 @@ Show differences and suggest improvements.
 \`\`\`
 
 ## Usage
-
 After creating: \`/<command-name> [arguments]\`
 
 Example: \`/review\` or \`/ai:gpt5 "explain this code"\`
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for ask.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for ask.md 1`] = `
 "---
 description: Request team review and approval - for complex changes needing discussion
 argument-hint: [optional-pr-title-and-description]
+_hint: Request review
+_category: Ship / Show / Ask
+_order: 3
+_selectedByDefault: false
 ---
 
 # Ask - Request Review and Approval
@@ -3468,10 +3542,12 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 **Ship/Show/Ask Pattern - ASK**
 
@@ -3590,13 +3666,18 @@ Use **Ask** when:
 Use **/show** instead if: confident in approach, just want visibility
 
 Use **/ship** instead if: change is tiny, obvious, and safe
+
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for beepboop.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for beepboop.md 1`] = `
 "---
 description: Communicate AI-generated content with transparent attribution
 argument-hint: <task-description>
+_hint: AI attribution
+_category: Utilities
+_order: 2
 ---
 
 # AI-Attributed Communication Command
@@ -3606,10 +3687,12 @@ Execute the user's requested task (e.g., posting PR comments, GitHub issue comme
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 ## Instructions
 
@@ -3642,19 +3725,24 @@ This command ensures transparency about AI usage while maintaining that the user
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for busycommit.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for busycommit.md 1`] = `
 "---
 description: Create multiple atomic git commits, one logical change at a time
 argument-hint: [optional-commit-description]
+_hint: Atomic commits
+_category: Workflow
+_order: 2
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Create multiple atomic git commits, committing the smallest possible logical unit at a time
 
@@ -3691,6 +3779,7 @@ git add <files>
 git commit -m "feat(#123): add validation to user input form"
 \`\`\`
 
+
 ## Atomic Commit Approach
 
 Each commit should represent ONE logical change. Do NOT bundle multiple unrelated changes into one commit.
@@ -3722,19 +3811,31 @@ git commit -m "refactor: extract user lookup to helper"
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for code-review.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for code-review.md 1`] = `
 "---
 description: Code review using dynamic category detection and domain-specific analysis
 argument-hint: (optional) [branch, PR#, or PR URL] - defaults to current branch
+_hint: Review code
+_category: Workflow
+_order: 35
+_requested-tools:
+  - Bash(git diff:*)
+  - Bash(git status:*)
+  - Bash(git log:*)
+  - Bash(git rev-parse:*)
+  - Bash(git merge-base:*)
+  - Bash(git branch:*)
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 # Code Review
 
@@ -3911,6 +4012,7 @@ For each detected category with changes, run a targeted review. Skip categories 
 - **Act**: Single action being tested
 - **Assert**: Specific, behavior-focused assertions
 
+
 ### Docs Review Criteria
 
 - Technical accuracy: Code examples work, APIs documented correctly
@@ -3987,19 +4089,24 @@ Review target (branch name, PR number, or PR URL - leave empty for current branc
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for commit.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for commit.md 1`] = `
 "---
 description: Create a git commit following project standards
 argument-hint: [optional-commit-description]
+_hint: Git commit
+_category: Workflow
+_order: 1
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Create a git commit following project standards
 
@@ -4035,13 +4142,17 @@ Follows [Conventional Commits](https://www.conventionalcommits.org/) standard.
 git add <files>
 git commit -m "feat(#123): add validation to user input form"
 \`\`\`
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for cycle.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for cycle.md 1`] = `
 "---
 description: Execute complete TDD cycle - Red, Green, and Refactor phases in sequence
 argument-hint: <feature or requirement description>
+_hint: Full TDD cycle
+_category: Test-Driven Development
+_order: 5
 ---
 
 RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input here:
@@ -4051,12 +4162,15 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 ## TDD Fundamentals
 
@@ -4129,22 +4243,28 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for gap.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for gap.md 1`] = `
 "---
 description: Analyze conversation context for unaddressed items and gaps
 argument-hint: [optional additional info]
+_hint: Find gaps
+_category: Workflow
+_order: 11
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Analyze the current conversation context and identify things that have not yet been addressed. Look for:
 
@@ -4157,6 +4277,7 @@ Analyze the current conversation context and identify things that have not yet b
 6. **Error handling gaps** - Missing error cases or edge cases
 7. **Documentation gaps** - Undocumented APIs or features
 8. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
 
 Present findings as a prioritized list with:
 
@@ -4171,10 +4292,13 @@ $ARGUMENTS
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for green.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for green.md 1`] = `
 "---
 description: Execute TDD Green Phase - write minimal implementation to pass the failing test
 argument-hint: <implementation description>
+_hint: Make it pass
+_category: Test-Driven Development
+_order: 3
 ---
 
 GREEN PHASE! Apply the below to the info given by user input here:
@@ -4184,12 +4308,15 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 ## TDD Fundamentals
 
@@ -4262,13 +4389,17 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for issue.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for issue.md 1`] = `
 "---
 description: Analyze GitHub issue and create TDD implementation plan
 argument-hint: [optional-issue-number]
+_hint: Analyze issue
+_category: Planning
+_order: 1
 ---
 
 Analyze GitHub issue and create TDD implementation plan.
@@ -4276,10 +4407,12 @@ Analyze GitHub issue and create TDD implementation plan.
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Process:
 
@@ -4290,12 +4423,11 @@ Process:
 - Or from this bullet point with custom info: $ARGUMENTS
 - If not found: ask user
 
-1. Fetch Issue
+2. Fetch Issue
 
 Try to fetch the issue using GitHub MCP (mcp__github__issue_read tool).
 
 If GitHub MCP is not configured, show:
-
 \`\`\`
 GitHub MCP not configured!
 See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
@@ -4304,7 +4436,8 @@ Trying GitHub CLI fallback...
 
 Then try using \`gh issue view [ISSUE_NUMBER] --json\` as fallback.
 
-1. Analyze and Plan
+
+3. Analyze and Plan
 
 Summarize the issue and requirements, then:
 
@@ -4313,27 +4446,26 @@ Summarize the issue and requirements, then:
 Understand the requirement by asking (use AskUserQuestion if needed):
 
 **Problem Statement**
-
 - What problem does this solve?
 - Who experiences this problem?
 - What's the current pain point?
 
 **Desired Outcome**
-
 - What should happen after this is built?
 - How will users interact with it?
 - What does success look like?
 
 **Scope & Constraints**
-
 - What's in scope vs. out of scope?
 - Any technical constraints?
 - Dependencies on other systems/features?
 
 **Context Check**
-
 - Search codebase for related features/modules
 - Check for existing test files that might be relevant
+
+
+
 
 ## TDD Fundamentals
 
@@ -4406,19 +4538,25 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for kata.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for kata.md 1`] = `
 "---
 description: Generate a TDD practice challenge with boilerplate test setup
 argument-hint: (no arguments - interactive)
+_hint: Practice kata
+_category: Utilities
+_order: 10
+_requested-tools:
+  - WebFetch(domain:raw.githubusercontent.com)
+  - WebFetch(domain:api.github.com)
 ---
 
 # Kata: TDD Practice Challenge Generator
 
 Generate a complete TDD practice setup:
-
 - \`CHALLENGE.md\` - Problem description
 - Test file with first test placeholder
 - Implementation file with empty function
@@ -4426,10 +4564,12 @@ Generate a complete TDD practice setup:
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 ## Input
 
@@ -4724,11 +4864,9 @@ Use conversational AskUserQuestion flow. User can skip to suggestions at any poi
 # Kata: {$SELECTED_KATA}
 
 ## Difficulty
-
 {$DIFFICULTY_STARS based on category}
 
 ## Problem
-
 {$KATA_CONTENT from readme.txt}
 
 ## TDD Approach
@@ -4855,10 +4993,13 @@ class TestKata:
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for plan.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for plan.md 1`] = `
 "---
 description: Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
 argument-hint: <feature/requirement description or GitHub issue URL/number>
+_hint: Plan feature
+_category: Planning
+_order: 2
 ---
 
 # Plan: PRD-Informed Task Planning for TDD
@@ -4868,10 +5009,12 @@ Create structured implementation plan that bridges product thinking (PRD) with t
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 ## Input
 
@@ -4882,7 +5025,6 @@ $ARGUMENTS
 ## Input Processing
 
 The input can be one of:
-
 1. **GitHub Issue URL** (e.g., \`https://github.com/owner/repo/issues/123\`)
 2. **GitHub Issue Number** (e.g., \`#123\` or \`123\`)
 3. **Feature Description** (e.g., "Add user authentication")
@@ -4893,14 +5035,12 @@ The input can be one of:
 If input looks like a GitHub issue:
 
 **Step 1: Extract Issue Number**
-
 - From URL: extract owner/repo/number
 - From number: try to infer repo from git remote
 - From branch name: check patterns like \`issue-123\`, \`123-feature\`, \`feature/123\`
 
 **Step 2: Fetch Issue**
 Try GitHub MCP first:
-
 - If available: use \`mcp__github__issue_read\` to fetch issue details
 - If not available: show message and try \`gh issue view <number>\`
 
@@ -4911,7 +5051,6 @@ Trying GitHub CLI fallback...
 \`\`\`
 
 **Step 3: Use Issue as Discovery Input**
-
 - Title → Feature name
 - Description → Problem statement and context
 - Labels → Type/priority hints
@@ -4919,7 +5058,6 @@ Trying GitHub CLI fallback...
 - Linked issues → Dependencies
 
 Extract from GitHub issue:
-
 - Problem statement and context
 - Acceptance criteria (if present)
 - Technical notes (if present)
@@ -4932,53 +5070,56 @@ Extract from GitHub issue:
 Understand the requirement by asking (use AskUserQuestion if needed):
 
 **Problem Statement**
-
 - What problem does this solve?
 - Who experiences this problem?
 - What's the current pain point?
 
 **Desired Outcome**
-
 - What should happen after this is built?
 - How will users interact with it?
 - What does success look like?
 
 **Scope & Constraints**
-
 - What's in scope vs. out of scope?
 - Any technical constraints?
 - Dependencies on other systems/features?
 
 **Context Check**
-
 - Search codebase for related features/modules
 - Check for existing test files that might be relevant
+
+
+
 
 ## Key Principles
 
 **From PRD World:**
-
 - Start with user problems, not solutions
 - Define success criteria upfront
 - Understand constraints and scope
 
 **From TDD World:**
-
 - Make acceptance criteria test-ready
 - Break work into small, testable pieces
 - Each task should map to test(s)
+
+
 
 ## Integration with Other Commands
 
 - **Before /plan**: Use \`/spike\` if you need technical exploration first
 - **After /plan**: Use \`/red\` to start TDD on first task
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for pr.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for pr.md 1`] = `
 "---
 description: Creates a pull request using GitHub MCP
 argument-hint: [optional-pr-title-and-description]
+_hint: Create PR
+_category: Workflow
+_order: 5
 ---
 
 # Create Pull Request
@@ -4986,10 +5127,12 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Create a pull request for the current branch using GitHub MCP tools.
 
@@ -5046,13 +5189,18 @@ Arguments: $ARGUMENTS
 2. Create a well-formatted pull request with proper title and description
 3. Set the base branch (default: main)
 4. Include relevant issue references if found in commit messages
+
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for red.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for red.md 1`] = `
 "---
 description: Execute TDD Red Phase - write ONE failing test
 argument-hint: [optional additional info]
+_hint: Failing test
+_category: Test-Driven Development
+_order: 2
 ---
 
 RED PHASE! Apply the below to the info given by user input here:
@@ -5062,12 +5210,15 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 ## TDD Fundamentals
 
@@ -5140,6 +5291,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 
 ### Test Structure (AAA Pattern)
 
@@ -5148,13 +5300,17 @@ Structure each test with clear phases:
 - **Arrange**: Set up test data and preconditions (keep minimal)
 - **Act**: Execute the single action being tested
 - **Assert**: Verify the expected outcome with specific assertions
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for refactor.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for refactor.md 1`] = `
 "---
 description: Execute TDD Refactor Phase - improve code structure while keeping tests green
 argument-hint: <refactoring description>
+_hint: Clean up code
+_category: Test-Driven Development
+_order: 4
 ---
 
 Apply this document (specifically the Refactor phase), to the info given by user input here: $ARGUMENTS
@@ -5162,12 +5318,15 @@ Apply this document (specifically the Refactor phase), to the info given by user
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 ## TDD Fundamentals
 
@@ -5240,6 +5399,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 
 ### Watch for Brittle Tests
 
@@ -5251,14 +5411,20 @@ When refactoring implementation, watch for **Peeping Tom** tests that:
 
 If tests fail after a pure refactoring (no behavior change), consider whether the tests are testing implementation rather than behavior.
 
-1. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
+8. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for ship.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for ship.md 1`] = `
 "---
 description: Ship code directly to main - for small, obvious changes that don't need review
 argument-hint: [optional-commit-message]
+_hint: Direct to main
+_category: Ship / Show / Ask
+_order: 1
+_selectedByDefault: false
 ---
 
 # Ship - Direct Merge to Main
@@ -5266,10 +5432,12 @@ argument-hint: [optional-commit-message]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 **Ship/Show/Ask Pattern - SHIP**
 
@@ -5342,13 +5510,19 @@ If tests fail, linter fails, or changes are large/complex, STOP and suggest:
 
 - Use \`/show\` for changes that should be seen but don't need approval
 - Use \`/ask\` (traditional PR) for complex changes needing discussion
+
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for show.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for show.md 1`] = `
 "---
 description: Show code to team with auto-merge - for changes that should be visible but don't need approval
 argument-hint: [optional-pr-title-and-description]
+_hint: Auto-merge PR
+_category: Ship / Show / Ask
+_order: 2
+_selectedByDefault: false
 ---
 
 # Show - Visible Merge with Optional Feedback
@@ -5356,10 +5530,12 @@ argument-hint: [optional-pr-title-and-description]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 **Ship/Show/Ask Pattern - SHOW**
 
@@ -5448,13 +5624,18 @@ Use **Show** when:
 Use **/ship** instead if: change is tiny and obvious (typo, formatting)
 
 Use **/ask** instead if: change needs discussion, breaks APIs, or you're uncertain
+
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for spike.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for spike.md 1`] = `
 "---
 description: Execute TDD Spike Phase - exploratory coding to understand problem space before TDD
 argument-hint: <exploration description>
+_hint: Explore first
+_category: Test-Driven Development
+_order: 1
 ---
 
 SPIKE PHASE! Apply the below to the info given by user input here:
@@ -5464,12 +5645,15 @@ $ARGUMENTS
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 ## TDD Fundamentals
 
@@ -5542,22 +5726,28 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - In the refactor phase, it is perfectly fine to refactor both test and implementation code. That said, completely new functionality is not allowed. Types, clean up, abstractions, and helpers are allowed as long as they do not introduce new behavior.
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for summarize.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for summarize.md 1`] = `
 "---
 description: Summarize conversation progress and next steps
 argument-hint: [optional additional info]
+_hint: Summarize chat
+_category: Workflow
+_order: 10
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Create a concise summary of the current conversation suitable for transferring context to a new conversation.
 
@@ -5568,19 +5758,16 @@ Additional info: $ARGUMENTS
 Provide a summary with these sections:
 
 ### What We Did
-
 - Key accomplishments and changes made
 - Important decisions or discoveries
 - Files created, modified, or analyzed
 
 ### What We're Doing Next
-
 - Immediate next steps
 - Pending tasks or work in progress
 - Goals or objectives to continue
 
 ### Blockers & User Input Needed
-
 - Any issues requiring user intervention
 - Decisions that need to be made
 - Missing information or clarifications needed
@@ -5588,13 +5775,19 @@ Provide a summary with these sections:
 ## Output Format
 
 Keep the summary concise and actionable - suitable for pasting into a new conversation to quickly restore context without needing the full conversation history.
+
+
+
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for tdd.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for tdd.md 1`] = `
 "---
 description: Remind agent about TDD approach and continue conversation
 argument-hint: [optional-response-to-last-message]
+_hint: TDD reminder
+_category: Test-Driven Development
+_order: 1
 ---
 
 # TDD Reminder
@@ -5602,10 +5795,12 @@ argument-hint: [optional-response-to-last-message]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 ## TDD Fundamentals
 
@@ -5679,6 +5874,7 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 - Adding types, interfaces, or a constant in order to replace magic values is perfectly fine during refactoring.
 - Provide the agent with helpful directions so that they do not get stuck when blocking them.
 
+
 ## Continue Conversation
 
 User response to the last message: $ARGUMENTS
@@ -5687,21 +5883,27 @@ Please continue with TDD approach based on the above response.
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for tdd-review.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for tdd-review.md 1`] = `
 "---
 description: Review test suite quality against FIRST principles and TDD anti-patterns
 argument-hint: [optional test file or directory path]
+_hint: Review tests
+_category: Test-Driven Development
+_order: 45
 ---
 
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
 
+
+
+
 (If there was no info above, fallback to the context of the conversation)
+
 
 # Test Quality Review
 
@@ -5750,6 +5952,7 @@ For each test file, check against these criteria:
 - **Act**: Single action being tested
 - **Assert**: Specific, behavior-focused assertions
 
+
 ## Phase 3: Report
 
 Output a structured report:
@@ -5788,10 +5991,13 @@ Test path (leave empty for all tests): $ARGUMENTS
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for worktree-add.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for worktree-add.md 1`] = `
 "---
 description: Add a new git worktree from branch name or issue URL, copy settings, install deps, and open in current IDE
 argument-hint: <branch-name-or-issue-url> [optional-base-branch]
+_hint: Add worktree
+_category: Worktree Management
+_order: 1
 ---
 
 # Git Worktree Setup
@@ -5799,10 +6005,12 @@ argument-hint: <branch-name-or-issue-url> [optional-base-branch]
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Create a new git worktree for branch: $ARGUMENTS
 
@@ -5907,9 +6115,9 @@ Uncommitted changes: \`git status --short\`
       <bitbucket>Check if argument contains "bitbucket.org" and "/issues/"</bitbucket>
     </url_detection>
     <url_parsing>
-      <github_pattern><https://github.com/{owner}/{repo}/issues/{issue_number}></github_pattern>
-      <gitlab_pattern><https://gitlab.com/{owner}/{repo}/-/issues/{issue_number}></gitlab_pattern>
-      <bitbucket_pattern><https://bitbucket.org/{owner}/{repo}/issues/{issue_number}></bitbucket_pattern>
+      <github_pattern>https://github.com/{owner}/{repo}/issues/{issue_number}</github_pattern>
+      <gitlab_pattern>https://gitlab.com/{owner}/{repo}/-/issues/{issue_number}</gitlab_pattern>
+      <bitbucket_pattern>https://bitbucket.org/{owner}/{repo}/issues/{issue_number}</bitbucket_pattern>
       <extract>owner, repo, issue_number from URL</extract>
     </url_parsing>
     <fetch_issue_details>
@@ -6054,7 +6262,7 @@ Uncommitted changes: \`git status --short\`
       - packages/*/.env.local
       - (any other .env.local files found)
     </common_locations>
-    <copy_command>find . -name ".env.local" -type f -exec sh -c 'mkdir -p "$(dirname "\${parent_path}/\${branch_name}/$1")" && cp "$1" "\${parent_path}/\${branch_name}/$1"'_ {} \\;</copy_command>
+    <copy_command>find . -name ".env.local" -type f -exec sh -c 'mkdir -p "$(dirname "\${parent_path}/\${branch_name}/$1")" && cp "$1" "\${parent_path}/\${branch_name}/$1"' _ {} \\;</copy_command>
     <purpose>Preserve local environment configurations for development</purpose>
     <note>Only copies files that exist; ignores missing ones</note>
   </step_9>
@@ -6138,7 +6346,6 @@ EOF</create_file_command>
 - New branches are automatically pushed with \`-u\` to set up remote tracking
 
 Limitations:
-
 - Assumes remote is named "origin" (most common convention)
 - Supports macOS and Linux only (no Windows support)
 - Requires MCP server or CLI for git hosting provider when using issue URLs (GitHub, GitLab, etc.)
@@ -6147,10 +6354,13 @@ Limitations:
 "
 `;
 
-exports[`downloads/without-beads > should match snapshot for worktree-cleanup.md 1`] = `
+exports[`dynamic generation snapshots > without beads flag > should match snapshot for worktree-cleanup.md 1`] = `
 "---
 description: Clean up merged worktrees by verifying PR/issue status, consolidating settings, and removing stale worktrees
 argument-hint: (no arguments)
+_hint: Cleanup worktree
+_category: Worktree Management
+_order: 2
 ---
 
 # Worktree Cleanup
@@ -6158,10 +6368,12 @@ argument-hint: (no arguments)
 ## General Guidelines
 
 ### Output Style
-
 - **Never explicitly mention TDD** in code, comments, commits, PRs, or issues
 - Write natural, descriptive code without meta-commentary about the development process
 - The code should speak for itself - TDD is the process, not the product
+
+
+
 
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
@@ -6391,7 +6603,6 @@ Current worktrees: \`git worktree list\`
 - Must be run from default branch for safety
 
 Limitations:
-
 - Assumes remote is named "origin" (most common convention)
 - Supports macOS and Linux only (no Windows support)
 - Requires MCP server or CLI for git hosting provider (GitHub, GitLab, etc.)

@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { generateMarkdownTable } from "./cli-options.js";
 import { REQUESTED_TOOLS_KEY } from "./cli-generator.js";
 import { getMarkdownFiles } from "./utils.js";
+import { parseOptions } from "./fragment-expander.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -321,17 +322,6 @@ const TRANSFORM_BLOCK_REGEX =
 // Regex to match frontmatter fields with underscore prefix (build-only metadata)
 // This matches the key line AND any following indented array items
 const UNDERSCORE_FIELD_REGEX = /^_[a-zA-Z0-9_-]+:.*$(\n {2}- .*$)*/gm;
-
-// Parse options from attribute string like: path='foo.md' featureFlag='beads'
-function parseOptions(attrString: string): Record<string, string> {
-  const options: Record<string, string> = {};
-  const attrRegex = /(\w+)=['"]([^'"]*)['"]/g;
-  let match;
-  while ((match = attrRegex.exec(attrString)) !== null) {
-    options[match[1]] = match[2];
-  }
-  return options;
-}
 
 /**
  * Clean markdown content by removing underscore-prefixed frontmatter fields.

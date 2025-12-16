@@ -14,6 +14,6 @@ export default [
     },
   },
   {
-    ignores: ["bin/**", "downloads/**", "node_modules/**", "*.js"],
+    ignores: ["bin/**", "node_modules/**", "*.js"],
   },
 ];

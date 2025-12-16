@@ -14,12 +14,18 @@ vi.mock("fs-extra", () => ({
   },
 }));
 
+vi.mock("./fragment-expander.js", () => ({
+  expandContent: vi.fn((content: string) => content),
+}));
+
+vi.mock("./generate-readme.js", () => ({
+  generateCommandsMetadata: vi.fn().mockReturnValue({}),
+}));
+
 import {
   generateToDirectory,
   checkForConflicts,
   getRequestedToolsOptions,
-  getAvailableCommands,
-  VARIANTS,
   SCOPES,
 } from "./cli-generator.js";
 
@@ -37,43 +43,54 @@ describe("generateToDirectory", () => {
     expect(result.filesGenerated).toBeGreaterThan(0);
   });
 
-  it("should accept variant parameter and use it for generation", async () => {
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-    );
+  it("should accept flags option and use it for generation", async () => {
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, undefined, {
+      flags: ["beads"],
+    });
 
     expect(result.success).toBe(true);
-    expect(result.variant).toBe(VARIANTS.WITH_BEADS);
+    expect(result.flags).toEqual(["beads"]);
   });
 
-  it("should copy files from source to output directory", async () => {
-    await generateToDirectory(MOCK_OUTPUT_PATH, VARIANTS.WITH_BEADS);
+  it("should generate files from sources to output directory", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md", "green.md"] as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/with-beads"),
-      MOCK_OUTPUT_PATH,
-      expect.any(Object),
+    await generateToDirectory(MOCK_OUTPUT_PATH);
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining(MOCK_OUTPUT_PATH),
+      expect.any(String),
     );
   });
 
   it("should accept scope parameter and use project-level path", async () => {
-    await generateToDirectory(undefined, VARIANTS.WITH_BEADS, SCOPES.PROJECT);
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/with-beads"),
+    await generateToDirectory(undefined, SCOPES.PROJECT);
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining(".claude/commands"),
-      expect.any(Object),
+      expect.any(String),
     );
   });
 
   it("should use user-level path when scope is user", async () => {
-    await generateToDirectory(undefined, VARIANTS.WITH_BEADS, SCOPES.USER);
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/with-beads"),
+    await generateToDirectory(undefined, SCOPES.USER);
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining(".claude/commands"),
-      expect.any(Object),
+      expect.any(String),
     );
   });
 
@@ -87,21 +104,15 @@ describe("generateToDirectory", () => {
     ];
     vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
 
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-    );
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH);
 
     expect(result.filesGenerated).toBe(5);
   });
 
   it("should accept options object with skipTemplateInjection", async () => {
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { skipTemplateInjection: true },
-    );
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      skipTemplateInjection: true,
+    });
 
     expect(result.success).toBe(true);
     expect(result.templateInjectionSkipped).toBe(true);
@@ -127,11 +138,7 @@ description: Test command
     });
     vi.mocked(fs.readdir).mockResolvedValue(["test.md"] as never);
 
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-    );
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
 
     expect(result.templateInjected).toBe(true);
   });
@@ -158,11 +165,7 @@ description: Test command
     });
     vi.mocked(fs.readdir).mockResolvedValue(["test.md"] as never);
 
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-    );
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
 
     expect(result.templateInjected).toBe(true);
   });
@@ -183,11 +186,7 @@ This should appear at the end.
     });
     vi.mocked(fs.readdir).mockResolvedValue(["test.md"] as never);
 
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-    );
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
 
     expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("test.md"),
@@ -195,24 +194,24 @@ This should appear at the end.
     );
   });
 
-  it("should copy files directly to prefixed path when commandPrefix option is provided", async () => {
+  it("should generate files to prefixed path when commandPrefix option is provided", async () => {
     vi.mocked(fs.readdir).mockResolvedValue(["red.md", "green.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
-
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { commandPrefix: "my-" },
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
     );
 
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("red.md"),
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commandPrefix: "my-",
+    });
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-red.md"),
+      expect.any(String),
     );
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("green.md"),
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-green.md"),
+      expect.any(String),
     );
   });
 
@@ -231,12 +230,9 @@ This should appear at the end.
     });
     vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
 
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { commandPrefix: "my-" },
-    );
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commandPrefix: "my-",
+    });
 
     expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-red.md"),
@@ -263,13 +259,10 @@ This should appear at the end.
       "commit.md",
     ] as never);
 
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-    );
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
 
-    expect(fs.writeFile).toHaveBeenCalledTimes(2);
+    // All 3 files are written, but only red.md and green.md get template content
+    expect(fs.writeFile).toHaveBeenCalledTimes(5); // 3 initial + 2 with template
     expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("red.md"),
       expect.stringContaining("## Only for TDD commands"),
@@ -278,13 +271,14 @@ This should appear at the end.
       expect.stringContaining("green.md"),
       expect.stringContaining("## Only for TDD commands"),
     );
-    expect(fs.writeFile).not.toHaveBeenCalledWith(
+    // commit.md is written but without the template content
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
-      expect.anything(),
+      expect.not.stringContaining("## Only for TDD commands"),
     );
   });
 
-  it("should only copy selected commands when commands option is provided", async () => {
+  it("should only generate selected commands when commands option is provided", async () => {
     vi.mocked(fs.readdir).mockResolvedValue([
       "red.md",
       "green.md",
@@ -292,25 +286,23 @@ This should appear at the end.
       "refactor.md",
     ] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
-
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      {
-        commands: ["red.md", "commit.md"],
-      },
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
     );
+
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commands: ["red.md", "commit.md"],
+    });
 
     expect(result.filesGenerated).toBe(2);
-    expect(fs.copy).toHaveBeenCalledTimes(2);
-    expect(fs.copy).toHaveBeenCalledWith(
+    expect(fs.writeFile).toHaveBeenCalledTimes(2);
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("red.md"),
-      expect.stringContaining("red.md"),
+      expect.any(String),
     );
-    expect(fs.copy).toHaveBeenCalledWith(
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
-      expect.stringContaining("commit.md"),
+      expect.any(String),
     );
   });
 });
@@ -335,10 +327,7 @@ describe("checkForConflicts", () => {
       return newContent;
     });
 
-    const conflicts = await checkForConflicts(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-    );
+    const conflicts = await checkForConflicts(MOCK_OUTPUT_PATH);
 
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0]).toEqual({
@@ -363,12 +352,9 @@ describe("checkForConflicts", () => {
       return newContent;
     });
 
-    const conflicts = await checkForConflicts(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      "project",
-      { commandPrefix: "my-" },
-    );
+    const conflicts = await checkForConflicts(MOCK_OUTPUT_PATH, "project", {
+      commandPrefix: "my-",
+    });
 
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0]).toEqual({
@@ -394,10 +380,7 @@ describe("checkExistingFiles", () => {
     vi.mocked(fs.readFile).mockResolvedValue(sameContent as never);
 
     const { checkExistingFiles } = await import("./cli-generator.js");
-    const files = await checkExistingFiles(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-    );
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH);
 
     expect(files).toHaveLength(1);
     expect(files[0]).toEqual({
@@ -429,12 +412,9 @@ describe("checkExistingFiles", () => {
 
     const { checkExistingFiles } = await import("./cli-generator.js");
     // User only selected red.md - should only check that file
-    const files = await checkExistingFiles(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      undefined,
-      { commands: ["red.md"] },
-    );
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH, undefined, {
+      commands: ["red.md"],
+    });
 
     // Should only return red.md, not green.md or add-command.md
     expect(files).toHaveLength(1);
@@ -454,12 +434,12 @@ describe("checkExistingFiles", () => {
       },
     };
 
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
+
     vi.mocked(fs.readdir).mockResolvedValue(["code-review.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(true as never);
     vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
-      if (String(filePath).includes("commands-metadata.json")) {
-        return JSON.stringify(mockMetadata);
-      }
       if (String(filePath).includes(MOCK_OUTPUT_PATH)) {
         return existingWithAllowedTools;
       }
@@ -467,12 +447,9 @@ describe("checkExistingFiles", () => {
     });
 
     const { checkExistingFiles } = await import("./cli-generator.js");
-    const files = await checkExistingFiles(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      undefined,
-      { allowedTools: ["Bash(git diff:*)"] },
-    );
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH, undefined, {
+      allowedTools: ["Bash(git diff:*)"],
+    });
 
     expect(files).toHaveLength(1);
     // newContent should include allowedTools header (command has _requested-tools)
@@ -505,12 +482,9 @@ describe("checkExistingFiles", () => {
     });
 
     const { checkExistingFiles } = await import("./cli-generator.js");
-    const files = await checkExistingFiles(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      undefined,
-      { allowedTools: ["Bash(pnpm test:*)"] },
-    );
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH, undefined, {
+      allowedTools: ["Bash(pnpm test:*)"],
+    });
 
     expect(files).toHaveLength(1);
     // newContent should NOT include allowedTools (command has no _requested-tools)
@@ -524,6 +498,7 @@ describe("getCommandsGroupedByCategory", () => {
   });
 
   it("should return categories in defined order with Test-Driven Development first and Ship / Show / Ask last", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
     const mockMetadata = {
       "ship.md": {
         description: "Ship",
@@ -547,13 +522,10 @@ describe("getCommandsGroupedByCategory", () => {
       },
     };
 
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
-    const { getCommandsGroupedByCategory, VARIANTS } =
-      await import("./cli-generator.js");
-    const grouped = await getCommandsGroupedByCategory(VARIANTS.WITH_BEADS);
+    const { getCommandsGroupedByCategory } = await import("./cli-generator.js");
+    const grouped = await getCommandsGroupedByCategory();
 
     const categoryOrder = Object.keys(grouped);
     expect(categoryOrder[0]).toBe("Test-Driven Development");
@@ -561,6 +533,7 @@ describe("getCommandsGroupedByCategory", () => {
   });
 
   it("should include hint from _hint property in command options", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
     const mockMetadata = {
       "red.md": {
         description: "Execute Red Phase - write ONE failing test",
@@ -570,13 +543,10 @@ describe("getCommandsGroupedByCategory", () => {
       },
     };
 
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
-    const { getCommandsGroupedByCategory, VARIANTS } =
-      await import("./cli-generator.js");
-    const grouped = await getCommandsGroupedByCategory(VARIANTS.WITH_BEADS);
+    const { getCommandsGroupedByCategory } = await import("./cli-generator.js");
+    const grouped = await getCommandsGroupedByCategory();
 
     expect(grouped["Test-Driven Development"][0]).toMatchObject({
       value: "red.md",
@@ -597,12 +567,9 @@ describe("generateToDirectory with allowedTools", () => {
     vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
-    const result = await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"] },
-    );
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
 
     expect(result.success).toBe(true);
   });
@@ -622,23 +589,16 @@ description: Code review
       },
     };
 
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
+
     vi.mocked(fs.readdir).mockResolvedValue(["code-review.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
-    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
-      if (String(filePath).includes("commands-metadata.json")) {
-        return JSON.stringify(mockMetadata);
-      }
-      return commandContent;
-    });
+    vi.mocked(fs.readFile).mockResolvedValue(commandContent as never);
 
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      {
-        allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
-      },
-    );
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
 
     expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("code-review.md"),
@@ -672,19 +632,14 @@ description: Red phase
       return commandContent;
     });
 
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      {
-        allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
-      },
-    );
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
 
-    // Should NOT write to red.md since it has no _requested-tools
-    expect(fs.writeFile).not.toHaveBeenCalledWith(
+    // File should be written but without allowed-tools header
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("red.md"),
-      expect.anything(),
+      expect.not.stringContaining("allowed-tools"),
     );
   });
 });
@@ -696,66 +651,67 @@ describe("generateToDirectory with skipFiles", () => {
     vi.clearAllMocks();
   });
 
-  it("should not copy files listed in skipFiles", async () => {
+  it("should not generate files listed in skipFiles", async () => {
     vi.mocked(fs.readdir).mockResolvedValue([
       "red.md",
       "green.md",
       "commit.md",
     ] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
-
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { skipFiles: ["commit.md"] },
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
     );
 
-    expect(fs.copy).toHaveBeenCalledTimes(2);
-    expect(fs.copy).toHaveBeenCalledWith(
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      skipFiles: ["commit.md"],
+    });
+
+    expect(fs.writeFile).toHaveBeenCalledTimes(2);
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("red.md"),
-      expect.stringContaining("red.md"),
+      expect.any(String),
     );
-    expect(fs.copy).toHaveBeenCalledWith(
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("green.md"),
-      expect.stringContaining("green.md"),
+      expect.any(String),
     );
-    expect(fs.copy).not.toHaveBeenCalledWith(
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
       expect.anything(),
     );
   });
 
-  it("should copy files directly to prefixed paths when skipFiles is empty and prefix is used", async () => {
+  it("should generate files to prefixed paths when skipFiles is empty and prefix is used", async () => {
     vi.mocked(fs.readdir).mockResolvedValue([
       "red.md",
       "green.md",
       "commit.md",
     ] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
     // This simulates user selecting "Yes" or "Overwrite all" for all conflicts
-    // with a prefix - skipFiles should be empty, all files should be copied
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { commandPrefix: "my-", skipFiles: [] },
-    );
+    // with a prefix - skipFiles should be empty, all files should be generated
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commandPrefix: "my-",
+      skipFiles: [],
+    });
 
-    // All 3 files should be copied directly to prefixed paths
-    expect(fs.copy).toHaveBeenCalledTimes(3);
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("red.md"),
+    // All 3 files should be generated to prefixed paths
+    expect(fs.writeFile).toHaveBeenCalledTimes(3);
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-red.md"),
+      expect.any(String),
     );
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("green.md"),
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-green.md"),
+      expect.any(String),
     );
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("commit.md"),
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-commit.md"),
+      expect.any(String),
     );
   });
 
@@ -766,48 +722,49 @@ describe("generateToDirectory with skipFiles", () => {
       "commit.md",
     ] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
     // Simulates the actual CLI flow with prefix:
     // 1. User runs CLI with prefix "my-"
     // 2. checkExistingFiles finds existing "my-commit.md" and returns { filename: "my-commit.md", ... }
     // 3. User says "No" to skip that file (or file is identical)
     // 4. CLI adds "my-commit.md" to skipFiles
-    // 5. generateToDirectory should NOT copy "commit.md" (the source file)
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { commandPrefix: "my-", skipFiles: ["my-commit.md"] },
-    );
+    // 5. generateToDirectory should NOT generate "commit.md" (the source file)
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commandPrefix: "my-",
+      skipFiles: ["my-commit.md"],
+    });
 
-    // commit.md should NOT be copied because "my-commit.md" is in skipFiles
-    expect(fs.copy).not.toHaveBeenCalledWith(
+    // commit.md should NOT be generated because "my-commit.md" is in skipFiles
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
       expect.stringContaining("commit.md"),
       expect.anything(),
     );
   });
 
-  it("should copy directly to prefixed path to enable overwriting existing files", async () => {
+  it("should generate to prefixed path to enable overwriting existing files", async () => {
     vi.mocked(fs.readdir).mockResolvedValue(["add-command.md"] as never);
     vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
 
     // Simulates overwriting an existing prefixed file:
     // 1. User has existing "my-add-command.md" with different content
     // 2. User selects "Yes" or "Overwrite all"
     // 3. skipFiles is empty (file should be overwritten)
-    // 4. File should be copied directly to "my-add-command.md" (not copy then rename)
-    // 5. fs.copy with default overwrite:true handles overwriting existing files
-    await generateToDirectory(
-      MOCK_OUTPUT_PATH,
-      VARIANTS.WITH_BEADS,
-      SCOPES.PROJECT,
-      { commandPrefix: "my-", skipFiles: [] },
-    );
+    // 4. File should be written directly to "my-add-command.md"
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      commandPrefix: "my-",
+      skipFiles: [],
+    });
 
-    // Should copy directly to the prefixed destination path
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining("add-command.md"),
+    // Should write directly to the prefixed destination path
+    expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-add-command.md"),
+      expect.any(String),
     );
   });
 });
@@ -818,6 +775,7 @@ describe("getRequestedToolsOptions", () => {
   });
 
   it("should extract unique _requested-tools from commands metadata", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
     const mockMetadata = {
       "red.md": {
         description: "Red phase",
@@ -838,11 +796,9 @@ describe("getRequestedToolsOptions", () => {
       },
     };
 
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
-    const options = await getRequestedToolsOptions(VARIANTS.WITH_BEADS);
+    const options = await getRequestedToolsOptions();
 
     expect(options).toEqual([
       {
@@ -856,6 +812,7 @@ describe("getRequestedToolsOptions", () => {
   });
 
   it("should include hint showing which commands use each tool", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
     const mockMetadata = {
       "red.md": {
         description: "Red phase",
@@ -889,11 +846,9 @@ describe("getRequestedToolsOptions", () => {
       },
     };
 
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
-    const options = await getRequestedToolsOptions(VARIANTS.WITH_BEADS);
+    const options = await getRequestedToolsOptions();
 
     const gitDiffOption = options.find((o) => o.value === "Bash(git diff:*)");
     const gitStatusOption = options.find(
@@ -910,57 +865,44 @@ describe("getRequestedToolsOptions", () => {
   });
 });
 
-describe("getAvailableCommands", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should return list of command files for with-beads variant", async () => {
-    const mockFiles = ["red.md", "green.md", "refactor.md"];
-    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
-
-    const commands = await getAvailableCommands(VARIANTS.WITH_BEADS);
-
-    expect(commands).toEqual(mockFiles);
-    expect(fs.readdir).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/with-beads"),
-    );
-  });
-
-  it("should return list of command files for without-beads variant", async () => {
-    const mockFiles = ["red.md", "green.md"];
-    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
-
-    const commands = await getAvailableCommands(VARIANTS.WITHOUT_BEADS);
-
-    expect(commands).toEqual(mockFiles);
-    expect(fs.readdir).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/without-beads"),
-    );
-  });
-
-  it("should default to with-beads when variant is undefined", async () => {
-    const mockFiles = ["commit.md"];
-    vi.mocked(fs.readdir).mockResolvedValue(mockFiles as never);
-
-    const commands = await getAvailableCommands(undefined as never);
-
-    expect(commands).toEqual(mockFiles);
-    expect(fs.readdir).toHaveBeenCalledWith(
-      expect.stringContaining("downloads/with-beads"),
-    );
-  });
-});
-
 describe("generateToDirectory edge cases", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should throw error when neither outputPath nor scope is provided", async () => {
-    await expect(
-      generateToDirectory(undefined, VARIANTS.WITH_BEADS, undefined),
-    ).rejects.toThrow("Either outputPath or scope must be provided");
+    await expect(generateToDirectory(undefined, undefined)).rejects.toThrow(
+      "Either outputPath or scope must be provided",
+    );
+  });
+
+  it("should only generate markdown files, not commands-metadata.json", async () => {
+    // Source directory contains both .md files and commands-metadata.json
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "commands-metadata.json",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
+
+    const MOCK_OUTPUT_PATH = "/mock/output/path";
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, undefined, {
+      flags: [],
+    });
+
+    // Should only generate 2 files (the .md files), not 3
+    expect(result.filesGenerated).toBe(2);
+
+    // fs.writeFile should only be called for .md files
+    const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
+    const writtenPaths = writeFileCalls.map((call) => call[0] as string);
+
+    expect(writtenPaths).not.toContainEqual(
+      expect.stringContaining("commands-metadata.json"),
+    );
   });
 });
 
@@ -987,5 +929,69 @@ describe("getScopeOptions", () => {
     // Paths should NOT be truncated (no ellipsis)
     expect(options[0].hint).not.toMatch(/^\.\.\./);
     expect(options[1].hint).not.toMatch(/^\.\.\./);
+  });
+});
+
+describe("generateToDirectory with flags option", () => {
+  const MOCK_OUTPUT_PATH = "/mock/output/path";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should accept flags option in GenerateOptions", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      flags: ["beads", "github"],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("should return flags in result when provided", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      flags: ["beads"],
+    });
+
+    expect(result.flags).toEqual(["beads"]);
+  });
+
+  it("should read from sources and expand content when flags provided without variant", async () => {
+    const { expandContent } = await import("./fragment-expander.js");
+    const sourceContent = `---
+description: Red phase
+---
+# Red`;
+    const expandedContent = `---
+description: Red phase
+---
+# Red
+Use Beads to track this task.`;
+
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(sourceContent as never);
+    vi.mocked(expandContent).mockReturnValue(expandedContent);
+
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      flags: ["beads"],
+    });
+
+    // Should call expandContent with the source content and flags
+    expect(expandContent).toHaveBeenCalledWith(sourceContent, {
+      flags: ["beads"],
+      baseDir: expect.stringContaining("claude-instructions"),
+    });
+
+    // Should write expanded content
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining("red.md"),
+      expandedContent,
+    );
   });
 });

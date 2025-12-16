@@ -9,14 +9,6 @@ interface CliOption {
 
 export const CLI_OPTIONS: CliOption[] = [
   {
-    flag: "--variant",
-    key: "variant",
-    type: "string",
-    description: "Command variant (with-beads, without-beads)",
-    example: "--variant=with-beads",
-    requiredForNonInteractive: true,
-  },
-  {
     flag: "--scope",
     key: "scope",
     type: "string",
@@ -61,6 +53,13 @@ export const CLI_OPTIONS: CliOption[] = [
     key: "skipOnConflict",
     type: "boolean",
     description: "Skip conflicting files without prompting",
+  },
+  {
+    flag: "--flags",
+    key: "flags",
+    type: "array",
+    description: "Enable feature flags (beads, github, gitlab, etc.)",
+    example: "--flags=beads,github",
   },
 ];
 

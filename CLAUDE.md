@@ -10,10 +10,8 @@ This repository contains a fragment-based system for generating Claude Code slas
 ### Fragment System
 - **Sources** (`src/sources/*.md`): Command templates with INCLUDE directives only
 - **Fragments** (`src/fragments/*.md`): Reusable content blocks
-- **Artifacts** (`downloads/`): Generated commands (both tracked in git)
-- **Build variants**:
-  - `with-beads`: Includes Beads task management integration
-  - `without-beads`: Standard commands without Beads
+- **Local commands** (`.claude/commands/`): Generated commands for local development
+- **Dynamic generation**: CLI generates commands on-the-fly with optional feature flags (e.g., `beads`)
 
 ### Key Principles
 1. **Single source of truth**: Content lives in fragments, not sources
@@ -28,16 +26,16 @@ This repository contains a fragment-based system for generating Claude Code slas
 
 ### Common Commands
 ```bash
-pnpm build          # Build both variants
+pnpm build          # Build README.md and local commands
 pnpm test           # Run tests
 pnpm vitest run -u  # Update snapshots
 ```
 
 ### Git Hooks (Husky)
 Pre-commit hook automatically:
-1. Builds both variants (includes markdownlint --fix)
-2. Runs tests (validates built output)
-3. Stages generated files (downloads/, README.md, .claude/commands/)
+1. Builds (includes markdownlint --fix)
+2. Runs tests
+3. Stages generated files (README.md, .claude/commands/)
 
 This ensures artifacts are always in sync with sources.
 
@@ -45,9 +43,8 @@ This ensures artifacts are always in sync with sources.
 1. markdown-magic expands INCLUDE directives from fragments
 2. Comment blocks are removed from output
 3. markdownlint --fix corrects formatting (list numbering, spacing)
-4. Two variants generated: with-beads and without-beads
-5. README.md automatically updated
-6. .claude/commands/ copied from with-beads variant
+4. README.md automatically updated
+5. .claude/commands/ generated with beads flag enabled
 
 ### Making Changes
 
@@ -123,9 +120,8 @@ Follow Conventional Commits format:
 src/
   sources/       # Command templates (INCLUDE directives only)
   fragments/     # Reusable content blocks
-downloads/
-  with-beads/    # Commands with Beads integration
-  without-beads/ # Standard commands
+.claude/
+  commands/      # Generated commands for local development
 scripts/         # Build and test scripts
 ```
 

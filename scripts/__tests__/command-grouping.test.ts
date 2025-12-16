@@ -1,14 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
-import fs from "fs-extra";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("fs-extra", () => ({
-  default: {
-    readFile: vi.fn(),
-  },
+vi.mock("../generate-readme.js", () => ({
+  generateCommandsMetadata: vi.fn(),
 }));
 
 describe("getCommandsGroupedByCategory", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
   it("should return commands grouped by category from metadata file", async () => {
+    const { generateCommandsMetadata } = await import("../generate-readme.js");
     const mockMetadata = {
       "red.md": {
         description: "Red phase",
@@ -26,13 +28,11 @@ describe("getCommandsGroupedByCategory", () => {
         order: 1,
       },
     };
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
     const { getCommandsGroupedByCategory } =
       await import("../cli-generator.js");
-    const result = await getCommandsGroupedByCategory("with-beads");
+    const result = await getCommandsGroupedByCategory();
 
     expect(result).toEqual({
       "Test-Driven Development": [
@@ -46,6 +46,7 @@ describe("getCommandsGroupedByCategory", () => {
   });
 
   it("should throw when a category is not in CATEGORY_ORDER", async () => {
+    const { generateCommandsMetadata } = await import("../generate-readme.js");
     const mockMetadata = {
       "custom.md": {
         description: "Custom command",
@@ -53,14 +54,12 @@ describe("getCommandsGroupedByCategory", () => {
         order: 1,
       },
     };
-    vi.mocked(fs.readFile).mockResolvedValue(
-      JSON.stringify(mockMetadata) as never,
-    );
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
     const { getCommandsGroupedByCategory } =
       await import("../cli-generator.js");
 
-    await expect(getCommandsGroupedByCategory("with-beads")).rejects.toThrow(
+    await expect(getCommandsGroupedByCategory()).rejects.toThrow(
       "Unknown Category",
     );
   });

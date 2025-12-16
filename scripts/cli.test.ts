@@ -1,6 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { ExistingFile } from "./cli-generator.js";
 
 const mockCancel = Symbol("cancel");
+
+// Flow configuration as data - change this array when the interactive flow changes
+type MockFn = "select" | "text" | "groupMultiselect";
+type StepKey = "scope" | "prefix" | "flags" | "commands" | "allowedTools";
+
+interface FlowStep {
+  key: StepKey;
+  mock: MockFn;
+  default: unknown;
+  optional?: boolean;
+}
+
+const INTERACTIVE_FLOW: FlowStep[] = [
+  { key: "scope", mock: "select", default: "project" },
+  { key: "prefix", mock: "text", default: "" },
+  { key: "flags", mock: "groupMultiselect", default: [] },
+  { key: "commands", mock: "groupMultiselect", default: ["red.md"] },
+  {
+    key: "allowedTools",
+    mock: "groupMultiselect",
+    default: [],
+    optional: true,
+  },
+];
 
 vi.mock("@clack/prompts", () => ({
   select: vi.fn(),
@@ -21,9 +46,6 @@ vi.mock("./cli-generator.js", () => ({
     .mockResolvedValue({ success: true, filesGenerated: 5 }),
   checkForConflicts: vi.fn().mockResolvedValue([]),
   checkExistingFiles: vi.fn().mockResolvedValue([]),
-  getAvailableCommands: vi
-    .fn()
-    .mockResolvedValue(["red.md", "green.md", "refactor.md"]),
   getCommandsGroupedByCategory: vi.fn().mockResolvedValue({
     "TDD Cycle": [
       { value: "red.md", label: "red.md", hint: "Red phase" },
@@ -37,10 +59,11 @@ vi.mock("./cli-generator.js", () => ({
     { value: "Bash(git diff:*)", label: "git diff" },
     { value: "Bash(git status:*)", label: "git status" },
   ]),
-  VARIANT_OPTIONS: [
-    { value: "with-beads", label: "With Beads" },
-    { value: "without-beads", label: "Without Beads" },
-  ],
+  getFlagsGroupedByCategory: vi.fn().mockReturnValue({
+    "Feature Flags": [
+      { value: "beads", label: "Beads MCP", hint: "Local issue tracking" },
+    ],
+  }),
   getScopeOptions: vi.fn().mockReturnValue([
     {
       value: "project",
@@ -59,6 +82,44 @@ vi.mock("./tty.js", () => ({
   isInteractiveTTY: vi.fn().mockReturnValue(true),
 }));
 
+// Generic helper to setup interactive flow mocks
+interface InteractiveFlowOptions {
+  scope?: string;
+  prefix?: string;
+  flags?: string[];
+  commands?: string[];
+  allowedTools?: string[];
+  existingFiles?: ExistingFile[];
+  cancelAt?: StepKey;
+}
+
+async function setupInteractiveMocks(options: InteractiveFlowOptions = {}) {
+  const prompts = await import("@clack/prompts");
+  const { checkExistingFiles } = await import("./cli-generator.js");
+
+  vi.mocked(checkExistingFiles).mockResolvedValue(options.existingFiles ?? []);
+
+  const mocks = {
+    select: vi.mocked(prompts.select),
+    text: vi.mocked(prompts.text),
+    groupMultiselect: vi.mocked(prompts.groupMultiselect),
+  } as Record<MockFn, { mockResolvedValueOnce: (value: unknown) => void }>;
+
+  for (const step of INTERACTIVE_FLOW) {
+    if (options.cancelAt === step.key) {
+      mocks[step.mock].mockResolvedValueOnce(mockCancel);
+      return;
+    }
+
+    if (step.optional && options[step.key] === undefined) {
+      continue;
+    }
+
+    const value = options[step.key] ?? step.default;
+    mocks[step.mock].mockResolvedValueOnce(value);
+  }
+}
+
 describe("CLI", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -70,34 +131,31 @@ describe("CLI", () => {
     expect(typeof main).toBe("function");
   });
 
-  it("should prompt for variant and scope then generate", async () => {
-    const { select, text } = await import("@clack/prompts");
-    const { generateToDirectory } = await import("./cli-generator.js");
-    const { main } = await import("./cli.js");
-
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-
-    await main();
-
-    expect(select).toHaveBeenCalledTimes(2);
-    expect(generateToDirectory).toHaveBeenCalledWith(
-      undefined,
-      "with-beads",
-      "project",
-      expect.objectContaining({ commandPrefix: "" }),
-    );
-  });
-
-  it("should exit gracefully when user cancels with Ctrl+C", async () => {
+  it("should prompt for scope and flags then generate", async () => {
     const { select } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select).mockResolvedValueOnce(mockCancel);
-    vi.mocked(generateToDirectory).mockClear();
+    await setupInteractiveMocks({ flags: ["beads"], commands: ["red.md"] });
+
+    await main();
+
+    expect(select).toHaveBeenCalledTimes(1);
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "project",
+      expect.objectContaining({
+        commandPrefix: "",
+        flags: ["beads"],
+      }),
+    );
+  });
+
+  it("should exit gracefully when user cancels with Ctrl+C on scope", async () => {
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({ cancelAt: "scope" });
 
     await main();
 
@@ -105,13 +163,10 @@ describe("CLI", () => {
   });
 
   it("should show intro and outro messages", async () => {
-    const { select, text, intro, outro } = await import("@clack/prompts");
+    const { intro, outro } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks();
 
     await main();
 
@@ -120,13 +175,10 @@ describe("CLI", () => {
   });
 
   it("should show Batman logo in intro", async () => {
-    const { select, text, intro } = await import("@clack/prompts");
+    const { intro } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks();
 
     await main();
 
@@ -136,20 +188,15 @@ describe("CLI", () => {
   });
 
   it("should show file count and destination in outro", async () => {
-    const { select, text, outro } = await import("@clack/prompts");
+    const { outro } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
     vi.mocked(generateToDirectory).mockResolvedValue({
       success: true,
       filesGenerated: 17,
-      variant: "with-beads",
     } as never);
-
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks();
 
     await main();
 
@@ -160,13 +207,10 @@ describe("CLI", () => {
   });
 
   it("should show detailed outro with full path, restart hint, and encouragement", async () => {
-    const { select, text, outro } = await import("@clack/prompts");
+    const { outro } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks();
 
     await main();
 
@@ -176,13 +220,10 @@ describe("CLI", () => {
   });
 
   it("should show example command in success message", async () => {
-    const { select, text, outro } = await import("@clack/prompts");
+    const { outro } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks();
 
     await main();
 
@@ -194,35 +235,27 @@ describe("CLI", () => {
   });
 
   it("should prompt for command prefix and pass it to generator", async () => {
-    const { select, text } = await import("@clack/prompts");
+    const { text } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("my-");
+    await setupInteractiveMocks({ prefix: "my-" });
 
     await main();
 
     expect(text).toHaveBeenCalled();
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ commandPrefix: "my-" }),
     );
   });
 
   it("should exit gracefully when user cancels on prefix prompt", async () => {
-    const { select, text } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce(mockCancel);
+    await setupInteractiveMocks({ cancelAt: "prefix" });
 
     await main();
 
@@ -234,13 +267,12 @@ describe("CLI", () => {
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    await main({ variant: "with-beads", scope: "project", prefix: "my-" });
+    await main({ scope: "project", prefix: "my-" });
 
     expect(select).not.toHaveBeenCalled();
     expect(text).not.toHaveBeenCalled();
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ commandPrefix: "my-" }),
     );
@@ -251,7 +283,6 @@ describe("CLI", () => {
     const { main } = await import("./cli.js");
 
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       skipTemplateInjection: true,
@@ -259,25 +290,21 @@ describe("CLI", () => {
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ skipTemplateInjection: true }),
     );
   });
 
   it("should prompt for command selection with groupMultiselect", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
+    const { groupMultiselect } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md", "green.md"]);
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks({ commands: ["red.md", "green.md"] });
 
     await main();
 
-    expect(groupMultiselect).toHaveBeenCalledWith(
+    expect(groupMultiselect).toHaveBeenNthCalledWith(
+      2,
       expect.objectContaining({
         message: expect.stringContaining("Enter to accept all"),
         options: expect.any(Object),
@@ -286,21 +313,15 @@ describe("CLI", () => {
   });
 
   it("should pass selected commands to generator", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md", "green.md"]);
-    vi.mocked(text).mockResolvedValueOnce("");
+    await setupInteractiveMocks({ commands: ["red.md", "green.md"] });
 
     await main();
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ commands: ["red.md", "green.md"] }),
     );
@@ -311,7 +332,6 @@ describe("CLI", () => {
     const { main } = await import("./cli.js");
 
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       commands: ["red", "green"],
@@ -319,7 +339,6 @@ describe("CLI", () => {
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ commands: ["red", "green"] }),
     );
@@ -340,7 +359,7 @@ describe("CLI", () => {
     ]);
     vi.mocked(confirm).mockResolvedValueOnce(true);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining("-"),
@@ -369,11 +388,10 @@ describe("CLI", () => {
     ]);
     vi.mocked(confirm).mockResolvedValueOnce(false);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ skipFiles: ["commit.md"] }),
     );
@@ -410,7 +428,7 @@ Line 7`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -462,7 +480,7 @@ Line 12`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -494,7 +512,7 @@ Line 2`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should not show diff note for identical files
     const noteCall = vi
@@ -531,7 +549,7 @@ Line 3`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -568,7 +586,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -600,7 +618,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -631,7 +649,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -659,7 +677,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should show stats with added/removed counts
     const logInfoCalls = vi.mocked(log.info).mock.calls;
@@ -684,7 +702,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should NOT show stats when there are no changes
     const logInfoCalls = vi.mocked(log.info).mock.calls;
@@ -712,7 +730,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should NOT show diff or confirm prompt for identical files
     expect(vi.mocked(note)).not.toHaveBeenCalled();
@@ -741,7 +759,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -771,7 +789,7 @@ NEW LAST`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should NOT show diff or confirm prompt
     expect(vi.mocked(note)).not.toHaveBeenCalled();
@@ -805,11 +823,11 @@ NEW LAST`;
       ],
     });
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md", "green.md"]);
+    vi.mocked(select).mockResolvedValueOnce("project");
     vi.mocked(text).mockResolvedValueOnce("");
+    vi.mocked(groupMultiselect)
+      .mockResolvedValueOnce([]) // flags
+      .mockResolvedValueOnce(["red.md", "green.md"]); // commands
 
     await main();
 
@@ -864,11 +882,11 @@ NEW LAST`;
       ],
     });
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md", "commit.md"]);
+    vi.mocked(select).mockResolvedValueOnce("project");
     vi.mocked(text).mockResolvedValueOnce("");
+    vi.mocked(groupMultiselect)
+      .mockResolvedValueOnce([]) // flags
+      .mockResolvedValueOnce(["red.md", "commit.md"]); // commands
 
     await main({ updateExisting: true });
 
@@ -902,10 +920,9 @@ NEW LAST`;
     // Mock that no commands exist in the target directory
     vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
+    vi.mocked(select).mockResolvedValueOnce("project");
     vi.mocked(text).mockResolvedValueOnce("");
+    vi.mocked(groupMultiselect).mockResolvedValueOnce([]); // flags
 
     await main({ updateExisting: true });
 
@@ -913,8 +930,6 @@ NEW LAST`;
     expect(log.warn).toHaveBeenCalledWith(
       expect.stringContaining("No existing commands"),
     );
-    // Should NOT show command selection
-    expect(groupMultiselect).not.toHaveBeenCalled();
     // Should NOT generate any files
     expect(generateToDirectory).not.toHaveBeenCalled();
   });
@@ -936,7 +951,6 @@ NEW LAST`;
 
     // Non-interactive mode: all args provided
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       updateExisting: true,
@@ -945,7 +959,6 @@ NEW LAST`;
     // Should only generate the existing command (red.md), not all commands
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         commands: ["red.md"],
@@ -964,7 +977,6 @@ NEW LAST`;
 
     // Non-interactive mode: all args provided
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       updateExisting: true,
@@ -998,7 +1010,6 @@ NEW LAST`;
     ]);
 
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       overwrite: true,
@@ -1010,7 +1021,6 @@ NEW LAST`;
     // Should still generate files (not skip the conflicting file)
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         skipFiles: [],
@@ -1034,7 +1044,6 @@ NEW LAST`;
     ]);
 
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       overwrite: true,
@@ -1064,7 +1073,6 @@ NEW LAST`;
     ]);
 
     await main({
-      variant: "with-beads",
       scope: "project",
       prefix: "",
       skipOnConflict: true,
@@ -1076,7 +1084,6 @@ NEW LAST`;
     // Should skip the conflicting file
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         skipFiles: ["commit.md"],
@@ -1120,7 +1127,7 @@ NEW LAST`;
     // User selects "Skip all" for remaining files
     vi.mocked(select).mockResolvedValueOnce("skip_all");
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should use select (not confirm) with 4 options
     expect(select).toHaveBeenCalledWith(
@@ -1138,7 +1145,6 @@ NEW LAST`;
     // After "Skip all", should skip remaining files (red.md, green.md)
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         skipFiles: expect.arrayContaining(["red.md", "green.md"]),
@@ -1179,7 +1185,7 @@ NEW LAST`;
     // User selects "Overwrite all" for first file
     vi.mocked(select).mockResolvedValueOnce("overwrite_all");
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should only prompt once (for first file)
     expect(select).toHaveBeenCalledTimes(1);
@@ -1187,7 +1193,6 @@ NEW LAST`;
     // Should not skip any files (all overwritten)
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         skipFiles: [],
@@ -1216,7 +1221,7 @@ NEW LAST`;
     // User selects "Yes" to overwrite
     vi.mocked(confirm).mockResolvedValueOnce(true);
 
-    await main({ variant: "with-beads", scope: "user", prefix: "my-" });
+    await main({ scope: "user", prefix: "my-" });
 
     // Should prompt for the prefixed file
     expect(confirm).toHaveBeenCalledWith(
@@ -1228,7 +1233,6 @@ NEW LAST`;
     // File should NOT be skipped (should be overwritten)
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "user",
       expect.objectContaining({
         skipFiles: [],
@@ -1257,7 +1261,7 @@ NEW LAST`;
 
     vi.mocked(confirm).mockResolvedValueOnce(true);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     // Should use confirm (not select) for single file
     expect(confirm).toHaveBeenCalledWith(
@@ -1282,22 +1286,15 @@ describe("allowed tools prompt", () => {
   });
 
   it("should prompt for allowed tools selection with groupMultiselect for easy select-all", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
+    const { groupMultiselect } = await import("@clack/prompts");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect)
-      .mockResolvedValueOnce(["red.md"]) // commands
-      .mockResolvedValueOnce([]); // allowed tools
+    await setupInteractiveMocks({ allowedTools: [] });
 
     await main();
 
-    // Second groupMultiselect call should be for allowed tools with "All tools" group
     expect(groupMultiselect).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.objectContaining({
         message: expect.stringContaining("allowed"),
         options: {
@@ -1311,27 +1308,17 @@ describe("allowed tools prompt", () => {
   });
 
   it("should pass selected allowed tools to generator", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
-    const { generateToDirectory, checkExistingFiles } =
-      await import("./cli-generator.js");
+    const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    // Ensure no conflicting files to avoid triggering conflict resolution
-    vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
-
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect)
-      .mockResolvedValueOnce(["red.md"]) // commands
-      .mockResolvedValueOnce(["Bash(git diff:*)", "Bash(git status:*)"]); // allowed tools
+    await setupInteractiveMocks({
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
 
     await main();
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
@@ -1340,25 +1327,17 @@ describe("allowed tools prompt", () => {
   });
 
   it("should pass selected allowed tools to checkExistingFiles for conflict detection", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
     const { checkExistingFiles } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
-
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect)
-      .mockResolvedValueOnce(["red.md"]) // commands
-      .mockResolvedValueOnce(["Bash(git diff:*)", "Bash(git status:*)"]); // allowed tools
+    await setupInteractiveMocks({
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
 
     await main();
 
     expect(checkExistingFiles).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
@@ -1367,17 +1346,10 @@ describe("allowed tools prompt", () => {
   });
 
   it("should exit gracefully when user cancels on allowed tools prompt", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect)
-      .mockResolvedValueOnce(["red.md"]) // commands
-      .mockResolvedValueOnce(mockCancel); // cancel on allowed tools
+    await setupInteractiveMocks({ cancelAt: "allowedTools" });
 
     await main();
 
@@ -1385,17 +1357,12 @@ describe("allowed tools prompt", () => {
   });
 
   it("should skip allowed tools prompt when no commands have requested tools", async () => {
-    const { select, text, groupMultiselect, multiselect } =
-      await import("@clack/prompts");
+    const { multiselect } = await import("@clack/prompts");
     const { getRequestedToolsOptions } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(["red.md"]);
     vi.mocked(getRequestedToolsOptions).mockResolvedValueOnce([]);
+    await setupInteractiveMocks();
 
     await main();
 
@@ -1403,36 +1370,23 @@ describe("allowed tools prompt", () => {
   });
 
   it("should allow submitting with no allowed tools selected (optional)", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
-    const { generateToDirectory, checkExistingFiles } =
-      await import("./cli-generator.js");
+    const { groupMultiselect } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    // Ensure no conflicting files
-    vi.mocked(checkExistingFiles).mockResolvedValueOnce([]);
-
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    vi.mocked(groupMultiselect)
-      .mockResolvedValueOnce(["red.md"]) // commands
-      .mockResolvedValueOnce([]); // User presses Enter without selecting any tools
+    await setupInteractiveMocks({ allowedTools: [] });
 
     await main();
 
-    // Should call groupMultiselect for allowed tools with required: false
     expect(groupMultiselect).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.objectContaining({
         required: false,
       }),
     );
 
-    // Should still generate files successfully
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         allowedTools: [],
@@ -1441,16 +1395,10 @@ describe("allowed tools prompt", () => {
   });
 
   it("should exit gracefully when user cancels on command selection", async () => {
-    const { select, text, groupMultiselect } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads")
-      .mockResolvedValueOnce("project");
-    vi.mocked(text).mockResolvedValueOnce("");
-    // User cancels on command selection
-    vi.mocked(groupMultiselect).mockResolvedValueOnce(mockCancel);
+    await setupInteractiveMocks({ cancelAt: "commands" });
 
     await main();
 
@@ -1474,7 +1422,7 @@ describe("allowed tools prompt", () => {
     // User cancels on confirm prompt
     vi.mocked(confirm).mockResolvedValueOnce(mockCancel as never);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     expect(generateToDirectory).not.toHaveBeenCalled();
   });
@@ -1503,7 +1451,7 @@ describe("allowed tools prompt", () => {
     // User cancels on first file overwrite dialog
     vi.mocked(select).mockResolvedValueOnce(mockCancel);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     expect(generateToDirectory).not.toHaveBeenCalled();
   });
@@ -1532,24 +1480,20 @@ describe("allowed tools prompt", () => {
     // User selects "no" for first file, "yes" for second
     vi.mocked(select).mockResolvedValueOnce("no").mockResolvedValueOnce("yes");
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({ skipFiles: ["commit.md"] }),
     );
   });
 
   it("should exit gracefully when user cancels on scope selection", async () => {
-    const { select } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
     const { main } = await import("./cli.js");
 
-    vi.mocked(select)
-      .mockResolvedValueOnce("with-beads") // variant
-      .mockResolvedValueOnce(mockCancel); // cancel on scope
+    await setupInteractiveMocks({ cancelAt: "scope" });
 
     await main();
 
@@ -1593,7 +1537,7 @@ Line 10`;
       },
     ]);
 
-    await main({ variant: "with-beads", scope: "project", prefix: "" });
+    await main({ scope: "project", prefix: "" });
 
     const noteCall = vi
       .mocked(note)
@@ -1611,6 +1555,44 @@ Line 10`;
   });
 });
 
+describe("flags selection (dynamic generation)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should prompt for flags instead of variant in interactive mode", async () => {
+    const { select, groupMultiselect } = await import("@clack/prompts");
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({ flags: ["beads"], commands: ["red.md"] });
+
+    await main();
+
+    expect(select).toHaveBeenCalledTimes(1);
+
+    expect(groupMultiselect).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        message: expect.stringContaining("feature"),
+        options: expect.objectContaining({
+          "Feature Flags": expect.arrayContaining([
+            expect.objectContaining({ value: "beads" }),
+          ]),
+        }),
+      }),
+    );
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "project",
+      expect.objectContaining({
+        flags: ["beads"],
+      }),
+    );
+  });
+});
+
 describe("non-TTY mode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1625,10 +1607,9 @@ describe("non-TTY mode", () => {
     // Simulate non-TTY environment
     vi.mocked(isInteractiveTTY).mockReturnValue(false);
 
-    // Call with partial args (variant only) - should error instead of prompting
-    await main({ variant: "with-beads" });
+    // Call with partial args (flags only, no scope) - should error instead of prompting
+    await main({ flags: ["beads"] });
 
-    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--variant"));
     expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--scope"));
     expect(generateToDirectory).not.toHaveBeenCalled();
   });
@@ -1645,7 +1626,7 @@ describe("non-TTY mode", () => {
     // Call with no args at all - should error instead of prompting
     await main();
 
-    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--variant"));
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("--scope"));
     expect(generateToDirectory).not.toHaveBeenCalled();
   });
 
@@ -1671,7 +1652,6 @@ describe("non-TTY mode", () => {
     ]);
 
     await main({
-      variant: "with-beads",
       scope: "project",
     });
 
@@ -1682,7 +1662,6 @@ describe("non-TTY mode", () => {
     // Should skip the conflicting file
     expect(generateToDirectory).toHaveBeenCalledWith(
       undefined,
-      "with-beads",
       "project",
       expect.objectContaining({
         skipFiles: ["commit.md"],

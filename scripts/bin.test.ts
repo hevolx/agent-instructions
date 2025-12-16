@@ -9,14 +9,9 @@ vi.mock("./cli.js", () => ({
 
 describe("parseArgs", () => {
   it("should parse command line arguments", () => {
-    const args = parseArgs([
-      "--variant=with-beads",
-      "--scope=project",
-      "--prefix=my-",
-    ]);
+    const args = parseArgs(["--scope=project", "--prefix=my-"]);
 
     expect(args).toEqual({
-      variant: "with-beads",
       scope: "project",
       prefix: "my-",
     });
@@ -61,6 +56,14 @@ describe("parseArgs", () => {
       skipOnConflict: true,
     });
   });
+
+  it("should parse --flags as comma-separated list", () => {
+    const args = parseArgs(["--flags=beads,github"]);
+
+    expect(args).toEqual({
+      flags: ["beads", "github"],
+    });
+  });
 });
 
 describe("run", () => {
@@ -68,10 +71,9 @@ describe("run", () => {
     const { run } = await import("./bin.js");
     const { main } = await import("./cli.js");
 
-    await run(["--variant=with-beads", "--scope=project", "--prefix=my-"]);
+    await run(["--scope=project", "--prefix=my-"]);
 
     expect(main).toHaveBeenCalledWith({
-      variant: "with-beads",
       scope: "project",
       prefix: "my-",
     });
@@ -143,7 +145,6 @@ describe("CLI_OPTIONS consistency", () => {
     // This object uses `satisfies` to ensure compile-time type checking
     // that all CliArgs keys are present. At runtime, we extract and compare.
     const cliArgsKeysObject: Record<string, undefined> = {
-      variant: undefined,
       scope: undefined,
       prefix: undefined,
       commands: undefined,
@@ -151,6 +152,7 @@ describe("CLI_OPTIONS consistency", () => {
       updateExisting: undefined,
       overwrite: undefined,
       skipOnConflict: undefined,
+      flags: undefined,
     } satisfies Record<keyof Required<CliArgs>, undefined>;
 
     const cliArgsKeys = Object.keys(cliArgsKeysObject).sort();
@@ -158,12 +160,12 @@ describe("CLI_OPTIONS consistency", () => {
     expect(cliOptionsKeys).toEqual(cliArgsKeys);
   });
 
-  it("should mark variant and scope as required for non-interactive mode, but not prefix", () => {
+  it("should mark only scope as required for non-interactive mode", () => {
     const requiredOptions = CLI_OPTIONS.filter(
       (opt) => opt.requiredForNonInteractive,
     );
     const requiredKeys = requiredOptions.map((opt) => opt.key).sort();
 
-    expect(requiredKeys).toEqual(["scope", "variant"]);
+    expect(requiredKeys).toEqual(["scope"]);
   });
 });

@@ -712,7 +712,7 @@ Content here`,
 
     const result = fs.readFileSync(inputFile, "utf8");
     expect(result).toContain("| Option | Description |");
-    expect(result).toContain("--variant");
+    expect(result).toContain("--scope");
   });
 
   it("should throw error for unknown transform", async () => {

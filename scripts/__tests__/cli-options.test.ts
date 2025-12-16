@@ -7,14 +7,10 @@ import {
 
 describe("CLI_OPTIONS", () => {
   it("should have required options with correct types", () => {
-    const variantOpt = CLI_OPTIONS.find((o) => o.key === "variant");
-    expect(variantOpt).toBeDefined();
-    expect(variantOpt?.type).toBe("string");
-    expect(variantOpt?.requiredForNonInteractive).toBe(true);
-
     const scopeOpt = CLI_OPTIONS.find((o) => o.key === "scope");
     expect(scopeOpt).toBeDefined();
     expect(scopeOpt?.type).toBe("string");
+    expect(scopeOpt?.requiredForNonInteractive).toBe(true);
 
     const commandsOpt = CLI_OPTIONS.find((o) => o.key === "commands");
     expect(commandsOpt).toBeDefined();
@@ -64,7 +60,7 @@ describe("generateHelpText", () => {
 
   it("should format string options with =<value>", () => {
     const help = generateHelpText();
-    expect(help).toContain("--variant=<value>");
+    expect(help).toContain("--scope=<value>");
   });
 
   it("should format array options with =<list>", () => {
@@ -96,9 +92,9 @@ describe("generateMarkdownTable", () => {
   it("should use example when available", () => {
     const table = generateMarkdownTable();
     // Options with examples should show the example
-    const variantOpt = CLI_OPTIONS.find((o) => o.key === "variant");
-    if (variantOpt?.example) {
-      expect(table).toContain(variantOpt.example);
+    const scopeOpt = CLI_OPTIONS.find((o) => o.key === "scope");
+    if (scopeOpt?.example) {
+      expect(table).toContain(scopeOpt.example);
     }
   });
 

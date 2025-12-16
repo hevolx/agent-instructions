@@ -74,7 +74,6 @@ This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm 
 
 | Option | Description |
 |--------|-------------|
-| `--variant=with-beads` | Command variant (with-beads, without-beads) |
 | `--scope=project` | Installation scope (project, user) |
 | `--prefix=my-` | Add prefix to command names |
 | `--commands=commit,red,green` | Install only specific commands |
@@ -82,6 +81,7 @@ This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm 
 | `--update-existing` | Only update already-installed commands |
 | `--overwrite` | Overwrite conflicting files without prompting |
 | `--skip-on-conflict` | Skip conflicting files without prompting |
+| `--flags=beads,github` | Enable feature flags (beads, github, gitlab, etc.) |
 | `--help, -h` | Show help message |
 | `--version, -v` | Show version number |
 

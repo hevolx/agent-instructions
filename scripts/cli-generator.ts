@@ -2,14 +2,11 @@ import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
 import os from "os";
+import { expandContent } from "./fragment-expander.js";
+import { generateCommandsMetadata } from "./generate-readme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-export const VARIANTS = {
-  WITH_BEADS: "with-beads",
-  WITHOUT_BEADS: "without-beads",
-} as const;
 
 export const SCOPES = {
   PROJECT: "project",
@@ -19,7 +16,7 @@ export const SCOPES = {
 export const DIRECTORIES = {
   CLAUDE: ".claude",
   COMMANDS: "commands",
-  DOWNLOADS: "downloads",
+  SOURCES: "src/sources",
 } as const;
 
 export const TEMPLATE_SOURCE_FILES = ["CLAUDE.md", "AGENTS.md"] as const;
@@ -32,7 +29,6 @@ export interface TemplateBlock {
   commands?: string[];
 }
 
-export type Variant = (typeof VARIANTS)[keyof typeof VARIANTS];
 export type Scope = (typeof SCOPES)[keyof typeof SCOPES];
 
 const ELLIPSIS = "...";
@@ -49,18 +45,34 @@ function truncatePathFromLeft(pathStr: string, maxLength: number): string {
   return ELLIPSIS + truncated;
 }
 
-export const VARIANT_OPTIONS = [
+export const FLAG_OPTIONS = [
   {
-    value: VARIANTS.WITH_BEADS,
-    label: "With Beads",
-    hint: "Includes Beads task tracking",
-  },
-  {
-    value: VARIANTS.WITHOUT_BEADS,
-    label: "Without Beads",
-    hint: "Standard commands only",
+    value: "beads",
+    label: "Beads MCP",
+    hint: "Local issue tracking",
+    category: "Feature Flags",
   },
 ] as const;
+
+interface FlagOption {
+  value: string;
+  label: string;
+  hint?: string;
+}
+
+export function getFlagsGroupedByCategory(): Record<string, FlagOption[]> {
+  const grouped: Record<string, FlagOption[]> = {};
+
+  for (const flag of FLAG_OPTIONS) {
+    const { category, ...option } = flag;
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(option);
+  }
+
+  return grouped;
+}
 
 export function getScopeOptions(terminalWidth: number = 80) {
   const projectPath = path.join(
@@ -94,6 +106,7 @@ export interface GenerateOptions {
   commands?: string[];
   skipFiles?: string[];
   allowedTools?: string[];
+  flags?: string[];
 }
 
 export interface FileConflict {
@@ -111,17 +124,13 @@ export interface ExistingFile {
 
 export async function checkExistingFiles(
   outputPath: string | undefined,
-  variant: Variant | undefined,
   scope?: Scope,
   options?: GenerateOptions,
 ): Promise<ExistingFile[]> {
-  const sourcePath = path.join(
-    __dirname,
-    "..",
-    DIRECTORIES.DOWNLOADS,
-    variant || VARIANTS.WITH_BEADS,
-  );
+  // Always use dynamic generation from sources
+  const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
   const destinationPath = outputPath || getDestinationPath(outputPath, scope);
+  const flags = options?.flags ?? [];
 
   const allFiles = await fs.readdir(sourcePath);
   const files = options?.commands
@@ -134,9 +143,11 @@ export async function checkExistingFiles(
   let allowedToolsSet: Set<string> | null = null;
 
   if (options?.allowedTools && options.allowedTools.length > 0) {
-    metadata = await loadCommandsMetadata(variant || VARIANTS.WITH_BEADS);
+    metadata = await loadCommandsMetadata();
     allowedToolsSet = new Set(options.allowedTools);
   }
+
+  const baseDir = path.join(__dirname, "..");
 
   for (const file of files) {
     const destFileName = prefix + file;
@@ -145,7 +156,12 @@ export async function checkExistingFiles(
 
     if (await fs.pathExists(destFilePath)) {
       const existingContent = await fs.readFile(destFilePath, "utf-8");
-      let newContent = await fs.readFile(sourceFilePath, "utf-8");
+      // Expand source content with flags
+      const sourceContent = await fs.readFile(sourceFilePath, "utf-8");
+      let newContent = expandContent(sourceContent, {
+        flags,
+        baseDir,
+      });
 
       if (metadata && allowedToolsSet) {
         const commandMetadata = metadata[file];
@@ -177,16 +193,10 @@ export async function checkExistingFiles(
 
 export async function checkForConflicts(
   outputPath: string | undefined,
-  variant: Variant | undefined,
   scope?: Scope,
   options?: GenerateOptions,
 ): Promise<FileConflict[]> {
-  const existingFiles = await checkExistingFiles(
-    outputPath,
-    variant,
-    scope,
-    options,
-  );
+  const existingFiles = await checkExistingFiles(outputPath, scope, options);
   return existingFiles
     .filter((file) => !file.isIdentical)
     .map(({ filename, existingContent, newContent }) => ({
@@ -199,21 +209,9 @@ export async function checkForConflicts(
 export interface GenerateResult {
   success: boolean;
   filesGenerated: number;
-  variant?: Variant;
   templateInjectionSkipped?: boolean;
   templateInjected?: boolean;
-}
-
-export async function getAvailableCommands(
-  variant: Variant,
-): Promise<string[]> {
-  const sourcePath = path.join(
-    __dirname,
-    "..",
-    DIRECTORIES.DOWNLOADS,
-    variant || VARIANTS.WITH_BEADS,
-  );
-  return fs.readdir(sourcePath);
+  flags?: string[];
 }
 
 interface CommandOption {
@@ -242,25 +240,16 @@ const CATEGORY_ORDER = [
   "Ship / Show / Ask",
 ];
 
-async function loadCommandsMetadata(
-  variant: Variant,
-): Promise<Record<string, CommandMetadata>> {
-  const sourcePath = path.join(
-    __dirname,
-    "..",
-    DIRECTORIES.DOWNLOADS,
-    variant || VARIANTS.WITH_BEADS,
-  );
-  const metadataPath = path.join(sourcePath, "commands-metadata.json");
-
-  const metadataContent = await fs.readFile(metadataPath, "utf-8");
-  return JSON.parse(metadataContent);
+async function loadCommandsMetadata(): Promise<
+  Record<string, CommandMetadata>
+> {
+  return generateCommandsMetadata();
 }
 
-export async function getCommandsGroupedByCategory(
-  variant: Variant,
-): Promise<Record<string, CommandOption[]>> {
-  const metadata = await loadCommandsMetadata(variant);
+export async function getCommandsGroupedByCategory(): Promise<
+  Record<string, CommandOption[]>
+> {
+  const metadata = await loadCommandsMetadata();
 
   const grouped: Record<string, CommandOption[]> = {};
 
@@ -326,10 +315,10 @@ function formatCommandsHint(commands: string[]): string {
   return `${first.join(", ")}, and ${remaining} ${remaining === 1 ? "other" : "others"}`;
 }
 
-export async function getRequestedToolsOptions(
-  variant: Variant,
-): Promise<RequestedToolOption[]> {
-  const metadata = await loadCommandsMetadata(variant);
+export async function getRequestedToolsOptions(): Promise<
+  RequestedToolOption[]
+> {
+  const metadata = await loadCommandsMetadata();
 
   const toolToCommands = new Map<string, string[]>();
   for (const [filename, data] of Object.entries(metadata)) {
@@ -396,20 +385,17 @@ export function extractTemplateBlocks(content: string): TemplateBlock[] {
 
 export async function generateToDirectory(
   outputPath?: string,
-  variant?: Variant,
   scope?: Scope,
   options?: GenerateOptions,
 ): Promise<GenerateResult> {
-  const sourcePath = path.join(
-    __dirname,
-    "..",
-    DIRECTORIES.DOWNLOADS,
-    variant || VARIANTS.WITH_BEADS,
-  );
-
   const destinationPath = getDestinationPath(outputPath, scope);
+  // Always use dynamic generation from sources
+  const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
+  const flags = options?.flags ?? [];
 
-  const allFiles = await fs.readdir(sourcePath);
+  const allFiles = (await fs.readdir(sourcePath)).filter((f) =>
+    f.endsWith(".md"),
+  );
   let files = options?.commands
     ? allFiles.filter((f) => options.commands!.includes(f))
     : allFiles;
@@ -421,20 +407,24 @@ export async function generateToDirectory(
 
   const prefix = options?.commandPrefix || "";
 
-  if (options?.commands || options?.skipFiles || options?.commandPrefix) {
-    await fs.ensureDir(destinationPath);
-    for (const file of files) {
-      await fs.copy(
-        path.join(sourcePath, file),
-        path.join(destinationPath, prefix + file),
-      );
-    }
-  } else {
-    await fs.copy(sourcePath, destinationPath, {});
+  // Read source, expand with flags, write to destination
+  await fs.ensureDir(destinationPath);
+  const baseDir = path.join(__dirname, "..");
+  for (const file of files) {
+    const sourceFilePath = path.join(sourcePath, file);
+    const sourceContent = await fs.readFile(sourceFilePath, "utf-8");
+    const expandedContent = expandContent(sourceContent, {
+      flags,
+      baseDir,
+    });
+    await fs.writeFile(
+      path.join(destinationPath, prefix + file),
+      expandedContent,
+    );
   }
 
   if (options?.allowedTools && options.allowedTools.length > 0) {
-    const metadata = await loadCommandsMetadata(variant || VARIANTS.WITH_BEADS);
+    const metadata = await loadCommandsMetadata();
     const allowedToolsSet = new Set(options.allowedTools);
 
     for (const file of files) {
@@ -502,8 +492,8 @@ export async function generateToDirectory(
   return {
     success: true,
     filesGenerated: files.length,
-    variant,
     templateInjectionSkipped: options?.skipTemplateInjection,
     templateInjected,
+    flags: options?.flags,
   };
 }
