@@ -13,6 +13,10 @@ argument-hint: [optional-commit-description]
 
 Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues (the user interacts via `bd` commands).
 
+## Plan File Restriction
+
+**NEVER create, read, or update plan.md files.** Claude Code's internal planning files are disabled for this project. Use other methods to track implementation progress (e.g., comments, todo lists, or external tools).
+
 Create a git commit following project standards
 
 Include any of the following info if specified: $ARGUMENTS
@@ -47,3 +51,14 @@ Follows [Conventional Commits](https://www.conventionalcommits.org/) standard.
 git add <files>
 git commit -m "feat(#123): add validation to user input form"
 ```
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

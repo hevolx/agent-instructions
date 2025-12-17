@@ -103,3 +103,14 @@ When refactoring implementation, watch for **Peeping Tom** tests that:
 If tests fail after a pure refactoring (no behavior change), consider whether the tests are testing implementation rather than behavior.
 
 1. **Consistency check** - Look for inconsistent patterns, naming conventions, or structure across the codebase
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

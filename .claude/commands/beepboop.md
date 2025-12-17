@@ -45,3 +45,14 @@ This command ensures transparency about AI usage while maintaining that the user
 - Adding a comment to a GitHub issue
 - Responding to feedback with AI-generated explanations
 - Any communication where AI attribution is valuable
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

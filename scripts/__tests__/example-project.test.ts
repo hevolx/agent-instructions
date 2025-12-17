@@ -315,36 +315,38 @@ describe("Allowed Tools Conflict Detection E2E", () => {
   });
 
   it("should detect files as identical when re-generating with same allowed tools", async () => {
-    const { checkExistingFiles } = await import("../cli-generator.js");
-    const outputDir = path.join(tempDir, ".claude", "commands");
-    // Use tools that code-review.md actually requests in _requested-tools
-    const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
+    await withCwd(tempDir, async () => {
+      const { checkExistingFiles } = await import("../cli-generator.js");
+      const outputDir = path.join(tempDir, ".claude", "commands");
+      // Use tools that code-review.md actually requests in _requested-tools
+      const allowedTools = ["Bash(git diff:*)", "Bash(git status:*)"];
 
-    // First generation with allowed tools - use code-review.md which has _requested-tools
-    await generateToDirectory(outputDir, undefined, {
-      flags: [],
-      commands: ["code-review.md"],
-      allowedTools,
+      // First generation with allowed tools - use code-review.md which has _requested-tools
+      await generateToDirectory(outputDir, undefined, {
+        flags: [],
+        commands: ["code-review.md"],
+        allowedTools,
+      });
+
+      // Verify file was created with allowed-tools header
+      const firstContent = await fs.readFile(
+        path.join(outputDir, "code-review.md"),
+        "utf-8",
+      );
+      expect(firstContent).toContain(
+        "allowed-tools: Bash(git diff:*), Bash(git status:*)",
+      );
+
+      // Check for conflicts with same allowed tools - should be identical
+      const existingFiles = await checkExistingFiles(outputDir, undefined, {
+        flags: [],
+        commands: ["code-review.md"],
+        allowedTools,
+      });
+
+      expect(existingFiles).toHaveLength(1);
+      expect(existingFiles[0].isIdentical).toBe(true);
     });
-
-    // Verify file was created with allowed-tools header
-    const firstContent = await fs.readFile(
-      path.join(outputDir, "code-review.md"),
-      "utf-8",
-    );
-    expect(firstContent).toContain(
-      "allowed-tools: Bash(git diff:*), Bash(git status:*)",
-    );
-
-    // Check for conflicts with same allowed tools - should be identical
-    const existingFiles = await checkExistingFiles(outputDir, undefined, {
-      flags: [],
-      commands: ["code-review.md"],
-      allowedTools,
-    });
-
-    expect(existingFiles).toHaveLength(1);
-    expect(existingFiles[0].isIdentical).toBe(true);
   });
 
   it("should only inject allowed-tools into commands that requested them via _requested-tools", async () => {

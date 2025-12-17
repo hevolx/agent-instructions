@@ -22,6 +22,15 @@ vi.mock("./generate-readme.js", () => ({
   generateCommandsMetadata: vi.fn().mockReturnValue({}),
 }));
 
+// Mock markdownlint to return content unchanged in unit tests
+vi.mock("markdownlint/sync", () => ({
+  lint: vi.fn(() => ({ content: [] })),
+}));
+
+vi.mock("markdownlint", () => ({
+  applyFixes: vi.fn((content: string) => content),
+}));
+
 import {
   generateToDirectory,
   checkForConflicts,
@@ -304,6 +313,36 @@ This should appear at the end.
       expect.stringContaining("commit.md"),
       expect.any(String),
     );
+  });
+
+  it("should strip underscore-prefixed metadata from frontmatter", async () => {
+    const sourceWithMetadata = `---
+description: Test command
+argument-hint: [optional]
+_hint: Internal hint
+_category: Workflow
+_order: 1
+_requested-tools:
+  - Bash(git diff:*)
+---
+
+# Test Command`;
+
+    vi.mocked(fs.readdir).mockResolvedValue(["test.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(sourceWithMetadata as never);
+
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
+
+    const writtenContent = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+
+    // Should keep public metadata
+    expect(writtenContent).toContain("description: Test command");
+    expect(writtenContent).toContain("argument-hint: [optional]");
+
+    // Should not contain any underscore-prefixed properties (including hyphenated ones)
+    expect(writtenContent).not.toMatch(/^_[\w-]+:/m);
+    expect(writtenContent).not.toContain("Bash(git diff:*)"); // multiline array items also stripped
   });
 });
 

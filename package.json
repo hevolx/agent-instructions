@@ -27,7 +27,9 @@
   "author": "wbern",
   "license": "MIT",
   "scripts": {
-    "build": "tsx scripts/build.ts",
+    "build": "pnpm build:readme && pnpm build:commands && pnpm exec markdownlint --fix .claude/commands/*.md",
+    "build:readme": "tsx scripts/build.ts",
+    "build:commands": "pnpm build:cli && node bin/cli.js --scope=project --flags=beads,no-plan-files --overwrite",
     "build:cli": "tsup",
     "test:manual": "pnpm build:cli && TMPDIR=$(mktemp -d) && pnpm pack --pack-destination $TMPDIR && cd $TMPDIR && tar -xzf *.tgz && cd package && pnpm i && node bin/cli.js",
     "test:quick-manual": "pnpm build:cli && node bin/cli.js",
@@ -52,7 +54,6 @@
     "jscpd": "^4.0.5",
     "knip": "^5.70.2",
     "lint-staged": "^16.2.7",
-    "markdownlint": "^0.40.0",
     "markdownlint-cli": "^0.46.0",
     "picocolors": "^1.1.1",
     "prettier": "^3.7.2",
@@ -64,7 +65,8 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
-    "fs-extra": "^11.3.2"
+    "fs-extra": "^11.3.2",
+    "markdownlint": "^0.40.0"
   },
   "release": {
     "branches": [

@@ -442,3 +442,14 @@ class TestKata:
 - All exercises are designed for TDD practice
 - User can always go back to refine their preferences
 - Boilerplate uses `solve()` as the main function - rename as needed for clarity
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

@@ -4,6 +4,8 @@ import { fileURLToPath } from "url";
 import os from "os";
 import { expandContent } from "./fragment-expander.js";
 import { generateCommandsMetadata } from "./generate-readme.js";
+import { lint } from "markdownlint/sync";
+import { applyFixes } from "markdownlint";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +52,12 @@ export const FLAG_OPTIONS = [
     value: "beads",
     label: "Beads MCP",
     hint: "Local issue tracking",
+    category: "Feature Flags",
+  },
+  {
+    value: "no-plan-files",
+    label: "No Plan Files",
+    hint: "Forbid Claude Code's internal plan.md",
     category: "Feature Flags",
   },
 ] as const;
@@ -156,12 +164,16 @@ export async function checkExistingFiles(
 
     if (await fs.pathExists(destFilePath)) {
       const existingContent = await fs.readFile(destFilePath, "utf-8");
-      // Expand source content with flags
+      // Expand source content with flags, strip internal metadata, apply markdown fixes
       const sourceContent = await fs.readFile(sourceFilePath, "utf-8");
-      let newContent = expandContent(sourceContent, {
-        flags,
-        baseDir,
-      });
+      let newContent = applyMarkdownFixes(
+        stripInternalMetadata(
+          expandContent(sourceContent, {
+            flags,
+            baseDir,
+          }),
+        ),
+      );
 
       if (metadata && allowedToolsSet) {
         const commandMetadata = metadata[file];
@@ -358,6 +370,55 @@ function getDestinationPath(
   throw new Error("Either outputPath or scope must be provided");
 }
 
+/**
+ * Strips underscore-prefixed metadata from YAML frontmatter.
+ * These are internal properties (e.g., _hint, _category, _order, _requested-tools)
+ * that should not appear in generated output.
+ */
+export function stripInternalMetadata(content: string): string {
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!frontmatterMatch) {
+    return content;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+  const lines = frontmatter.split("\n");
+  const filteredLines: string[] = [];
+  let skipMultiline = false;
+
+  for (const line of lines) {
+    // Check if this is a top-level underscore property (includes hyphens like _requested-tools)
+    if (/^_[\w-]+:/.test(line)) {
+      // Check if it's a multiline value (ends with nothing after colon or has array indicator)
+      skipMultiline = line.endsWith(":") || /^_[\w-]+:\s*$/.test(line);
+      continue;
+    }
+
+    // Skip continuation lines of multiline values (indented lines)
+    if (skipMultiline && /^\s+/.test(line)) {
+      continue;
+    }
+
+    skipMultiline = false;
+    filteredLines.push(line);
+  }
+
+  const newFrontmatter = filteredLines.join("\n");
+  return content.replace(/^---\n[\s\S]*?\n---/, `---\n${newFrontmatter}\n---`);
+}
+
+/**
+ * Applies markdownlint fixes to content.
+ * Lints the content and applies all available auto-fixes.
+ */
+export function applyMarkdownFixes(content: string): string {
+  const results = lint({
+    strings: { content },
+  });
+  const errors = results.content || [];
+  return applyFixes(content, errors);
+}
+
 export function extractTemplateBlocks(content: string): TemplateBlock[] {
   const blocks: TemplateBlock[] = [];
 
@@ -407,7 +468,7 @@ export async function generateToDirectory(
 
   const prefix = options?.commandPrefix || "";
 
-  // Read source, expand with flags, write to destination
+  // Read source, expand with flags, strip internal metadata, fix lists, write to destination
   await fs.ensureDir(destinationPath);
   const baseDir = path.join(__dirname, "..");
   for (const file of files) {
@@ -417,9 +478,12 @@ export async function generateToDirectory(
       flags,
       baseDir,
     });
+    const cleanedContent = applyMarkdownFixes(
+      stripInternalMetadata(expandedContent),
+    );
     await fs.writeFile(
       path.join(destinationPath, prefix + file),
-      expandedContent,
+      cleanedContent,
     );
   }
 
@@ -481,7 +545,7 @@ export async function generateToDirectory(
             modified = true;
           }
           if (modified) {
-            await fs.writeFile(filePath, content);
+            await fs.writeFile(filePath, applyMarkdownFixes(content));
           }
         }
         templateInjected = true;

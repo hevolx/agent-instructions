@@ -101,3 +101,14 @@ Structure each test with clear phases:
 - **Arrange**: Set up test data and preconditions (keep minimal)
 - **Act**: Execute the single action being tested
 - **Assert**: Verify the expected outcome with specific assertions
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

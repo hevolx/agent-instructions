@@ -103,6 +103,35 @@ describe("beads content conditional inclusion", () => {
   });
 });
 
+describe("no-plan-files flag conditional inclusion", () => {
+  it("should include plan file restriction when no-plan-files flag is enabled", () => {
+    const commitSource = fs.readFileSync(
+      path.join(SOURCES_DIR, "commit.md"),
+      "utf8",
+    );
+    const expanded = expandContent(commitSource, {
+      flags: ["no-plan-files"],
+      baseDir: PROJECT_ROOT,
+    });
+
+    expect(expanded).toContain("plan.md");
+    expect(expanded).toContain("NEVER");
+  });
+
+  it("should NOT include plan file restriction when no-plan-files flag is disabled", () => {
+    const commitSource = fs.readFileSync(
+      path.join(SOURCES_DIR, "commit.md"),
+      "utf8",
+    );
+    const expanded = expandContent(commitSource, {
+      flags: [],
+      baseDir: PROJECT_ROOT,
+    });
+
+    expect(expanded).not.toContain("plan.md files");
+  });
+});
+
 describe("expanded commands $ARGUMENTS validation", () => {
   const sourceFiles = getMarkdownFiles(SOURCES_DIR);
 

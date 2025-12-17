@@ -52,3 +52,14 @@ If Beads MCP is available, check for task tracking status and ask if the user wa
 3. Include Beads context in the summary
 
 Use AskUserQuestion to confirm Beads integration preferences.
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

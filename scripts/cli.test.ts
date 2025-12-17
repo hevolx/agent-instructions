@@ -62,6 +62,11 @@ vi.mock("./cli-generator.js", () => ({
   getFlagsGroupedByCategory: vi.fn().mockReturnValue({
     "Feature Flags": [
       { value: "beads", label: "Beads MCP", hint: "Local issue tracking" },
+      {
+        value: "no-plan-files",
+        label: "No Plan Files",
+        hint: "Forbid Claude Code's internal plan.md",
+      },
     ],
   }),
   getScopeOptions: vi.fn().mockReturnValue([

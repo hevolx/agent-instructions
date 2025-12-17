@@ -184,3 +184,14 @@ See <https://github.com/steveyegge/beads> for more information.
 - **After /plan**: Use `/red` to start TDD on first task
 - **During work**: Use `bd update` to add notes/findings back to issues
 - **When stuck**: Check `bd show ISSUE-ID` to review acceptance criteria
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.

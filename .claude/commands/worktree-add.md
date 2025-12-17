@@ -355,3 +355,14 @@ Limitations:
 - Requires MCP server or CLI for git hosting provider when using issue URLs (GitHub, GitLab, etc.)
 - Dependency install command is pnpm (modify for npm/yarn if needed)
 </important_notes>
+
+## Testing Requirements
+
+| Change | Required |
+|--------|----------|
+| Content (fragment/source) | Snapshot update |
+| Feature flag | Conditional test (enabled + disabled), FLAG_OPTIONS, CLI mock |
+| CLI option | `cli.test.ts` mock |
+| Generation logic | Unit test |
+
+Existing tests cover: fragment references, $ARGUMENTS, no nested fragments. Snapshots cover content. TypeScript covers structure. Don't duplicate.
