@@ -5,6 +5,7 @@ interface CliOption {
   description: string;
   example?: string;
   requiredForNonInteractive?: boolean;
+  internal?: boolean;
 }
 
 export const CLI_OPTIONS: CliOption[] = [
@@ -61,6 +62,13 @@ export const CLI_OPTIONS: CliOption[] = [
     description: "Enable feature flags (beads, github, gitlab, etc.)",
     example: "--flags=beads,github",
   },
+  {
+    flag: "--include-contrib-commands",
+    key: "includeContribCommands",
+    type: "boolean",
+    description: "Include underscore-prefixed contributor commands",
+    internal: true,
+  },
 ];
 
 export function generateHelpText(): string {
@@ -93,6 +101,7 @@ export function generateMarkdownTable(): string {
   const lines = ["| Option | Description |", "|--------|-------------|"];
 
   for (const opt of CLI_OPTIONS) {
+    if (opt.internal) continue;
     const display = opt.example || opt.flag;
     lines.push(`| \`${display}\` | ${opt.description} |`);
   }

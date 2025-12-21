@@ -53,7 +53,7 @@ describe("README example conversations", () => {
   it("should include dynamically generated commands list in README", () => {
     const commandFiles = fs
       .readdirSync(PATHS.sourcesDir)
-      .filter((f) => f.endsWith(".md"));
+      .filter((f) => f.endsWith(".md") && !f.startsWith("_"));
 
     for (const file of commandFiles) {
       const commandName = file.replace(".md", "");
@@ -74,8 +74,9 @@ describe("README example conversations", () => {
     expect(readmeSource).not.toContain("# Conversation:");
   });
 
-  it("should document all CLI parameters from CLI_OPTIONS", () => {
+  it("should document all public CLI parameters from CLI_OPTIONS", () => {
     for (const opt of CLI_OPTIONS) {
+      if (opt.internal) continue;
       expect(readme).toContain(opt.flag);
     }
     // Also check hardcoded flags that aren't in CLI_OPTIONS

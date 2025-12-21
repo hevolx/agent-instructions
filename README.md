@@ -42,7 +42,7 @@ pnpm dlx @wbern/claude-instructions
 
 The interactive installer lets you choose:
 
-- **Variant**: With or without [Beads MCP](https://github.com/steveyegge/beads) integration
+- **Feature flags**: Enable optional integrations like [Beads MCP](https://github.com/steveyegge/beads)
 - **Scope**: User-level (global) or project-level installation
 
 After installation, restart Claude Code if it's currently running.
@@ -60,7 +60,7 @@ Then add a postinstall script to your `package.json`:
 ```json
 {
   "scripts": {
-    "postinstall": "npx @wbern/claude-instructions --variant=without-beads --scope=project --prefix="
+    "postinstall": "npx @wbern/claude-instructions --scope=project --overwrite"
   },
   "devDependencies": {
     "@wbern/claude-instructions": "^1.0.0"

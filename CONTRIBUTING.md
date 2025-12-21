@@ -70,7 +70,7 @@ git commit -m "feat: update TDD fundamentals fragment"
    <!-- docs INCLUDE path='src/fragments/fragment-name.md' -->
    <!-- /docs -->
    ```
-4. Run `pnpm build` to generate variants
+4. Run `pnpm build` to generate commands
 5. Test in Claude Code with `/new-command`
 6. Run `pnpm test` to ensure snapshot tests pass
 7. Commit changes (both sources and artifacts are tracked)
@@ -101,10 +101,9 @@ Use the `featureFlag` attribute for conditional content:
 <!-- /docs -->
 ```
 
-This content will only be included when building with Beads integration enabled.
+This content will only be included when building with the specified flag enabled.
 
-**Available flags:**
-- `beads` - Beads MCP integration (used in with-beads variant)
+Flags are defined in `scripts/cli-generator.ts` (`FLAG_OPTIONS`). Examples: `beads`, `no-plan-files`.
 
 ## Fragment System Benefits
 
@@ -130,4 +129,4 @@ Run the interactive installer:
 pnpm generate
 ```
 
-Prompts for variant selection and installation directory.
+Prompts for feature flags, scope, and other options.

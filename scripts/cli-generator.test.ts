@@ -315,6 +315,70 @@ This should appear at the end.
     );
   });
 
+  it("should exclude underscore-prefixed source files by default", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "_example-command.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
+
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT);
+
+    expect(result.filesGenerated).toBe(2);
+    expect(fs.writeFile).toHaveBeenCalledTimes(2);
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining("_example-command.md"),
+      expect.any(String),
+    );
+  });
+
+  it("should include underscore-prefixed source files when includeContribCommands option is true", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "green.md",
+      "_example-command.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
+
+    const result = await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      includeContribCommands: true,
+    });
+
+    expect(result.filesGenerated).toBe(3);
+    expect(fs.writeFile).toHaveBeenCalledTimes(3);
+  });
+
+  it("should strip underscore prefix from output filename when includeContribCommands is true", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "_example-command.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(
+      "---\ndescription: Test\n---\n# Test" as never,
+    );
+
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      includeContribCommands: true,
+    });
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining("example-command.md"),
+      expect.any(String),
+    );
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining("_example-command.md"),
+      expect.any(String),
+    );
+  });
+
   it("should strip underscore-prefixed metadata from frontmatter", async () => {
     const sourceWithMetadata = `---
 description: Test command
@@ -545,6 +609,32 @@ describe("checkExistingFiles", () => {
     expect(files).toHaveLength(1);
     expect(files[0].filename).toBe("red.md");
   });
+
+  it("should strip underscore prefix from filename when includeContribCommands is true", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue([
+      "red.md",
+      "_example-command.md",
+    ] as never);
+    vi.mocked(fs.pathExists).mockImplementation(async (filePath: unknown) => {
+      // Match both red.md and example-command.md (underscore stripped)
+      return (
+        String(filePath).includes("red.md") ||
+        String(filePath).includes("example-command.md")
+      );
+    });
+    vi.mocked(fs.readFile).mockResolvedValue("# Content" as never);
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH, undefined, {
+      includeContribCommands: true,
+    });
+
+    expect(files).toHaveLength(2);
+    expect(files.map((f) => f.filename).sort()).toEqual([
+      "example-command.md",
+      "red.md",
+    ]);
+  });
 });
 
 describe("getCommandsGroupedByCategory", () => {
@@ -697,6 +787,45 @@ description: Red phase
       expect.not.stringContaining("allowed-tools"),
     );
   });
+
+  it("should strip underscore prefix when injecting allowed-tools with includeContribCommands", async () => {
+    const commandContent = `---
+description: Contributor command
+---
+
+# Contributor Command`;
+    const mockMetadata = {
+      "_contributor-cmd.md": {
+        description: "Contributor command",
+        category: "Workflow",
+        order: 1,
+        "_requested-tools": ["Bash(git status:*)"],
+      },
+    };
+
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
+
+    vi.mocked(fs.readdir).mockResolvedValue(["_contributor-cmd.md"] as never);
+    vi.mocked(fs.pathExists).mockResolvedValue(false as never);
+    vi.mocked(fs.readFile).mockResolvedValue(commandContent as never);
+
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      allowedTools: ["Bash(git status:*)"],
+      includeContribCommands: true,
+    });
+
+    // Should write to contributor-cmd.md (no underscore)
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining("contributor-cmd.md"),
+      expect.stringContaining("allowed-tools: Bash(git status:*)"),
+    );
+    // Should NOT write to _contributor-cmd.md
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining("_contributor-cmd.md"),
+      expect.any(String),
+    );
+  });
 });
 
 describe("generateToDirectory with skipFiles", () => {
@@ -820,6 +949,66 @@ describe("generateToDirectory with skipFiles", () => {
     expect(fs.writeFile).toHaveBeenCalledWith(
       expect.stringContaining("my-add-command.md"),
       expect.any(String),
+    );
+  });
+});
+
+describe("generateToDirectory with template injection and underscore files", () => {
+  const MOCK_OUTPUT_PATH = "/mock/output/path";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should strip underscore prefix when injecting templates with includeContribCommands", async () => {
+    const commandContent = `---
+description: Contributor command
+---
+
+# Contributor Command`;
+    const templateContent = `# CLAUDE.md
+
+<claude-commands-template>
+Template content to inject
+</claude-commands-template>
+`;
+
+    vi.mocked(fs.readdir).mockResolvedValue(["_contributor-cmd.md"] as never);
+    vi.mocked(fs.pathExists).mockImplementation(async (filePath: unknown) => {
+      // Template file exists in cwd
+      return String(filePath).includes("CLAUDE.md");
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (filePath: unknown) => {
+      if (String(filePath).includes("CLAUDE.md")) {
+        return templateContent;
+      }
+      // First read: source file
+      // Second read: output file (after initial write)
+      return commandContent;
+    });
+
+    await generateToDirectory(MOCK_OUTPUT_PATH, SCOPES.PROJECT, {
+      includeContribCommands: true,
+    });
+
+    // Should write to contributor-cmd.md (no underscore) for initial write
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining("contributor-cmd.md"),
+      expect.any(String),
+    );
+
+    // Should NOT write to _contributor-cmd.md
+    expect(fs.writeFile).not.toHaveBeenCalledWith(
+      expect.stringContaining("_contributor-cmd.md"),
+      expect.any(String),
+    );
+
+    // Template injection should also write to contributor-cmd.md (not _contributor-cmd.md)
+    const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
+    const allPaths = writeFileCalls.map((call) => String(call[0]));
+    expect(allPaths.every((p) => !p.includes("_contributor-cmd.md"))).toBe(
+      true,
     );
   });
 });

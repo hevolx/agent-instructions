@@ -18,7 +18,7 @@ const SOURCES_DIR = path.join(PROJECT_ROOT, "src", "sources");
 
 const getMarkdownFiles = (dir: string): string[] =>
   fs.existsSync(dir)
-    ? fs.readdirSync(dir).filter((f) => f.endsWith(".md"))
+    ? fs.readdirSync(dir).filter((f) => f.endsWith(".md") && !f.startsWith("_"))
     : [];
 
 describe("dynamic generation snapshots", () => {

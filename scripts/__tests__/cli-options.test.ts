@@ -82,9 +82,10 @@ describe("generateMarkdownTable", () => {
     expect(table).toContain("|--------|-------------|");
   });
 
-  it("should include all CLI options", () => {
+  it("should include all public CLI options", () => {
     const table = generateMarkdownTable();
     for (const opt of CLI_OPTIONS) {
+      if (opt.internal) continue;
       expect(table).toContain(opt.description);
     }
   });

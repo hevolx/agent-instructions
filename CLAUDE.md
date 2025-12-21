@@ -19,6 +19,14 @@ This repository contains a fragment-based system for generating Claude Code slas
 3. **Track artifacts**: Both sources and built commands are committed for easy distribution
 4. **Feature flags**: Use `featureFlag='beads'` for conditional content
 
+### Contributor Commands
+Source files prefixed with underscore (`_*.md`) are "contributor commands":
+- **Excluded** from npm package distribution (consumers never see them)
+- **Included** in this repo's `.claude/commands/` for maintainers
+- Underscore prefix is stripped from output filename (`_foo.md` → `foo.md`)
+- Not listed in README command list
+- Use `--include-contrib-commands` internal flag to include them
+
 ## Development Workflow
 
 ### Package Manager
@@ -96,8 +104,8 @@ With feature flag:
 
 Tests verify:
 - Snapshot consistency between builds
-- File count matching across variants
-- Beads content only in with-beads variant
+- File count matching with and without feature flags
+- Beads content only when beads flag enabled
 - README generation correctness
 
 After content changes, snapshots typically need updating:

@@ -200,6 +200,7 @@ export interface CliArgs {
   overwrite?: boolean;
   skipOnConflict?: boolean;
   flags?: string[];
+  includeContribCommands?: boolean;
 }
 
 export async function main(args?: CliArgs): Promise<void> {
@@ -223,6 +224,7 @@ export async function main(args?: CliArgs): Promise<void> {
       cachedExistingFiles = await checkExistingFiles(undefined, scope, {
         commandPrefix: commandPrefix || "",
         flags: selectedFlags,
+        includeContribCommands: args.includeContribCommands,
       });
       selectedCommands = cachedExistingFiles.map((f) => f.filename);
 
@@ -290,6 +292,7 @@ export async function main(args?: CliArgs): Promise<void> {
         {
           commandPrefix: (commandPrefix as string) || "",
           flags: selectedFlags as string[],
+          includeContribCommands: args.includeContribCommands,
         },
       );
       const existingFilenames = new Set(
@@ -351,6 +354,7 @@ export async function main(args?: CliArgs): Promise<void> {
       commands: selectedCommands as string[],
       allowedTools: selectedAllowedTools as string[] | undefined,
       flags: selectedFlags as string[] | undefined,
+      includeContribCommands: args?.includeContribCommands,
     }));
 
   const skipFiles: string[] = [];
@@ -442,6 +446,7 @@ export async function main(args?: CliArgs): Promise<void> {
     skipFiles,
     allowedTools: selectedAllowedTools as string[] | undefined,
     flags: selectedFlags as string[] | undefined,
+    includeContribCommands: args?.includeContribCommands,
   });
 
   const fullPath =

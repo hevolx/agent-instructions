@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import { main } from "../cli.js";
+import { generateToDirectory } from "../cli-generator.js";
 
 const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
 const BIN_PATH = path.join(PROJECT_ROOT, "bin", "cli.js");
@@ -99,4 +100,33 @@ describe("CLI Integration", () => {
       expect(result.status).not.toBe(1);
     },
   );
+
+  it("should never generate underscore-prefixed commands by default", async () => {
+    const outputDir = path.join(tempDir, "commands");
+
+    await generateToDirectory(outputDir);
+
+    const generatedFiles = fs.readdirSync(outputDir);
+    const underscoreFiles = generatedFiles.filter((f) => f.startsWith("_"));
+
+    expect(
+      underscoreFiles,
+      "Underscore-prefixed commands must never be published - use includeContribCommands for local dev only",
+    ).toEqual([]);
+  });
+
+  it("should include contributor commands in .claude/commands/ for this repo", () => {
+    const commandsDir = path.join(PROJECT_ROOT, ".claude", "commands");
+    const files = fs.readdirSync(commandsDir);
+    // Contributor commands have underscore stripped from output filename
+    // e.g., _contribute-a-command.md source -> contribute-a-command.md output
+    const contributorCommand = files.find((f) =>
+      f.includes("contribute-a-command"),
+    );
+
+    expect(
+      contributorCommand,
+      "This repo's .claude/commands/ should include contributor commands (from underscore-prefixed sources)",
+    ).toBeDefined();
+  });
 });

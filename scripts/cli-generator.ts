@@ -35,6 +35,40 @@ export type Scope = (typeof SCOPES)[keyof typeof SCOPES];
 
 const ELLIPSIS = "...";
 
+/**
+ * Check if a file is a valid source file for generation.
+ * Excludes underscore-prefixed "contributor" files unless explicitly included.
+ */
+function isSourceFile(
+  filename: string,
+  includeContribCommands?: boolean,
+): boolean {
+  return (
+    filename.endsWith(".md") &&
+    (includeContribCommands || !filename.startsWith("_"))
+  );
+}
+
+/**
+ * Strip the underscore prefix from contributor command filenames.
+ * e.g., "_contribute-a-command.md" -> "contribute-a-command.md"
+ */
+function stripContribPrefix(filename: string): string {
+  return filename.startsWith("_") ? filename.slice(1) : filename;
+}
+
+/**
+ * Get all source files from the sources directory.
+ */
+async function getSourceFiles(
+  includeContribCommands?: boolean,
+): Promise<string[]> {
+  const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
+  return (await fs.readdir(sourcePath)).filter((f) =>
+    isSourceFile(f, includeContribCommands),
+  );
+}
+
 function truncatePathFromLeft(pathStr: string, maxLength: number): string {
   if (pathStr.length <= maxLength) {
     return pathStr;
@@ -95,6 +129,7 @@ export interface GenerateOptions {
   skipFiles?: string[];
   allowedTools?: string[];
   flags?: string[];
+  includeContribCommands?: boolean;
 }
 
 export interface FileConflict {
@@ -115,12 +150,11 @@ export async function checkExistingFiles(
   scope?: Scope,
   options?: GenerateOptions,
 ): Promise<ExistingFile[]> {
-  // Always use dynamic generation from sources
   const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
   const destinationPath = getDestinationPath(outputPath, scope);
   const flags = options?.flags ?? [];
 
-  const allFiles = await fs.readdir(sourcePath);
+  const allFiles = await getSourceFiles(options?.includeContribCommands);
   const files = options?.commands
     ? allFiles.filter((f) => options.commands!.includes(f))
     : allFiles;
@@ -138,7 +172,8 @@ export async function checkExistingFiles(
   const baseDir = path.join(__dirname, "..");
 
   for (const file of files) {
-    const destFileName = prefix + file;
+    const outputFileName = stripContribPrefix(file);
+    const destFileName = prefix + outputFileName;
     const destFilePath = path.join(destinationPath, destFileName);
     const sourceFilePath = path.join(sourcePath, file);
 
@@ -418,13 +453,10 @@ export async function generateToDirectory(
   options?: GenerateOptions,
 ): Promise<GenerateResult> {
   const destinationPath = getDestinationPath(outputPath, scope);
-  // Always use dynamic generation from sources
   const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
   const flags = options?.flags ?? [];
 
-  const allFiles = (await fs.readdir(sourcePath)).filter((f) =>
-    f.endsWith(".md"),
-  );
+  const allFiles = await getSourceFiles(options?.includeContribCommands);
   let files = options?.commands
     ? allFiles.filter((f) => options.commands!.includes(f))
     : allFiles;
@@ -449,8 +481,9 @@ export async function generateToDirectory(
     const cleanedContent = applyMarkdownFixes(
       stripInternalMetadata(expandedContent),
     );
+    const outputFileName = stripContribPrefix(file);
     await fs.writeFile(
-      path.join(destinationPath, prefix + file),
+      path.join(destinationPath, prefix + outputFileName),
       cleanedContent,
     );
   }
@@ -469,7 +502,8 @@ export async function generateToDirectory(
       );
 
       if (toolsForCommand.length > 0) {
-        const filePath = path.join(destinationPath, prefix + file);
+        const outputFileName = stripContribPrefix(file);
+        const filePath = path.join(destinationPath, prefix + outputFileName);
         const content = await fs.readFile(filePath, "utf-8");
         const allowedToolsYaml = `allowed-tools: ${toolsForCommand.join(", ")}`;
         const modifiedContent = content.replace(
@@ -498,10 +532,11 @@ export async function generateToDirectory(
       const templates = extractTemplateBlocks(sourceContent);
       if (templates.length > 0) {
         for (const file of files) {
-          const commandName = path.basename(file, ".md");
+          const outputFileName = stripContribPrefix(file);
+          const commandName = path.basename(outputFileName, ".md");
           const actualFileName = options?.commandPrefix
-            ? options.commandPrefix + file
-            : file;
+            ? options.commandPrefix + outputFileName
+            : outputFileName;
           const filePath = path.join(destinationPath, actualFileName);
           let content = await fs.readFile(filePath, "utf-8");
           let modified = false;

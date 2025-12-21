@@ -6,7 +6,9 @@ import fs from "fs";
  * @returns Array of markdown filenames (not full paths)
  */
 export function getMarkdownFiles(dir: string): string[] {
-  return fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".md") && !f.startsWith("_"));
 }
 
 /**

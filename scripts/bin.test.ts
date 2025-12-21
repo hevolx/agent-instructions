@@ -153,6 +153,7 @@ describe("CLI_OPTIONS consistency", () => {
       overwrite: undefined,
       skipOnConflict: undefined,
       flags: undefined,
+      includeContribCommands: undefined,
     } satisfies Record<keyof Required<CliArgs>, undefined>;
 
     const cliArgsKeys = Object.keys(cliArgsKeysObject).sort();
