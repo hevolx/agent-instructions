@@ -59,16 +59,24 @@ vi.mock("./cli-generator.js", () => ({
     { value: "Bash(git diff:*)", label: "git diff" },
     { value: "Bash(git status:*)", label: "git status" },
   ]),
-  getFlagsGroupedByCategory: vi.fn().mockReturnValue({
-    "Feature Flags": [
-      { value: "beads", label: "Beads MCP", hint: "Local issue tracking" },
-      {
-        value: "no-plan-files",
-        label: "No Plan Files",
-        hint: "Forbid Claude Code's internal plan.md",
-      },
-    ],
-  }),
+  FLAG_OPTIONS: [
+    {
+      value: "beads",
+      label: "Beads MCP",
+      hint: "Local issue tracking",
+      category: "Feature Flags",
+    },
+    {
+      value: "no-plan-files",
+      label: "No Plan Files",
+      hint: "Forbid Claude Code's internal plan.md",
+      category: "Feature Flags",
+    },
+  ],
+  SCOPES: {
+    PROJECT: "project",
+    USER: "user",
+  },
   getScopeOptions: vi.fn().mockReturnValue([
     {
       value: "project",
@@ -261,6 +269,17 @@ describe("CLI", () => {
     const { main } = await import("./cli.js");
 
     await setupInteractiveMocks({ cancelAt: "prefix" });
+
+    await main();
+
+    expect(generateToDirectory).not.toHaveBeenCalled();
+  });
+
+  it("should exit gracefully when user cancels on flags prompt", async () => {
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({ cancelAt: "flags" });
 
     await main();
 

@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import * as v from "valibot";
 import { generateMarkdownTable } from "./cli-options.js";
 import { REQUESTED_TOOLS_KEY } from "./cli-generator.js";
-import { getMarkdownFiles } from "./utils.js";
+import { getMarkdownFiles, getErrorMessage } from "./utils.js";
 import { parseOptions } from "./fragment-expander.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,23 @@ const CATEGORIES = {
   WORKTREE: "Worktree Management",
   UTILITIES: "Utilities",
 } as const;
+
+// Valid category values as a schema
+const CategoryValues = Object.values(CATEGORIES);
+type Category = (typeof CategoryValues)[number];
+
+const CategorySchema = v.picklist(CategoryValues);
+
+// Schema for validating required frontmatter fields
+const RequiredFrontmatterSchema = v.object({
+  description: v.pipe(v.string(), v.minLength(1)),
+  _order: v.number(),
+});
+
+// Schema for INCLUDE transform options
+const IncludeOptionsSchema = v.object({
+  path: v.string(),
+});
 
 // Types
 interface Frontmatter {
@@ -116,8 +134,9 @@ function parseFrontmatter(content: string): Frontmatter {
 }
 
 // Get category from frontmatter or default to Utilities
-function getCategory(frontmatter: Frontmatter): string {
-  return frontmatter._category || CATEGORIES.UTILITIES;
+function getCategory(frontmatter: Frontmatter): Category {
+  const category = frontmatter._category || CATEGORIES.UTILITIES;
+  return v.parse(CategorySchema, category);
 }
 
 /**
@@ -138,19 +157,20 @@ function createConfig(withBeads: boolean): TransformConfig {
               return fs.readFileSync(elsePath, "utf8");
             } catch (err) {
               throw new Error(
-                `INCLUDE transform: Failed to read elsePath '${options.elsePath}': ${err instanceof Error ? err.message : String(err)}`,
+                `INCLUDE transform: Failed to read elsePath '${options.elsePath}': ${getErrorMessage(err)}`,
               );
             }
           }
           return "";
         }
 
-        const filePath = path.join(PROJECT_ROOT, options.path || "");
+        const validated = v.parse(IncludeOptionsSchema, options);
+        const filePath = path.join(PROJECT_ROOT, validated.path);
         try {
           return fs.readFileSync(filePath, "utf8");
         } catch (err) {
           throw new Error(
-            `INCLUDE transform: Failed to read path '${options.path}': ${err instanceof Error ? err.message : String(err)}`,
+            `INCLUDE transform: Failed to read path '${validated.path}': ${getErrorMessage(err)}`,
           );
         }
       },
@@ -164,13 +184,13 @@ function createConfig(withBeads: boolean): TransformConfig {
           const content = fs.readFileSync(path.join(sourcesDir, file), "utf8");
           const frontmatter = parseFrontmatter(content);
           const name = file.replace(".md", "");
+          const validated = v.parse(RequiredFrontmatterSchema, frontmatter);
 
           return {
             name,
-            description: frontmatter.description || "No description",
+            description: validated.description,
             category: getCategory(frontmatter),
-            order:
-              typeof frontmatter._order === "number" ? frontmatter._order : 999,
+            order: validated._order,
           };
         });
 
@@ -264,16 +284,17 @@ function generateCommandsMetadata(): Record<string, CommandMetadata> {
   for (const file of files) {
     const content = fs.readFileSync(path.join(sourcesDir, file), "utf8");
     const frontmatter = parseFrontmatter(content);
+    const validated = v.parse(RequiredFrontmatterSchema, frontmatter);
 
     const requestedTools = frontmatter[REQUESTED_TOOLS_KEY] as
       | string[]
       | undefined;
 
     metadata[file] = {
-      description: frontmatter.description || "No description",
+      description: validated.description,
       hint: frontmatter._hint as string | undefined,
       category: getCategory(frontmatter),
-      order: typeof frontmatter._order === "number" ? frontmatter._order : 999,
+      order: validated._order,
       ...(frontmatter._selectedByDefault === false
         ? { selectedByDefault: false }
         : {}),

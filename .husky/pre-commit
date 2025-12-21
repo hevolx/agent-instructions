@@ -12,8 +12,8 @@ pnpm duplication-check
 # Build (includes markdownlint --fix)
 pnpm build
 
-# Run tests
-pnpm test
+# Run tests with coverage (fails if below 100%)
+pnpm test:coverage
 
 # Stage generated files
 git add README.md

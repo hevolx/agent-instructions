@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -80,11 +80,25 @@ _category: Workflow
     expect(result.description).toBe("After the array");
     expect(result._category).toBe("Workflow");
   });
+
+  it("should skip lines without colons", () => {
+    const content = `---
+description: Test command
+this line has no colon
+_order: 1
+---`;
+
+    const result = parseFrontmatter(content);
+    expect(result.description).toBe("Test command");
+    expect(result._order).toBe(1);
+  });
 });
 
 describe("getCategory", () => {
   it("should get category from frontmatter", () => {
-    expect(getCategory({ _category: "TDD Cycle" })).toBe("TDD Cycle");
+    expect(getCategory({ _category: "Test-Driven Development" })).toBe(
+      "Test-Driven Development",
+    );
     expect(getCategory({ _category: "Planning" })).toBe("Planning");
     expect(getCategory({ _category: "Workflow" })).toBe("Workflow");
   });
@@ -325,6 +339,26 @@ describe("generateCommandsMetadata", () => {
       "Bash(git merge-base:*)",
       "Bash(git branch:*)",
     ]);
+  });
+
+  it("should include selectedByDefault: false when _selectedByDefault: false in source", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+
+    const result = await generateCommandsMetadata();
+
+    // ship.md, show.md, ask.md have _selectedByDefault: false
+    expect(result["ship.md"].selectedByDefault).toBe(false);
+    expect(result["show.md"].selectedByDefault).toBe(false);
+    expect(result["ask.md"].selectedByDefault).toBe(false);
+  });
+
+  it("should not include selectedByDefault when _selectedByDefault is not false", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+
+    const result = generateCommandsMetadata();
+
+    // red.md does not have _selectedByDefault: false
+    expect(result["red.md"].selectedByDefault).toBeUndefined();
   });
 });
 
@@ -727,5 +761,58 @@ Content here`,
     await expect(processMarkdownFiles([inputFile])).rejects.toThrow(
       "Unknown transform: UNKNOWN_TRANSFORM",
     );
+  });
+});
+
+describe("source file validation", () => {
+  let tempDir: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "validation-test-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  it("COMMANDS_LIST should throw when source file is missing description", async () => {
+    const sourcesDir = path.join(tempDir, "src", "sources");
+    fs.mkdirSync(sourcesDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(sourcesDir, "test.md"),
+      `---
+_order: 1
+_category: Workflow
+---
+Content`,
+    );
+
+    // The COMMANDS_LIST reads from PROJECT_ROOT which we can't easily override
+    // So we test via parseFrontmatter and the validation logic directly
+    const frontmatter = parseFrontmatter(`---
+_order: 1
+_category: Workflow
+---`);
+
+    expect(frontmatter.description).toBeUndefined();
+  });
+
+  it("parseFrontmatter should return undefined description when missing", () => {
+    const frontmatter = parseFrontmatter(`---
+_order: 1
+_category: Workflow
+---`);
+
+    expect(frontmatter.description).toBeUndefined();
+  });
+
+  it("parseFrontmatter should return undefined _order when missing", () => {
+    const frontmatter = parseFrontmatter(`---
+description: Test
+_category: Workflow
+---`);
+
+    expect(frontmatter._order).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import { getErrorMessage } from "./utils.js";
 
 interface ExpandOptions {
   flags: string[];
@@ -26,7 +27,7 @@ export function expandContent(content: string, options: ExpandOptions): string {
     TRANSFORM_BLOCK_REGEX,
     (_match, transformName: string, attrString: string) => {
       if (transformName !== "INCLUDE") {
-        return "";
+        throw new Error(`Unknown transform type: ${transformName}`);
       }
 
       const attrs = parseOptions(attrString);
@@ -40,7 +41,7 @@ export function expandContent(content: string, options: ExpandOptions): string {
             return fs.readFileSync(fullElsePath, "utf8");
           } catch (err) {
             throw new Error(
-              `Failed to read elsePath '${elsePath}': ${err instanceof Error ? err.message : String(err)}`,
+              `Failed to read elsePath '${elsePath}': ${getErrorMessage(err)}`,
             );
           }
         }
@@ -48,7 +49,7 @@ export function expandContent(content: string, options: ExpandOptions): string {
       }
 
       if (!includePath) {
-        return "";
+        throw new Error("INCLUDE directive missing required 'path' attribute");
       }
 
       const fullPath = path.join(baseDir, includePath);
@@ -56,7 +57,7 @@ export function expandContent(content: string, options: ExpandOptions): string {
         return fs.readFileSync(fullPath, "utf8");
       } catch (err) {
         throw new Error(
-          `Failed to read '${includePath}': ${err instanceof Error ? err.message : String(err)}`,
+          `Failed to read '${includePath}': ${getErrorMessage(err)}`,
         );
       }
     },

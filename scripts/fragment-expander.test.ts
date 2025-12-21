@@ -120,4 +120,26 @@ describe("expandContent", () => {
       expandContent(content, { flags: [], baseDir: "/project" }),
     ).toThrow("Failed to read elsePath");
   });
+
+  it("should throw error for unknown transform type", () => {
+    const content = `# Header
+<!-- docs UNKNOWN path='src/fragments/test.md' -->
+<!-- /docs -->
+# Footer`;
+
+    expect(() =>
+      expandContent(content, { flags: [], baseDir: "/project" }),
+    ).toThrow("Unknown transform type: UNKNOWN");
+  });
+
+  it("should throw error when INCLUDE directive is missing path attribute", () => {
+    const content = `# Header
+<!-- docs INCLUDE -->
+<!-- /docs -->
+# Footer`;
+
+    expect(() =>
+      expandContent(content, { flags: [], baseDir: "/project" }),
+    ).toThrow("INCLUDE directive missing required 'path' attribute");
+  });
 });

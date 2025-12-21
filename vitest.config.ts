@@ -12,6 +12,11 @@ export default defineConfig({
         "scripts/*.d.ts",
         "scripts/build.ts", // Build entry point - output tested via snapshots
       ],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        statements: 100,
+      },
     },
   },
 });

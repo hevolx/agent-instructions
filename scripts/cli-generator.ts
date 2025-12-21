@@ -62,26 +62,6 @@ export const FLAG_OPTIONS = [
   },
 ] as const;
 
-interface FlagOption {
-  value: string;
-  label: string;
-  hint?: string;
-}
-
-export function getFlagsGroupedByCategory(): Record<string, FlagOption[]> {
-  const grouped: Record<string, FlagOption[]> = {};
-
-  for (const flag of FLAG_OPTIONS) {
-    const { category, ...option } = flag;
-    if (!grouped[category]) {
-      grouped[category] = [];
-    }
-    grouped[category].push(option);
-  }
-
-  return grouped;
-}
-
 export function getScopeOptions(terminalWidth: number = 80) {
   const projectPath = path.join(
     process.cwd(),
@@ -276,13 +256,6 @@ export async function getCommandsGroupedByCategory(): Promise<
       hint: data.hint,
       selectedByDefault: data.selectedByDefault !== false,
     });
-  }
-
-  // Validate all categories are in CATEGORY_ORDER
-  for (const category of Object.keys(grouped)) {
-    if (!CATEGORY_ORDER.includes(category)) {
-      throw new Error(`Unknown category: ${category}`);
-    }
   }
 
   // Sort commands within each category by order

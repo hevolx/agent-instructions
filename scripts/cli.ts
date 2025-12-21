@@ -12,6 +12,7 @@ import {
 import os from "os";
 import { diffLines } from "diff";
 import picocolors from "picocolors";
+import * as v from "valibot";
 
 const pc = process.env.FORCE_COLOR ? picocolors.createColors(true) : picocolors;
 import {
@@ -20,12 +21,21 @@ import {
   getScopeOptions,
   getCommandsGroupedByCategory,
   getRequestedToolsOptions,
-  getFlagsGroupedByCategory,
+  FLAG_OPTIONS,
+  SCOPES,
   type Scope,
   type ExistingFile,
 } from "./cli-generator.js";
 import { CLI_OPTIONS } from "./cli-options.js";
 import { isInteractiveTTY } from "./tty.js";
+
+// Schema for validating CLI scope
+const ScopeValues = Object.values(SCOPES) as [Scope, ...Scope[]];
+const ScopeSchema = v.picklist(ScopeValues);
+
+// Schema for validating CLI flags
+const FlagValues = FLAG_OPTIONS.map((f) => f.value) as [string, ...string[]];
+const FlagsSchema = v.array(v.picklist(FlagValues));
 
 type LineInfo = {
   text: string;
@@ -195,7 +205,7 @@ export interface CliArgs {
 export async function main(args?: CliArgs): Promise<void> {
   intro(BATMAN_LOGO);
 
-  let scope: string | symbol;
+  let scope: Scope | symbol;
   let commandPrefix: string | symbol;
   let selectedCommands: string[] | symbol | undefined;
   let selectedAllowedTools: string[] | symbol | undefined;
@@ -204,17 +214,16 @@ export async function main(args?: CliArgs): Promise<void> {
 
   if (args?.scope) {
     // Non-interactive mode (scope is the only required flag)
-    scope = args.scope;
+    scope = v.parse(ScopeSchema, args.scope);
     commandPrefix = args.prefix ?? "";
     selectedCommands = args.commands;
-    selectedFlags = args.flags;
+    selectedFlags = args.flags ? v.parse(FlagsSchema, args.flags) : undefined;
 
     if (args.updateExisting) {
-      cachedExistingFiles = await checkExistingFiles(
-        undefined,
-        scope as Scope,
-        { commandPrefix: commandPrefix || "", flags: selectedFlags },
-      );
+      cachedExistingFiles = await checkExistingFiles(undefined, scope, {
+        commandPrefix: commandPrefix || "",
+        flags: selectedFlags,
+      });
       selectedCommands = cachedExistingFiles.map((f) => f.filename);
 
       if (selectedCommands.length === 0) {
@@ -256,10 +265,15 @@ export async function main(args?: CliArgs): Promise<void> {
     }
 
     // Select feature flags (replaces variant selection)
-    const flagOptions = getFlagsGroupedByCategory();
     selectedFlags = await groupMultiselect({
       message: "Select feature flags (optional)",
-      options: flagOptions,
+      options: {
+        "Feature Flags": FLAG_OPTIONS.map(({ value, label, hint }) => ({
+          value,
+          label,
+          hint,
+        })),
+      },
       required: false,
     });
 

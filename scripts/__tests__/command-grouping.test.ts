@@ -44,23 +44,4 @@ describe("getCommandsGroupedByCategory", () => {
       ],
     });
   });
-
-  it("should throw when a category is not in CATEGORY_ORDER", async () => {
-    const { generateCommandsMetadata } = await import("../generate-readme.js");
-    const mockMetadata = {
-      "custom.md": {
-        description: "Custom command",
-        category: "Unknown Category",
-        order: 1,
-      },
-    };
-    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
-
-    const { getCommandsGroupedByCategory } =
-      await import("../cli-generator.js");
-
-    await expect(getCommandsGroupedByCategory()).rejects.toThrow(
-      "Unknown Category",
-    );
-  });
 });
