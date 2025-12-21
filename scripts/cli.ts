@@ -354,15 +354,13 @@ export async function main(args?: CliArgs): Promise<void> {
     }));
 
   const skipFiles: string[] = [];
+  const conflictingFiles = existingFiles.filter((f) => !f.isIdentical);
   const shouldSkipConflicts = args?.skipOnConflict || !isInteractiveTTY();
   if (args?.overwrite) {
-    for (const file of existingFiles) {
-      if (!file.isIdentical) {
-        log.info(`Overwriting ${file.filename}`);
-      }
+    for (const file of conflictingFiles) {
+      log.info(`Overwriting ${file.filename}`);
     }
   } else if (!shouldSkipConflicts) {
-    const conflictingFiles = existingFiles.filter((f) => !f.isIdentical);
     const hasMultipleConflicts = conflictingFiles.length > 1;
     let overwriteAllSelected = false;
     let skipAllSelected = false;
@@ -424,14 +422,13 @@ export async function main(args?: CliArgs): Promise<void> {
         }
       }
     }
-  } else if (shouldSkipConflicts) {
-    for (const file of existingFiles) {
-      if (!file.isIdentical) {
-        skipFiles.push(file.filename);
-        log.warn(`Skipping ${file.filename} (conflict)`);
-      }
+  } else {
+    // shouldSkipConflicts is true here (after overwrite and interactive branches)
+    for (const file of conflictingFiles) {
+      skipFiles.push(file.filename);
+      log.warn(`Skipping ${file.filename} (conflict)`);
     }
-    if (skipFiles.length > 0 && !isInteractiveTTY()) {
+    if (conflictingFiles.length > 0 && !isInteractiveTTY()) {
       log.info(
         "To resolve conflicts, run interactively or use --overwrite to overwrite",
       );

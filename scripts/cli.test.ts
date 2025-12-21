@@ -829,6 +829,64 @@ NEW LAST`;
     expect(skipCall).toBeDefined();
   });
 
+  it("should show diff correctly for new file (all additions)", async () => {
+    const { note, confirm } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(confirm).mockResolvedValueOnce(true);
+
+    // Empty existing content = all additions
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "new-file.md",
+        existingContent: "",
+        newContent: "# New File\n\nThis is entirely new content.",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("new-file.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // Should show additions with @@ header (tests the || 1 fallback for firstOldLine)
+    expect(diffContent).toContain("@@");
+    expect(diffContent).toContain("New File");
+  });
+
+  it("should show diff correctly for deleted file (all deletions)", async () => {
+    const { note, confirm } = await import("@clack/prompts");
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    vi.mocked(confirm).mockResolvedValueOnce(true);
+
+    // Empty new content = all deletions
+    vi.mocked(checkExistingFiles).mockResolvedValueOnce([
+      {
+        filename: "deleted-file.md",
+        existingContent: "# Old File\n\nThis content will be removed.",
+        newContent: "",
+        isIdentical: false,
+      },
+    ]);
+
+    await main({ scope: "project", prefix: "" });
+
+    const noteCall = vi
+      .mocked(note)
+      .mock.calls.find((call) => String(call[1]).includes("deleted-file.md"));
+    const diffContent = String(noteCall?.[0] || "");
+
+    // Should show deletions with @@ header (tests the || 1 fallback for firstNewLine)
+    expect(diffContent).toContain("@@");
+    expect(diffContent).toContain("Old File");
+  });
+
   it("should not include commands with selectedByDefault: false in initial selection", async () => {
     const { select, text, groupMultiselect } = await import("@clack/prompts");
     const { getCommandsGroupedByCategory } = await import("./cli-generator.js");
@@ -1698,6 +1756,25 @@ describe("non-TTY mode", () => {
     // Should show hint about resolving conflicts
     expect(log.info).toHaveBeenCalledWith(
       expect.stringMatching(/interactively|--overwrite/),
+    );
+  });
+
+  it("should validate flags with valibot when both scope and flags are provided", async () => {
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    await main({
+      scope: "project",
+      prefix: "",
+      flags: ["beads"],
+    });
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "project",
+      expect.objectContaining({
+        flags: ["beads"],
+      }),
     );
   });
 });

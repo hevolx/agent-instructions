@@ -529,6 +529,22 @@ describe("checkExistingFiles", () => {
     // newContent should NOT include allowedTools (command has no _requested-tools)
     expect(files[0].newContent).not.toContain("allowed-tools:");
   });
+
+  it("should skip files that don't exist at destination", async () => {
+    vi.mocked(fs.readdir).mockResolvedValue(["red.md", "green.md"] as never);
+    // red.md exists, green.md doesn't
+    vi.mocked(fs.pathExists).mockImplementation(async (filePath: unknown) => {
+      return String(filePath).includes("red.md");
+    });
+    vi.mocked(fs.readFile).mockResolvedValue("# Content" as never);
+
+    const { checkExistingFiles } = await import("./cli-generator.js");
+    const files = await checkExistingFiles(MOCK_OUTPUT_PATH);
+
+    // Should only return red.md since green.md doesn't exist at destination
+    expect(files).toHaveLength(1);
+    expect(files[0].filename).toBe("red.md");
+  });
 });
 
 describe("getCommandsGroupedByCategory", () => {
@@ -842,11 +858,19 @@ describe("getRequestedToolsOptions", () => {
     expect(options).toEqual([
       {
         value: "Bash(git diff:*)",
-        label: "git diff",
+        label: "Bash(git diff:*)",
         hint: "/red, /code-review",
       },
-      { value: "Bash(git status:*)", label: "git status", hint: "/red" },
-      { value: "Bash(git log:*)", label: "git log", hint: "/code-review" },
+      {
+        value: "Bash(git status:*)",
+        label: "Bash(git status:*)",
+        hint: "/red",
+      },
+      {
+        value: "Bash(git log:*)",
+        label: "Bash(git log:*)",
+        hint: "/code-review",
+      },
     ]);
   });
 
@@ -901,6 +925,38 @@ describe("getRequestedToolsOptions", () => {
     expect(gitStatusOption?.hint).toBe("/red");
     // Tool used by 1 command: just show the command
     expect(gitLogOption?.hint).toBe("/code-review");
+  });
+
+  it("should use singular 'other' when tool is used by exactly 3 commands", async () => {
+    const { generateCommandsMetadata } = await import("./generate-readme.js");
+    const mockMetadata = {
+      "red.md": {
+        description: "Red phase",
+        category: "TDD",
+        order: 1,
+        "_requested-tools": ["Bash(pnpm test:*)"],
+      },
+      "green.md": {
+        description: "Green phase",
+        category: "TDD",
+        order: 2,
+        "_requested-tools": ["Bash(pnpm test:*)"],
+      },
+      "refactor.md": {
+        description: "Refactor phase",
+        category: "TDD",
+        order: 3,
+        "_requested-tools": ["Bash(pnpm test:*)"],
+      },
+    };
+
+    vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
+
+    const options = await getRequestedToolsOptions();
+
+    const testOption = options.find((o) => o.value === "Bash(pnpm test:*)");
+    // 3 commands: show first 2, then "and 1 other" (singular)
+    expect(testOption?.hint).toBe("/red, /green, and 1 other");
   });
 });
 

@@ -117,7 +117,7 @@ export async function checkExistingFiles(
 ): Promise<ExistingFile[]> {
   // Always use dynamic generation from sources
   const sourcePath = path.join(__dirname, "..", DIRECTORIES.SOURCES);
-  const destinationPath = outputPath || getDestinationPath(outputPath, scope);
+  const destinationPath = getDestinationPath(outputPath, scope);
   const flags = options?.flags ?? [];
 
   const allFiles = await fs.readdir(sourcePath);
@@ -286,11 +286,6 @@ interface RequestedToolOption {
   hint: string;
 }
 
-function extractLabelFromTool(tool: string): string {
-  const match = tool.match(/^Bash\(([^:]+):/);
-  return match ? match[1] : tool;
-}
-
 function formatCommandsHint(commands: string[]): string {
   if (commands.length <= 2) {
     return commands.map((c) => `/${c}`).join(", ");
@@ -319,7 +314,7 @@ export async function getRequestedToolsOptions(): Promise<
 
   return Array.from(toolToCommands.entries()).map(([tool, commands]) => ({
     value: tool,
-    label: extractLabelFromTool(tool),
+    label: tool,
     hint: formatCommandsHint(commands),
   }));
 }
@@ -388,8 +383,8 @@ export function applyMarkdownFixes(content: string): string {
   const results = lint({
     strings: { content },
   });
-  const errors = results.content || [];
-  return applyFixes(content, errors);
+  // markdownlint always returns the key we pass in strings
+  return applyFixes(content, results.content);
 }
 
 export function extractTemplateBlocks(content: string): TemplateBlock[] {
