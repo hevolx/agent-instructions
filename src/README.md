@@ -135,10 +135,10 @@ flowchart TB
     Start --> Step1[<b>1. PLAN</b>]
 
     Step1 --> Issue[📋 /issue<br/>Have GitHub issue<br/><i>Requires: GitHub MCP</i>]
-    Step1 --> Plan[📝 /plan<br/>No issue yet<br/><i>Optional: Beads MCP</i>]
+    Step1 --> CreateIssues[📝 /create-issues<br/>No issue yet<br/><i>Optional: Beads MCP</i>]
 
     Issue --> Step2[<b>2. CODE with TDD</b>]
-    Plan --> Step2
+    CreateIssues --> Step2
 
     Step2 -->|Manual| Red[🔴 /red<br/>Write failing test]
     Red --> Green[🟢 /green<br/>Make it pass]

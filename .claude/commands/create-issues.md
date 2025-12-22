@@ -3,7 +3,7 @@ description: Create implementation plan from feature/requirement with PRD-style 
 argument-hint: <feature/requirement description or GitHub issue URL/number>
 ---
 
-# Plan: PRD-Informed Task Planning for TDD
+# Create Issues: PRD-Informed Task Planning for TDD
 
 Create structured implementation plan that bridges product thinking (PRD) with test-driven development.
 
@@ -184,8 +184,8 @@ See <https://github.com/steveyegge/beads> for more information.
 
 ## Integration with Other Commands
 
-- **Before /plan**: Use `/spike` if you need technical exploration first
-- **After /plan**: Use `/red` to start TDD on first task
+- **Before /create-issues**: Use `/spike` if you need technical exploration first
+- **After /create-issues**: Use `/red` to start TDD on first task
 - **During work**: Use `bd update` to add notes/findings back to issues
 - **When stuck**: Check `bd show ISSUE-ID` to review acceptance criteria
 

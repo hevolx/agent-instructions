@@ -389,6 +389,24 @@ describe("generated commands should not contain internal metadata", () => {
   });
 });
 
+describe("reserved command names", () => {
+  it("should not have plan.md source (conflicts with Claude Code ExitPlanMode - see issue #6109)", () => {
+    const planSourcePath = path.join(SOURCES_DIR, "plan.md");
+    expect(
+      fs.existsSync(planSourcePath),
+      "plan.md exists but triggers Claude Code's ExitPlanMode bug (github.com/anthropics/claude-code/issues/6109)",
+    ).toBe(false);
+  });
+
+  it("should have create-issues.md as the renamed plan command", () => {
+    const createIssuesPath = path.join(SOURCES_DIR, "create-issues.md");
+    expect(
+      fs.existsSync(createIssuesPath),
+      "create-issues.md should exist as the renamed plan command",
+    ).toBe(true);
+  });
+});
+
 describe("markdownlint validation", () => {
   // Note: Dynamically expanded files may have extra blank lines where conditional
   // content was removed. The CLI applies post-processing to fix these issues.

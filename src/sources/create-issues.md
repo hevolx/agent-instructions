@@ -1,12 +1,12 @@
 ---
 description: Create implementation plan from feature/requirement with PRD-style discovery and TDD acceptance criteria
 argument-hint: <feature/requirement description or GitHub issue URL/number>
-_hint: Plan feature
+_hint: Create issues
 _category: Planning
 _order: 2
 ---
 
-# Plan: PRD-Informed Task Planning for TDD
+# Create Issues: PRD-Informed Task Planning for TDD
 
 Create structured implementation plan that bridges product thinking (PRD) with test-driven development.
 
@@ -23,7 +23,7 @@ Create structured implementation plan that bridges product thinking (PRD) with t
 
 $ARGUMENTS
 
-(If no input provided, check conversation context<!-- docs INCLUDE path='src/fragments/plan-beads-context-hint.md' featureFlag='beads' -->
+(If no input provided, check conversation context<!-- docs INCLUDE path='src/fragments/create-issues-beads-context-hint.md' featureFlag='beads' -->
 <!-- /docs -->)
 
 ## Input Processing
@@ -72,7 +72,7 @@ Extract from GitHub issue:
 <!-- docs INCLUDE path='src/fragments/discovery-phase.md' -->
 <!-- /docs -->
 
-<!-- docs INCLUDE path='src/fragments/plan-beads-details.md' featureFlag='beads' -->
+<!-- docs INCLUDE path='src/fragments/create-issues-beads-details.md' featureFlag='beads' -->
 <!-- /docs -->
 
 ## Key Principles
@@ -92,7 +92,7 @@ Extract from GitHub issue:
 
 ## Integration with Other Commands
 
-- **Before /plan**: Use `/spike` if you need technical exploration first
-- **After /plan**: Use `/red` to start TDD on first task
-<!-- docs INCLUDE path='src/fragments/plan-beads-integration.md' featureFlag='beads' -->
+- **Before /create-issues**: Use `/spike` if you need technical exploration first
+- **After /create-issues**: Use `/red` to start TDD on first task
+<!-- docs INCLUDE path='src/fragments/create-issues-beads-integration.md' featureFlag='beads' -->
 <!-- /docs -->
