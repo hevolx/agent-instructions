@@ -1,6 +1,6 @@
 {
   "name": "@wbern/claude-instructions",
-  "version": "1.0.1",
+  "version": "2.3.0",
   "description": "TDD workflow commands for Claude Code CLI",
   "type": "module",
   "bin": "./bin/cli.js",
