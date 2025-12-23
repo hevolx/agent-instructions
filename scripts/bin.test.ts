@@ -64,6 +64,16 @@ describe("parseArgs", () => {
       flags: ["beads", "github"],
     });
   });
+
+  it("should parse --allowed-tools as comma-separated list", () => {
+    const args = parseArgs([
+      "--allowed-tools=Bash(git diff:*),Bash(git status:*)",
+    ]);
+
+    expect(args).toEqual({
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
+  });
 });
 
 describe("run", () => {
@@ -153,6 +163,7 @@ describe("CLI_OPTIONS consistency", () => {
       overwrite: undefined,
       skipOnConflict: undefined,
       flags: undefined,
+      allowedTools: undefined,
       includeContribCommands: undefined,
     } satisfies Record<keyof Required<CliArgs>, undefined>;
 

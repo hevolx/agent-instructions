@@ -200,6 +200,7 @@ export interface CliArgs {
   overwrite?: boolean;
   skipOnConflict?: boolean;
   flags?: string[];
+  allowedTools?: string[];
   includeContribCommands?: boolean;
 }
 
@@ -219,6 +220,7 @@ export async function main(args?: CliArgs): Promise<void> {
     commandPrefix = args.prefix ?? "";
     selectedCommands = args.commands;
     selectedFlags = args.flags ? v.parse(FlagsSchema, args.flags) : undefined;
+    selectedAllowedTools = args.allowedTools;
 
     if (args.updateExisting) {
       cachedExistingFiles = await checkExistingFiles(undefined, scope, {
@@ -454,6 +456,32 @@ export async function main(args?: CliArgs): Promise<void> {
       ? `${process.cwd()}/.claude/commands`
       : `${os.homedir()}/.claude/commands`;
 
+  // Build automation command for interactive mode
+  const isInteractiveMode = !args?.scope;
+  let automationNote = "";
+  if (isInteractiveMode) {
+    const parts = ["npx @wbern/claude-instructions"];
+    parts.push(`--scope=${scope as string}`);
+    if (commandPrefix) {
+      parts.push(`--prefix=${commandPrefix as string}`);
+    }
+    if (selectedFlags && (selectedFlags as string[]).length > 0) {
+      parts.push(`--flags=${(selectedFlags as string[]).join(",")}`);
+    }
+    if (selectedCommands && (selectedCommands as string[]).length > 0) {
+      parts.push(`--commands=${(selectedCommands as string[]).join(",")}`);
+    }
+    if (selectedAllowedTools && (selectedAllowedTools as string[]).length > 0) {
+      parts.push(
+        `--allowed-tools=${(selectedAllowedTools as string[]).join(",")}`,
+      );
+    }
+    automationNote = `
+
+To automate this setup:
+  ${parts.join(" ")}`;
+  }
+
   outro(
     `Installed ${result.filesGenerated} commands to ${fullPath}
 
@@ -465,7 +493,7 @@ Try it out:
   /red 1 returns "1"     → Write first failing test for your kata
   /green                 → Make it pass
 
-See a full example: https://github.com/wbern/claude-instructions#example-conversations
+See a full example: https://github.com/wbern/claude-instructions#example-conversations${automationNote}
 
 Happy coding!`,
   );

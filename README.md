@@ -82,6 +82,7 @@ This ensures commands are regenerated whenever anyone runs `npm install`, `pnpm 
 | `--overwrite` | Overwrite conflicting files without prompting |
 | `--skip-on-conflict` | Skip conflicting files without prompting |
 | `--flags=beads,github` | Enable feature flags (beads, github, gitlab, etc.) |
+| `--allowed-tools=Bash(git diff:*),Bash(git status:*)` | Pre-approve tools for commands (non-interactive mode) |
 | `--help, -h` | Show help message |
 | `--version, -v` | Show version number |
 

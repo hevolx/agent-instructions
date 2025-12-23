@@ -63,6 +63,13 @@ export const CLI_OPTIONS: CliOption[] = [
     example: "--flags=beads,github",
   },
   {
+    flag: "--allowed-tools",
+    key: "allowedTools",
+    type: "array",
+    description: "Pre-approve tools for commands (non-interactive mode)",
+    example: "--allowed-tools=Bash(git diff:*),Bash(git status:*)",
+  },
+  {
     flag: "--include-contrib-commands",
     key: "includeContribCommands",
     type: "boolean",

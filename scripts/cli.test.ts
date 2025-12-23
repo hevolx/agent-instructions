@@ -254,6 +254,96 @@ describe("CLI", () => {
     );
   });
 
+  it("should show automation command in outro for interactive mode", async () => {
+    const { outro } = await import("@clack/prompts");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({
+      scope: "project",
+      prefix: "my-",
+      flags: ["beads"],
+      commands: ["red.md", "green.md"],
+    });
+
+    await main();
+
+    expect(outro).toHaveBeenCalledWith(
+      expect.stringContaining("npx @wbern/claude-instructions"),
+    );
+    expect(outro).toHaveBeenCalledWith(
+      expect.stringContaining("--scope=project"),
+    );
+    expect(outro).toHaveBeenCalledWith(expect.stringContaining("--prefix=my-"));
+    expect(outro).toHaveBeenCalledWith(
+      expect.stringContaining("--flags=beads"),
+    );
+  });
+
+  it("should include --commands in automation note when specific commands selected", async () => {
+    const { outro } = await import("@clack/prompts");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({
+      scope: "project",
+      commands: ["red.md", "green.md"],
+    });
+
+    await main();
+
+    expect(outro).toHaveBeenCalledWith(
+      expect.stringContaining("--commands=red.md,green.md"),
+    );
+  });
+
+  it("should NOT include --commands in automation note when no commands selected", async () => {
+    const { outro } = await import("@clack/prompts");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({
+      scope: "project",
+      commands: [],
+    });
+
+    await main();
+
+    expect(outro).toHaveBeenCalledWith(
+      expect.not.stringContaining("--commands="),
+    );
+  });
+
+  it("should include --allowed-tools in automation note when tools selected", async () => {
+    const { outro } = await import("@clack/prompts");
+    const { main } = await import("./cli.js");
+
+    await setupInteractiveMocks({
+      scope: "project",
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
+
+    await main();
+
+    expect(outro).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "--allowed-tools=Bash(git diff:*),Bash(git status:*)",
+      ),
+    );
+  });
+
+  it("should NOT show automation note in non-interactive mode", async () => {
+    const { outro } = await import("@clack/prompts");
+    const { main } = await import("./cli.js");
+
+    await main({
+      scope: "project",
+      prefix: "my-",
+      flags: ["beads"],
+    });
+
+    expect(outro).toHaveBeenCalledWith(
+      expect.not.stringContaining("To automate this setup"),
+    );
+  });
+
   it("should prompt for command prefix and pass it to generator", async () => {
     const { text } = await import("@clack/prompts");
     const { generateToDirectory } = await import("./cli-generator.js");
@@ -1781,6 +1871,25 @@ describe("non-TTY mode", () => {
       "project",
       expect.objectContaining({
         flags: ["beads"],
+      }),
+    );
+  });
+
+  it("should pass allowedTools from CLI args to generator in non-interactive mode", async () => {
+    const { generateToDirectory } = await import("./cli-generator.js");
+    const { main } = await import("./cli.js");
+
+    await main({
+      scope: "project",
+      prefix: "",
+      allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
+    });
+
+    expect(generateToDirectory).toHaveBeenCalledWith(
+      undefined,
+      "project",
+      expect.objectContaining({
+        allowedTools: ["Bash(git diff:*)", "Bash(git status:*)"],
       }),
     );
   });
