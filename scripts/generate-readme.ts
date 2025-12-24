@@ -1,11 +1,11 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as v from "valibot";
-import { generateMarkdownTable } from "./cli-options.js";
 import { REQUESTED_TOOLS_KEY } from "./cli-generator.js";
-import { getMarkdownFiles, getErrorMessage } from "./utils.js";
+import { generateMarkdownTable } from "./cli-options.js";
 import { parseOptions } from "./fragment-expander.js";
+import { getErrorMessage, getMarkdownFiles } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,7 +112,7 @@ function parseFrontmatter(content: string): Frontmatter {
     }
 
     // Parse numeric values for _order field
-    if (key === "_order" && !isNaN(Number(value))) {
+    if (key === "_order" && !Number.isNaN(Number(value))) {
       value = parseInt(value, 10);
     }
 

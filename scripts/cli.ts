@@ -1,30 +1,31 @@
+import os from "node:os";
 import {
+  confirm,
+  groupMultiselect,
+  intro,
+  isCancel,
+  log,
+  note,
+  outro,
   select,
   text,
-  groupMultiselect,
-  isCancel,
-  intro,
-  outro,
-  confirm,
-  note,
-  log,
 } from "@clack/prompts";
-import os from "os";
 import { diffLines } from "diff";
 import picocolors from "picocolors";
 import * as v from "valibot";
 
 const pc = process.env.FORCE_COLOR ? picocolors.createColors(true) : picocolors;
+
 import {
-  generateToDirectory,
   checkExistingFiles,
-  getScopeOptions,
+  type ExistingFile,
+  FLAG_OPTIONS,
+  generateToDirectory,
   getCommandsGroupedByCategory,
   getRequestedToolsOptions,
-  FLAG_OPTIONS,
+  getScopeOptions,
   SCOPES,
   type Scope,
-  type ExistingFile,
 } from "./cli-generator.js";
 import { CLI_OPTIONS } from "./cli-options.js";
 import { isInteractiveTTY } from "./tty.js";

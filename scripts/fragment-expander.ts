@@ -1,5 +1,5 @@
+import path from "node:path";
 import fs from "fs-extra";
-import path from "path";
 import { getErrorMessage } from "./utils.js";
 
 interface ExpandOptions {
@@ -13,7 +13,7 @@ const TRANSFORM_BLOCK_REGEX =
 export function parseOptions(attrString: string): Record<string, string> {
   const options: Record<string, string> = {};
   const attrRegex = /(\w+)=['"]([^'"]*)['"]/g;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = attrRegex.exec(attrString)) !== null) {
     options[match[1]] = match[2];
   }

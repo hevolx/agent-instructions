@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../generate-readme.js", () => ({
   generateCommandsMetadata: vi.fn(),
@@ -30,8 +30,9 @@ describe("getCommandsGroupedByCategory", () => {
     };
     vi.mocked(generateCommandsMetadata).mockReturnValue(mockMetadata);
 
-    const { getCommandsGroupedByCategory } =
-      await import("../cli-generator.js");
+    const { getCommandsGroupedByCategory } = await import(
+      "../cli-generator.js"
+    );
     const result = await getCommandsGroupedByCategory();
 
     expect(result).toEqual({

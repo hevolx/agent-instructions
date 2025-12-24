@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import fs from "fs-extra";
-import path from "path";
-import os from "os";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { main } from "../cli.js";
 import { generateToDirectory } from "../cli-generator.js";
 
@@ -58,7 +58,7 @@ describe("CLI Integration", () => {
     async () => {
       // Pack the package to temp dir (doesn't affect repo)
       // Use --pack-gzip-level 0 for faster compression (level 6 default is slow)
-      execSync("pnpm pack --pack-gzip-level 0 --pack-destination " + tempDir, {
+      execSync(`pnpm pack --pack-gzip-level 0 --pack-destination ${tempDir}`, {
         cwd: PROJECT_ROOT,
         stdio: "pipe",
       });
@@ -89,7 +89,7 @@ describe("CLI Integration", () => {
       // Run the CLI with a timeout - it should start and wait for input, not crash
       const cliPath = path.join(packageDir, "bin", "cli.js");
 
-      const { spawnSync } = await import("child_process");
+      const { spawnSync } = await import("node:child_process");
       const result = spawnSync("node", [cliPath], {
         timeout: 1000,
         stdio: "pipe",

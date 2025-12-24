@@ -1,11 +1,11 @@
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
-import path from "path";
-import { fileURLToPath } from "url";
-import os from "os";
+import { applyFixes } from "markdownlint";
+import { lint } from "markdownlint/sync";
 import { expandContent } from "./fragment-expander.js";
 import { generateCommandsMetadata } from "./generate-readme.js";
-import { lint } from "markdownlint/sync";
-import { applyFixes } from "markdownlint";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -544,7 +544,7 @@ export async function generateToDirectory(
             if (template.commands && !template.commands.includes(commandName)) {
               continue;
             }
-            content = content + "\n\n" + template.content;
+            content = `${content}\n\n${template.content}`;
             modified = true;
           }
           if (modified) {

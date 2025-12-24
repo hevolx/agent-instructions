@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { execSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import fs from "fs-extra";
-import path from "path";
-import os from "os";
-import { execSync } from "child_process";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { generateToDirectory } from "../cli-generator";
 
 const PROJECT_ROOT = path.join(import.meta.dirname, "../..");
@@ -399,7 +399,7 @@ describe("Postinstall Workflow E2E", () => {
     { timeout: 60000 },
     async () => {
       // Pack the package to get a local tarball (avoids registry)
-      execSync("pnpm pack --pack-destination " + tempDir, {
+      execSync(`pnpm pack --pack-destination ${tempDir}`, {
         cwd: PROJECT_ROOT,
         stdio: "pipe",
       });

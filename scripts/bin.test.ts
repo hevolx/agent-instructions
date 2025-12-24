@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parseArgs } from "./bin.js";
-import { CLI_OPTIONS } from "./cli-options.js";
 import type { CliArgs } from "./cli.js";
+import { CLI_OPTIONS } from "./cli-options.js";
 
 vi.mock("./cli.js", () => ({
   main: vi.fn().mockResolvedValue(undefined),

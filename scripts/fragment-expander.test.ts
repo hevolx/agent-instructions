@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { expandContent } from "./fragment-expander.js";
 
 vi.mock("fs-extra", () => ({

@@ -1,5 +1,8 @@
 export default {
-  "*.{ts,tsx}": ["prettier --write", "eslint --fix", () => "tsc --noEmit"],
-  "*.{js,jsx,cjs,mjs}": ["prettier --write", "eslint --fix"],
-  "*.{json,css,html,yml,yaml}": ["prettier --write"],
+  "*.{ts,tsx}": [
+    "biome check --write --no-errors-on-unmatched",
+    () => "tsc --noEmit",
+  ],
+  "*.{js,jsx,cjs,mjs}": ["biome check --write --no-errors-on-unmatched"],
+  "*.json": ["biome check --write --no-errors-on-unmatched"],
 };

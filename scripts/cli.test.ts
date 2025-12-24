@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExistingFile } from "./cli-generator.js";
 
 const mockCancel = Symbol("cancel");
@@ -496,8 +496,9 @@ describe("CLI", () => {
 
   it("should skip conflicting file when user declines overwrite", async () => {
     const { confirm } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(checkExistingFiles).mockResolvedValueOnce([
@@ -748,7 +749,7 @@ NEW LAST`;
     const diffContent = String(noteCall?.[0] || "");
 
     // ANSI escape codes start with \x1b[ (ESC[)
-    // eslint-disable-next-line no-control-regex
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: Testing ANSI escape codes
     expect(diffContent).toMatch(/\x1b\[/);
 
     delete process.env.FORCE_COLOR;
@@ -779,7 +780,7 @@ NEW LAST`;
     const diffContent = String(noteCall?.[0] || "");
 
     // Background color codes: 42 = green bg, 41 = red bg
-    // eslint-disable-next-line no-control-regex
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: Testing ANSI escape codes
     expect(diffContent).toMatch(/\x1b\[4[12]m/);
 
     delete process.env.FORCE_COLOR;
@@ -1030,8 +1031,9 @@ NEW LAST`;
 
   it("should only show pre-existing commands in selection when updateExisting is true", async () => {
     const { select, text, groupMultiselect } = await import("@clack/prompts");
-    const { getCommandsGroupedByCategory, checkExistingFiles } =
-      await import("./cli-generator.js");
+    const { getCommandsGroupedByCategory, checkExistingFiles } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Mock that only red.md and commit.md exist in the target directory
@@ -1091,10 +1093,12 @@ NEW LAST`;
   });
 
   it("should warn and skip selection when updateExisting finds no existing commands", async () => {
-    const { select, text, groupMultiselect, log } =
-      await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { select, text, groupMultiselect, log } = await import(
+      "@clack/prompts"
+    );
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Mock that no commands exist in the target directory
@@ -1115,8 +1119,9 @@ NEW LAST`;
   });
 
   it("should filter to existing commands in non-interactive mode when updateExisting is true", async () => {
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Mock that only red.md exists in the target directory
@@ -1148,8 +1153,9 @@ NEW LAST`;
 
   it("should warn and skip generation in non-interactive mode when updateExisting finds no existing commands", async () => {
     const { log } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Mock that no commands exist in the target directory
@@ -1172,8 +1178,9 @@ NEW LAST`;
 
   it("should skip conflict prompts and overwrite when overwrite is true", async () => {
     const { confirm, note } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(confirm).mockClear();
@@ -1235,8 +1242,9 @@ NEW LAST`;
 
   it("should skip conflicting files without prompting when skipOnConflict is true", async () => {
     const { confirm, note } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(confirm).mockClear();
@@ -1273,8 +1281,9 @@ NEW LAST`;
 
   it("should show 'Overwrite all' and 'Skip all' options when multiple files conflict", async () => {
     const { select, note } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(select).mockClear();
@@ -1334,8 +1343,9 @@ NEW LAST`;
 
   it("should overwrite all remaining files when 'Overwrite all' is selected", async () => {
     const { select } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(select).mockClear();
@@ -1382,8 +1392,9 @@ NEW LAST`;
 
   it("should overwrite user-level prefixed files when 'Yes' is selected", async () => {
     const { confirm } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(confirm).mockClear();
@@ -1587,8 +1598,9 @@ describe("allowed tools prompt", () => {
 
   it("should exit gracefully when user cancels on single-file overwrite confirm", async () => {
     const { confirm } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(checkExistingFiles).mockResolvedValueOnce([
@@ -1609,8 +1621,9 @@ describe("allowed tools prompt", () => {
 
   it("should exit gracefully when user cancels on multi-file overwrite select", async () => {
     const { select } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Multiple conflicting files trigger select() instead of confirm()
@@ -1638,8 +1651,9 @@ describe("allowed tools prompt", () => {
 
   it("should skip file when user selects 'no' on multi-file overwrite dialog", async () => {
     const { select } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     // Multiple conflicting files trigger select() with yes/no/overwrite_all/skip_all
@@ -1813,8 +1827,9 @@ describe("non-TTY mode", () => {
   it("should automatically skip conflicting files and log them in non-TTY mode", async () => {
     const { isInteractiveTTY } = await import("./tty.js");
     const { log, confirm, note } = await import("@clack/prompts");
-    const { checkExistingFiles, generateToDirectory } =
-      await import("./cli-generator.js");
+    const { checkExistingFiles, generateToDirectory } = await import(
+      "./cli-generator.js"
+    );
     const { main } = await import("./cli.js");
 
     vi.mocked(isInteractiveTTY).mockReturnValue(false);

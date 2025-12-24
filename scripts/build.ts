@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { execSync } from "child_process";
-import fs from "fs";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
 import { processMarkdownFiles } from "./generate-readme.js";
 
 function run(cmd: string, options?: { silent?: boolean }): void {

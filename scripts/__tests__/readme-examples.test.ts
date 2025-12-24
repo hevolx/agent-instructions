@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
 import { CLI_OPTIONS } from "../cli-options.js";
 
 const PATHS = {

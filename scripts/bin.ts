@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { main, type CliArgs } from "./cli.js";
+import { type CliArgs, main } from "./cli.js";
 import { CLI_OPTIONS, generateHelpText } from "./cli-options.js";
 
 function getVersion(): string {

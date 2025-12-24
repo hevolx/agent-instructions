@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import fs from "fs";
-import path from "path";
-import os from "os";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  parseFrontmatter,
-  getCategory,
-  generateCommandsMarkdown,
-  createConfig,
-  writeCommandsMetadata,
-  processMarkdownFiles,
-  cleanFrontmatter,
   CATEGORIES,
+  cleanFrontmatter,
+  createConfig,
+  generateCommandsMarkdown,
+  getCategory,
+  parseFrontmatter,
+  processMarkdownFiles,
+  writeCommandsMetadata,
 } from "./generate-readme.js";
 
 describe("parseFrontmatter", () => {
@@ -364,8 +364,9 @@ describe("generateCommandsMetadata", () => {
 
 describe("generateExampleConversations", () => {
   it("should throw when directory does not exist", async () => {
-    const { generateExampleConversations } =
-      await import("./generate-readme.js");
+    const { generateExampleConversations } = await import(
+      "./generate-readme.js"
+    );
 
     expect(() =>
       generateExampleConversations("/nonexistent/path/12345"),
@@ -373,9 +374,9 @@ describe("generateExampleConversations", () => {
   });
 
   it("should generate content from example-conversations directory", async () => {
-    const fs = await import("fs");
-    const path = await import("path");
-    const os = await import("os");
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const os = await import("node:os");
 
     // Create a temp directory with a test conversation file
     const tempDir = fs.mkdtempSync(
@@ -384,8 +385,9 @@ describe("generateExampleConversations", () => {
     const testContent = "# Test Conversation\n\nThis is a test example.";
     fs.writeFileSync(path.join(tempDir, "test-conversation.md"), testContent);
 
-    const { generateExampleConversations } =
-      await import("./generate-readme.js");
+    const { generateExampleConversations } = await import(
+      "./generate-readme.js"
+    );
 
     const result = generateExampleConversations(tempDir);
 

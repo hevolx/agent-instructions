@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import fs from "fs-extra";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("fs-extra", () => ({
   default: {
@@ -32,8 +32,8 @@ vi.mock("markdownlint", () => ({
 }));
 
 import {
-  generateToDirectory,
   checkForConflicts,
+  generateToDirectory,
   getRequestedToolsOptions,
   SCOPES,
 } from "./cli-generator.js";
