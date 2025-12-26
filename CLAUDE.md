@@ -125,6 +125,22 @@ Follow Conventional Commits format:
 - `docs(#123): update documentation`
 - Never include AI credits or co-author tags
 
+### Release Triggers (semantic-release)
+Only certain commit types trigger npm releases. Use the right prefix to avoid unnecessary releases for internal changes:
+
+| Prefix | Release | Use for |
+|--------|---------|---------|
+| `feat:` | Minor (2.4.0 → 2.5.0) | New commands, user-facing features |
+| `fix:` | Patch (2.4.0 → 2.4.1) | Bug fixes affecting generated output |
+| `perf:` | Patch | Performance improvements |
+| `docs:` | None | README, CLAUDE.md, comments |
+| `chore:` | None | Build scripts, dev tooling, deps |
+| `refactor:` | None | Code restructuring without behavior change |
+| `test:` | None | Test additions/changes |
+| `ci:` | None | GitHub Actions, workflows |
+
+**Rule of thumb**: If the change doesn't affect what users get from `npx @wbern/claude-instructions`, use `docs:` or `chore:`.
+
 ### File Organization
 ```
 src/
