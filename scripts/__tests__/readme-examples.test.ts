@@ -94,4 +94,9 @@ describe("README example conversations", () => {
     const expectedVersionPattern = `"@wbern/claude-instructions": "^${currentVersion}"`;
     expect(readme).toContain(expectedVersionPattern);
   });
+
+  it("should have a do-not-edit warning at the top", () => {
+    expect(readme).toMatch(/^<!--[\s\S]*DO NOT EDIT/);
+    expect(readme).toContain("src/README.md");
+  });
 });
