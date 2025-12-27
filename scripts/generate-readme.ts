@@ -141,7 +141,7 @@ function getCategory(frontmatter: Frontmatter): Category {
 }
 
 /**
- * Create markdown-magic config with beads flag
+ * Create transform config with beads flag
  */
 function createConfig(withBeads: boolean): TransformConfig {
   return {

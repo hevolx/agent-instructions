@@ -1,6 +1,25 @@
 # Contributing
 
-This repository uses **markdown-magic** for markdown transclusion to eliminate duplication and maintain consistency across commands.
+Thanks for your interest in contributing!
+
+## Ways to Contribute
+
+### Report Issues or Suggest Ideas
+The easiest way to contribute is to [open a GitHub issue](https://github.com/wbern/claude-instructions/issues). Bug reports, feature requests, and command ideas are all welcome.
+
+### Submit Code Changes
+To contribute code:
+1. **Fork the repository** on GitHub
+2. Clone your fork locally
+3. Create a branch for your changes
+4. Follow the development workflow below
+5. Open a pull request from your fork
+
+---
+
+## How It Works
+
+This repository uses a **custom transform system** for markdown transclusion to eliminate duplication and maintain consistency across commands.
 
 ## Development Workflow
 
@@ -14,7 +33,7 @@ pnpm install
 
 - **Edit shared content** in `src/fragments/`
 - **Edit command-specific content** in `src/sources/`
-- **Use markdown-magic syntax** `<!-- docs INCLUDE path='../fragments/fragment-name.md' -->` to reference fragments
+- **Use INCLUDE syntax** `<!-- docs INCLUDE path='src/fragments/fragment-name.md' --><!-- /docs -->` to reference fragments
 
 ### 3. Build
 
@@ -58,26 +77,39 @@ git commit -m "feat: update TDD fundamentals fragment"
 
 ## Creating New Commands
 
+**Quick way**: Use the `/contribute-a-command` slash command:
+```
+/contribute-a-command my-command "Description of what it does"
+```
+
+This command guides you through creating a properly structured command with the right fragments and frontmatter.
+
+**Manual steps** (if you prefer):
+
 1. Create source file in `src/sources/new-command.md`
-2. Add YAML frontmatter with `description` field:
+2. Add YAML frontmatter with required fields:
    ```yaml
    ---
-   description: Execute TDD Red Phase - write ONE failing test
+   description: Brief description for /help
+   argument-hint: [optional-arg] or <required-arg>
+   _hint: Short 2-3 word hint
+   _category: Test-Driven Development | Planning | Workflow | Utilities
+   _order: 1-99
    ---
    ```
-3. Use markdown-magic syntax for shared content:
+3. Use INCLUDE syntax for shared content:
    ```markdown
-   <!-- docs INCLUDE path='src/fragments/fragment-name.md' -->
+   <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
    <!-- /docs -->
    ```
 4. Run `pnpm build` to generate commands
 5. Test in Claude Code with `/new-command`
-6. Run `pnpm test` to ensure snapshot tests pass
+6. Run `pnpm test` (update snapshots with `-u` if changes are expected)
 7. Commit changes (both sources and artifacts are tracked)
 
-## Markdown-Magic Transclusion Syntax
+## INCLUDE Transclusion Syntax
 
-Markdown-magic uses HTML comment syntax for transclusion:
+The transform system uses HTML comment syntax for transclusion:
 
 ```markdown
 <!-- docs INCLUDE path='src/fragments/fragment-name.md' -->
@@ -87,10 +119,10 @@ Markdown-magic uses HTML comment syntax for transclusion:
 The content between the comment tags will be replaced with the referenced file during build.
 
 **Benefits:**
-- Works with relative paths
+- Works with relative paths from project root
 - Supports feature flags via `featureFlag` attribute
+- Supports fallback content via `elsePath` attribute
 - Comment blocks are automatically removed in final output
-- No custom build code needed
 
 ## Feature Flags
 

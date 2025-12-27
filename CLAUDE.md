@@ -50,10 +50,10 @@ Pre-commit hook automatically:
 This ensures artifacts are always in sync with sources.
 
 ### Build Process
-1. markdown-magic expands INCLUDE directives from fragments
+1. Custom transform system expands INCLUDE directives from fragments
 2. Comment blocks are removed from output
 3. markdownlint --fix corrects formatting (list numbering, spacing)
-4. README.md automatically updated
+4. README.md automatically updated (with do-not-edit warning prepended)
 5. .claude/commands/ generated with beads flag enabled
 
 ### Making Changes
@@ -65,6 +65,7 @@ This ensures artifacts are always in sync with sources.
 - Update snapshots if tests fail
 
 **Adding Commands:**
+Use `/contribute-a-command <name> <description>` or manually:
 1. Create source file in `src/sources/`
 2. Use INCLUDE directives for reusable content
 3. Build and test
@@ -146,9 +147,11 @@ Only certain commit types trigger npm releases. Use the right prefix to avoid un
 src/
   sources/       # Command templates (INCLUDE directives only)
   fragments/     # Reusable content blocks
+  README.md      # Source for generated README.md
 .claude/
   commands/      # Generated commands for local development
 scripts/         # Build and test scripts
+example-conversations/  # Example TDD sessions for README
 ```
 
 ## Common Tasks

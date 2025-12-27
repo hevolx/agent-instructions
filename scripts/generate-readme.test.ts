@@ -655,7 +655,7 @@ Content here.`,
     const inputFile = path.join(tempDir, "input.md");
     const outputDir = path.join(tempDir, "output");
     fs.mkdirSync(outputDir);
-    // Include a transform so markdown-magic actually processes the file
+    // Include a transform so the file actually gets processed
     fs.writeFileSync(
       inputFile,
       `# Test
