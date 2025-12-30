@@ -517,7 +517,9 @@ export async function generateToDirectory(
 
   let templateInjected = false;
 
-  if (!options?.skipTemplateInjection) {
+  // Skip template injection for user scope to prevent project-specific
+  // instructions from leaking into user-global commands
+  if (!options?.skipTemplateInjection && scope !== SCOPES.USER) {
     let templateSourcePath: string | null = null;
     for (const filename of TEMPLATE_SOURCE_FILES) {
       const candidatePath = path.join(process.cwd(), filename);

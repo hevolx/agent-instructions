@@ -297,6 +297,40 @@ This is a project without any template blocks.
       expect(files.filter((f) => f.endsWith(".md")).length).toBeGreaterThan(0);
     });
   });
+
+  it("should NOT inject template when outputting to user scope from a project with CLAUDE.md", async () => {
+    // This is a security/privacy concern: project-specific instructions
+    // should not leak into user-global commands
+    const sensitiveProjectInstructions =
+      "## Secret Project Rules\n\nNever mention Project X.";
+    const claudeMdContent = `# Project Instructions
+
+<claude-commands-template>
+${sensitiveProjectInstructions}
+</claude-commands-template>
+`;
+    // Create CLAUDE.md in the "project" directory (tempDir simulates cwd)
+    await fs.writeFile(path.join(tempDir, "CLAUDE.md"), claudeMdContent);
+
+    await withCwd(tempDir, async () => {
+      // Output to user scope (different from project scope)
+      // Real user dir would be: path.join(os.homedir(), ".claude", "commands")
+      const testOutputDir = path.join(tempDir, "user-commands");
+
+      // Act: Generate to user scope (simulated by passing 'user' scope)
+      const result = await generateToDirectory(testOutputDir, "user", {
+        flags: [],
+      });
+
+      // Assert: Template was NOT injected (project template shouldn't leak to user scope)
+      expect(result.templateInjected).toBe(false);
+
+      // Assert: Commands were generated but without the sensitive content
+      const commitMdPath = path.join(testOutputDir, "commit.md");
+      const commitContent = await fs.readFile(commitMdPath, "utf-8");
+      expect(commitContent).not.toContain(sensitiveProjectInstructions);
+    });
+  });
 });
 
 describe("Allowed Tools Conflict Detection E2E", () => {
