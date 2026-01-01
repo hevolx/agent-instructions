@@ -140,7 +140,7 @@ Only certain commit types trigger npm releases. Use the right prefix to avoid un
 | `test:` | None | Test additions/changes |
 | `ci:` | None | GitHub Actions, workflows |
 
-**Rule of thumb**: If the change doesn't affect what users get from `npx @wbern/claude-instructions`, use `docs:` or `chore:`.
+**Rule of thumb**: If the change doesn't affect what users get from `claude-instructions`, use `docs:` or `chore:`.
 
 ### File Organization
 ```

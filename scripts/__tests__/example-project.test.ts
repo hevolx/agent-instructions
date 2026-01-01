@@ -499,7 +499,7 @@ describe("Postinstall Workflow E2E", () => {
         version: "1.0.0",
         scripts: {
           postinstall:
-            "npx @wbern/claude-instructions --scope=project --prefix= --skip-template-injection",
+            "claude-instructions --scope=project --prefix= --skip-template-injection",
         },
         devDependencies: {
           "@wbern/claude-instructions": `file:${path.join(tempDir, tarball!)}`,

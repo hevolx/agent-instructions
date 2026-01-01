@@ -40,11 +40,11 @@ Also included are commands for commits, PRs, code reviews, and other tasks that 
 ## Installation
 
 ```bash
-npx @wbern/claude-instructions
+npx @wbern/claude-instructions    # npm
+```
 
-// or
-
-pnpm dlx @wbern/claude-instructions
+```bash
+pnpm dlx @wbern/claude-instructions   # pnpm
 ```
 
 The interactive installer lets you choose:
@@ -67,7 +67,7 @@ Then add a postinstall script to your `package.json`:
 ```json
 {
   "scripts": {
-    "postinstall": "npx @wbern/claude-instructions --scope=project --overwrite"
+    "postinstall": "claude-instructions --scope=project --overwrite"
   },
   "devDependencies": {
     "@wbern/claude-instructions": "^<!-- docs VERSION --><!-- /docs -->"
@@ -103,7 +103,7 @@ Other instructions here...
 </claude-commands-template>
 ```
 
-When you run `npx @wbern/claude-instructions`, the template content is appended to all generated commands.
+When you run `claude-instructions`, the template content is appended to all generated commands.
 
 ### Targeting Specific Commands
 
