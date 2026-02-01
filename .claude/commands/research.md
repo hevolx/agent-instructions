@@ -13,7 +13,11 @@ argument-hint: <research topic or question>
 
 Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues (the user interacts via `bd` commands).
 
-# Research: $ARGUMENTS
+**User arguments:**
+
+Research: $ARGUMENTS
+
+**End of user arguments**
 
 Research the following problem or question thoroughly, like a senior developer would.
 

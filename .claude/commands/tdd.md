@@ -93,9 +93,13 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 
 ## Continue Conversation
 
+**User arguments:**
+
 TDD: $ARGUMENTS
 
-Please continue with the above response, applying TDD approach.
+**End of user arguments**
+
+Please continue with the user input above, applying TDD approach.
 
 ## Testing Requirements
 

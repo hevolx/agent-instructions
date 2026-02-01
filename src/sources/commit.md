@@ -17,7 +17,11 @@ _order: 1
 
 Create a git commit following project standards
 
+**User arguments:**
+
 Commit: $ARGUMENTS
+
+**End of user arguments**
 
 <!-- docs INCLUDE path='src/fragments/commit-process.md' -->
 <!-- /docs -->

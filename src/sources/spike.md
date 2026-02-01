@@ -6,9 +6,13 @@ _category: Test-Driven Development
 _order: 1
 ---
 
+**User arguments:**
+
 Spike: $ARGUMENTS
 
-SPIKE PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+SPIKE PHASE! Apply the below to the user input above.
 
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->

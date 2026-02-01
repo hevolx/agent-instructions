@@ -12,7 +12,11 @@ _order: 20
 <!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
 <!-- /docs -->
 
-# Research: $ARGUMENTS
+**User arguments:**
+
+Research: $ARGUMENTS
+
+**End of user arguments**
 
 Research the following problem or question thoroughly, like a senior developer would.
 

@@ -25,7 +25,11 @@ Generate a complete TDD practice setup:
 <!-- docs INCLUDE path='src/fragments/no-plan-files.md' featureFlag='no-plan-files' -->
 <!-- /docs -->
 
+**User arguments:**
+
 Kata: $ARGUMENTS
+
+**End of user arguments**
 
 (This command is interactive - arguments are ignored)
 

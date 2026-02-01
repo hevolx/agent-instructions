@@ -12,7 +12,11 @@ _order: 16
 <!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
 <!-- /docs -->
 
-# Simplify: $ARGUMENTS
+**User arguments:**
+
+Simplify: $ARGUMENTS
+
+**End of user arguments**
 
 <!-- docs INCLUDE path='src/fragments/fallback-arguments.md' -->
 <!-- /docs -->

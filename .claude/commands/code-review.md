@@ -264,7 +264,11 @@ Provide a ready-to-paste PR description:
 
 ---
 
-Review target (branch name, PR number, or PR URL - leave empty for current branch): $ARGUMENTS
+**User arguments:**
+
+Code-review: $ARGUMENTS
+
+**End of user arguments**
 
 ## Testing Requirements
 

@@ -25,7 +25,11 @@ Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues
 
 **NEVER create, read, or update plan.md files.** Claude Code's internal planning files are disabled for this project. Use other methods to track implementation progress (e.g., comments, todo lists, or external tools).
 
+**User arguments:**
+
 Kata: $ARGUMENTS
+
+**End of user arguments**
 
 (This command is interactive - arguments are ignored)
 

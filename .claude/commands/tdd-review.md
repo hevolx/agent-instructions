@@ -103,7 +103,11 @@ Output a structured report:
 
 ---
 
-Test path (leave empty for all tests): $ARGUMENTS
+**User arguments:**
+
+TDD-review: $ARGUMENTS
+
+**End of user arguments**
 
 ## Testing Requirements
 

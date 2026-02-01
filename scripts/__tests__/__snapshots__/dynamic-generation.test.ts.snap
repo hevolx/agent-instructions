@@ -50,7 +50,11 @@ argument-hint: [required-arg] [optional-arg]
 
 Your command instructions here.
 
+**User arguments:**
+
 Add-command: $ARGUMENTS
+
+**End of user arguments**
 
 File reference: @path/to/file.js
 
@@ -208,7 +212,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Ask: $ARGUMENTS
+
+**End of user arguments**
 
 **This is the traditional Pull Request workflow**, but with explicit intent that review and approval are required.
 
@@ -337,7 +345,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 ## Instructions
 
+**User arguments:**
+
 Beepboop: $ARGUMENTS
+
+**End of user arguments**
 
 **IMPORTANT Communication Format:**
 
@@ -390,7 +402,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 Create multiple atomic git commits, committing the smallest possible logical unit at a time
 
+**User arguments:**
+
 Busycommit: $ARGUMENTS
+
+**End of user arguments**
 
 ## Commit Message Rules
 
@@ -733,7 +749,11 @@ Provide a ready-to-paste PR description:
 
 ---
 
-Review target (branch name, PR number, or PR URL - leave empty for current branch): $ARGUMENTS
+**User arguments:**
+
+Code-review: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -761,7 +781,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 Create a git commit following project standards
 
+**User arguments:**
+
 Commit: $ARGUMENTS
+
+**End of user arguments**
 
 ## Commit Message Rules
 
@@ -821,7 +845,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 Scan the Node.js repository and report what commit automation is in place.
 
+**User arguments:**
+
 Commitlint-checklist: $ARGUMENTS
+
+**End of user arguments**
 
 ## Checks to Scan
 
@@ -904,7 +932,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 
 
+**User arguments:**
+
 Create-issues: $ARGUMENTS
+
+**End of user arguments**
 
 (If no input provided, check conversation context or run \`bd ready\` to see existing work)
 
@@ -1067,9 +1099,13 @@ _category: Test-Driven Development
 _order: 5
 ---
 
+**User arguments:**
+
 Cycle: $ARGUMENTS
 
-RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -1184,7 +1220,11 @@ _order: 20
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
 
-# Forever Mode: $ARGUMENTS
+**User arguments:**
+
+Forever: $ARGUMENTS
+
+**End of user arguments**
 
 Run autonomously, finding and completing work until interrupted or truly stuck.
 
@@ -1308,7 +1348,11 @@ Present findings as a prioritized list with:
 
 If there are no gaps, confirm that everything discussed has been addressed.
 
+**User arguments:**
+
 Gap: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -1321,9 +1365,13 @@ _category: Test-Driven Development
 _order: 3
 ---
 
+**User arguments:**
+
 Green: $ARGUMENTS
 
-GREEN PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+GREEN PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -1446,7 +1494,11 @@ Process:
 
 1. Get Issue Number
 
+**User arguments:**
+
 Issue: $ARGUMENTS
+
+**End of user arguments**
 
 - Check if argument is an issue number
 - Otherwise try branch name patterns: issue-123, 123-feature, feature/123, fix/123
@@ -1611,7 +1663,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 
 
+**User arguments:**
+
 Kata: $ARGUMENTS
+
+**End of user arguments**
 
 (This command is interactive - arguments are ignored)
 
@@ -2216,7 +2272,11 @@ Additional cross-cutting checks:
 
 ---
 
+**User arguments:**
+
 Polish: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -2254,7 +2314,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 PR: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -2321,9 +2385,13 @@ _category: Test-Driven Development
 _order: 2
 ---
 
+**User arguments:**
+
 Red: $ARGUMENTS
 
-RED PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+RED PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -2436,9 +2504,13 @@ _category: Test-Driven Development
 _order: 4
 ---
 
+**User arguments:**
+
 Refactor: $ARGUMENTS
 
-Apply this document (specifically the Refactor phase) to the info given by user input.
+**End of user arguments**
+
+Apply this document (specifically the Refactor phase) to the user input above.
 
 ## General Guidelines
 
@@ -2580,7 +2652,11 @@ _order: 20
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
 
-# Research: $ARGUMENTS
+**User arguments:**
+
+Research: $ARGUMENTS
+
+**End of user arguments**
 
 Research the following problem or question thoroughly, like a senior developer would.
 
@@ -2704,7 +2780,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Ship: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -2812,7 +2892,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Show: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -2906,7 +2990,11 @@ _order: 16
 Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issues (the user interacts via \`bd\` commands).
 
 
-# Simplify: $ARGUMENTS
+**User arguments:**
+
+Simplify: $ARGUMENTS
+
+**End of user arguments**
 
 (If there was no info above, fallback to the context of the conversation)
 
@@ -2986,9 +3074,13 @@ _category: Test-Driven Development
 _order: 1
 ---
 
+**User arguments:**
+
 Spike: $ARGUMENTS
 
-SPIKE PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+SPIKE PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -3107,7 +3199,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 Create a concise summary of the current conversation suitable for transferring context to a new conversation.
 
+**User arguments:**
+
 Summarize: $ARGUMENTS
+
+**End of user arguments**
 
 ## Summary Structure
 
@@ -3243,9 +3339,13 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 
 ## Continue Conversation
 
+**User arguments:**
+
 TDD: $ARGUMENTS
 
-Please continue with the above response, applying TDD approach.
+**End of user arguments**
+
+Please continue with the user input above, applying TDD approach.
 "
 `;
 
@@ -3358,7 +3458,11 @@ Output a structured report:
 
 ---
 
-Test path (leave empty for all tests): $ARGUMENTS
+**User arguments:**
+
+TDD-review: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -3548,7 +3652,11 @@ This will:
 
 ---
 
+**User arguments:**
+
 Upgrade: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -3576,7 +3684,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 
 
-Create a new git worktree for branch: $ARGUMENTS
+**User arguments:**
+
+Worktree-add: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: \`git branch --show-current\`
@@ -3944,7 +4056,11 @@ Beads is available for task tracking. Use \`mcp__beads__*\` tools to manage issu
 
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
+**User arguments:**
+
 Worktree-cleanup: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: \`git branch --show-current\`
@@ -4226,7 +4342,11 @@ argument-hint: [required-arg] [optional-arg]
 
 Your command instructions here.
 
+**User arguments:**
+
 Add-command: $ARGUMENTS
+
+**End of user arguments**
 
 File reference: @path/to/file.js
 
@@ -4383,7 +4503,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Ask: $ARGUMENTS
+
+**End of user arguments**
 
 **This is the traditional Pull Request workflow**, but with explicit intent that review and approval are required.
 
@@ -4503,7 +4627,11 @@ Execute the user's requested task (e.g., posting PR comments, GitHub issue comme
 
 ## Instructions
 
+**User arguments:**
+
 Beepboop: $ARGUMENTS
+
+**End of user arguments**
 
 **IMPORTANT Communication Format:**
 
@@ -4555,7 +4683,11 @@ _order: 2
 
 Create multiple atomic git commits, committing the smallest possible logical unit at a time
 
+**User arguments:**
+
 Busycommit: $ARGUMENTS
+
+**End of user arguments**
 
 ## Commit Message Rules
 
@@ -4897,7 +5029,11 @@ Provide a ready-to-paste PR description:
 
 ---
 
-Review target (branch name, PR number, or PR URL - leave empty for current branch): $ARGUMENTS
+**User arguments:**
+
+Code-review: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -4924,7 +5060,11 @@ _order: 1
 
 Create a git commit following project standards
 
+**User arguments:**
+
 Commit: $ARGUMENTS
+
+**End of user arguments**
 
 ## Commit Message Rules
 
@@ -4983,7 +5123,11 @@ _order: 25
 
 Scan the Node.js repository and report what commit automation is in place.
 
+**User arguments:**
+
 Commitlint-checklist: $ARGUMENTS
+
+**End of user arguments**
 
 ## Checks to Scan
 
@@ -5065,7 +5209,11 @@ Create structured implementation plan that bridges product thinking (PRD) with t
 
 
 
+**User arguments:**
+
 Create-issues: $ARGUMENTS
+
+**End of user arguments**
 
 (If no input provided, check conversation context)
 
@@ -5169,9 +5317,13 @@ _category: Test-Driven Development
 _order: 5
 ---
 
+**User arguments:**
+
 Cycle: $ARGUMENTS
 
-RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -5282,7 +5434,11 @@ _order: 20
 
 
 
-# Forever Mode: $ARGUMENTS
+**User arguments:**
+
+Forever: $ARGUMENTS
+
+**End of user arguments**
 
 Run autonomously, finding and completing work until interrupted or truly stuck.
 
@@ -5404,7 +5560,11 @@ Present findings as a prioritized list with:
 
 If there are no gaps, confirm that everything discussed has been addressed.
 
+**User arguments:**
+
 Gap: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -5417,9 +5577,13 @@ _category: Test-Driven Development
 _order: 3
 ---
 
+**User arguments:**
+
 Green: $ARGUMENTS
 
-GREEN PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+GREEN PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -5538,7 +5702,11 @@ Process:
 
 1. Get Issue Number
 
+**User arguments:**
+
 Issue: $ARGUMENTS
+
+**End of user arguments**
 
 - Check if argument is an issue number
 - Otherwise try branch name patterns: issue-123, 123-feature, feature/123, fix/123
@@ -5694,7 +5862,11 @@ Generate a complete TDD practice setup:
 
 
 
+**User arguments:**
+
 Kata: $ARGUMENTS
+
+**End of user arguments**
 
 (This command is interactive - arguments are ignored)
 
@@ -6298,7 +6470,11 @@ Additional cross-cutting checks:
 
 ---
 
+**User arguments:**
+
 Polish: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -6335,7 +6511,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 PR: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -6394,9 +6574,13 @@ _category: Test-Driven Development
 _order: 2
 ---
 
+**User arguments:**
+
 Red: $ARGUMENTS
 
-RED PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+RED PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -6506,9 +6690,13 @@ _category: Test-Driven Development
 _order: 4
 ---
 
+**User arguments:**
+
 Refactor: $ARGUMENTS
 
-Apply this document (specifically the Refactor phase) to the info given by user input.
+**End of user arguments**
+
+Apply this document (specifically the Refactor phase) to the user input above.
 
 ## General Guidelines
 
@@ -6646,7 +6834,11 @@ _order: 20
 
 
 
-# Research: $ARGUMENTS
+**User arguments:**
+
+Research: $ARGUMENTS
+
+**End of user arguments**
 
 Research the following problem or question thoroughly, like a senior developer would.
 
@@ -6769,7 +6961,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Ship: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -6868,7 +7064,11 @@ Current branch status:
 Recent commits:
 !\`git log --oneline -5\`
 
+**User arguments:**
+
 Show: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 
@@ -6953,7 +7153,11 @@ _order: 16
 
 
 
-# Simplify: $ARGUMENTS
+**User arguments:**
+
+Simplify: $ARGUMENTS
+
+**End of user arguments**
 
 (If there was no info above, fallback to the context of the conversation)
 
@@ -7033,9 +7237,13 @@ _category: Test-Driven Development
 _order: 1
 ---
 
+**User arguments:**
+
 Spike: $ARGUMENTS
 
-SPIKE PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+SPIKE PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 
@@ -7150,7 +7358,11 @@ _order: 10
 
 Create a concise summary of the current conversation suitable for transferring context to a new conversation.
 
+**User arguments:**
+
 Summarize: $ARGUMENTS
+
+**End of user arguments**
 
 ## Summary Structure
 
@@ -7278,9 +7490,13 @@ This phase is **not part of the regular TDD workflow** and must only be applied 
 
 ## Continue Conversation
 
+**User arguments:**
+
 TDD: $ARGUMENTS
 
-Please continue with the above response, applying TDD approach.
+**End of user arguments**
+
+Please continue with the user input above, applying TDD approach.
 "
 `;
 
@@ -7390,7 +7606,11 @@ Output a structured report:
 
 ---
 
-Test path (leave empty for all tests): $ARGUMENTS
+**User arguments:**
+
+TDD-review: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -7579,7 +7799,11 @@ This will:
 
 ---
 
+**User arguments:**
+
 Upgrade: $ARGUMENTS
+
+**End of user arguments**
 "
 `;
 
@@ -7606,7 +7830,11 @@ _order: 1
 
 
 
-Create a new git worktree for branch: $ARGUMENTS
+**User arguments:**
+
+Worktree-add: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: \`git branch --show-current\`
@@ -7973,7 +8201,11 @@ _order: 2
 
 Clean up merged worktrees by finding the oldest merged branch, consolidating settings, and removing stale worktrees.
 
+**User arguments:**
+
 Worktree-cleanup: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: \`git branch --show-current\`

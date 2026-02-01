@@ -16,7 +16,11 @@ _order: 25
 
 Scan the Node.js repository and report what commit automation is in place.
 
+**User arguments:**
+
 Commitlint-checklist: $ARGUMENTS
+
+**End of user arguments**
 
 ## Checks to Scan
 

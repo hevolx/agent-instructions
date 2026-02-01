@@ -17,7 +17,11 @@ _order: 10
 
 Create a concise summary of the current conversation suitable for transferring context to a new conversation.
 
+**User arguments:**
+
 Summarize: $ARGUMENTS
+
+**End of user arguments**
 
 <!-- docs INCLUDE path='src/fragments/summarize-structure.md' -->
 <!-- /docs -->

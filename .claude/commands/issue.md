@@ -23,7 +23,11 @@ Process:
 
 1. Get Issue Number
 
+**User arguments:**
+
 Issue: $ARGUMENTS
+
+**End of user arguments**
 
 - Check if argument is an issue number
 - Otherwise try branch name patterns: issue-123, 123-feature, feature/123, fix/123

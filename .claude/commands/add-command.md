@@ -48,7 +48,11 @@ argument-hint: [required-arg] [optional-arg]
 
 Your command instructions here.
 
+**User arguments:**
+
 Add-command: $ARGUMENTS
+
+**End of user arguments**
 
 File reference: @path/to/file.js
 

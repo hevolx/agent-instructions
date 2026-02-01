@@ -161,4 +161,8 @@ Additional cross-cutting checks:
 
 ---
 
+**User arguments:**
+
 Polish: $ARGUMENTS
+
+**End of user arguments**

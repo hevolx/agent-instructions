@@ -45,7 +45,11 @@ Current branch status:
 Recent commits:
 !`git log --oneline -5`
 
+**User arguments:**
+
 Show: $ARGUMENTS
+
+**End of user arguments**
 
 **Process:**
 

@@ -17,7 +17,11 @@ _order: 99
 
 Create a new custom command in `src/sources/` following the patterns below. Assess the structure carefully using the below info but also researching the repo.
 
-Command to create: $ARGUMENTS
+**User arguments:**
+
+Contribute-a-command: $ARGUMENTS
+
+**End of user arguments**
 
 ## File Structure
 
@@ -49,9 +53,13 @@ Optional: `_requested-tools` (array), `_selectedByDefault: false`
 ### Test-Driven Development (spike, red, green, refactor, cycle)
 
 ```markdown
-[PHASE] PHASE! Apply the below to the info given by user input here:
+**User arguments:**
 
-[DOLLAR]ARGUMENTS
+[CommandName]: [DOLLAR]ARGUMENTS
+
+**End of user arguments**
+
+[PHASE] PHASE! Apply the below to the user input above.
 
 < !-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 < !-- /docs -->
@@ -80,7 +88,13 @@ Add for red: `aaa-pattern.md`
 < !-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
 < !-- /docs -->
 
-[Description and [DOLLAR] embedded in flow]
+[Description]
+
+**User arguments:**
+
+[CommandName]: [DOLLAR]ARGUMENTS
+
+**End of user arguments**
 
 < !-- docs INCLUDE path='src/fragments/discovery-phase.md' -->
 < !-- /docs -->
@@ -100,7 +114,11 @@ Add for red: `aaa-pattern.md`
 
 [Workflow description]
 
-[DOLLAR]
+**User arguments:**
+
+[CommandName]: [DOLLAR]ARGUMENTS
+
+**End of user arguments**
 
 [Process steps]
 ```

@@ -3,9 +3,13 @@ description: Execute complete TDD cycle - Red, Green, and Refactor phases in seq
 argument-hint: <feature or requirement description>
 ---
 
+**User arguments:**
+
 Cycle: $ARGUMENTS
 
-RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+RED+GREEN+REFACTOR (one cycle) PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 

@@ -19,7 +19,11 @@ Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues
 
 **NEVER create, read, or update plan.md files.** Claude Code's internal planning files are disabled for this project. Use other methods to track implementation progress (e.g., comments, todo lists, or external tools).
 
-Create a new git worktree for branch: $ARGUMENTS
+**User arguments:**
+
+Worktree-add: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: `git branch --show-current`

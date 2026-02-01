@@ -22,6 +22,10 @@ _order: 1
 
 ## Continue Conversation
 
+**User arguments:**
+
 TDD: $ARGUMENTS
 
-Please continue with the above response, applying TDD approach.
+**End of user arguments**
+
+Please continue with the user input above, applying TDD approach.

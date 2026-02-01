@@ -6,9 +6,13 @@ _category: Test-Driven Development
 _order: 3
 ---
 
+**User arguments:**
+
 Green: $ARGUMENTS
 
-GREEN PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+GREEN PHASE! Apply the below to the user input above.
 
 <!-- docs INCLUDE path='src/fragments/universal-guidelines.md' -->
 <!-- /docs -->

@@ -19,7 +19,11 @@ Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues
 
 Create a git commit following project standards
 
+**User arguments:**
+
 Commit: $ARGUMENTS
+
+**End of user arguments**
 
 ## Commit Message Rules
 

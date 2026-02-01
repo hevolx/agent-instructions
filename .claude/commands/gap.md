@@ -38,7 +38,11 @@ Present findings as a prioritized list with:
 
 If there are no gaps, confirm that everything discussed has been addressed.
 
+**User arguments:**
+
 Gap: $ARGUMENTS
+
+**End of user arguments**
 
 ## Testing Requirements
 

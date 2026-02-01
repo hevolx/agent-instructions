@@ -12,7 +12,11 @@ _order: 20
 <!-- docs INCLUDE path='src/fragments/beads-awareness.md' featureFlag='beads' -->
 <!-- /docs -->
 
-# Forever Mode: $ARGUMENTS
+**User arguments:**
+
+Forever: $ARGUMENTS
+
+**End of user arguments**
 
 Run autonomously, finding and completing work until interrupted or truly stuck.
 

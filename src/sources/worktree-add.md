@@ -17,7 +17,11 @@ _order: 1
 <!-- docs INCLUDE path='src/fragments/no-plan-files.md' featureFlag='no-plan-files' -->
 <!-- /docs -->
 
-Create a new git worktree for branch: $ARGUMENTS
+**User arguments:**
+
+Worktree-add: $ARGUMENTS
+
+**End of user arguments**
 
 <current_state>
 Current branch: `git branch --show-current`

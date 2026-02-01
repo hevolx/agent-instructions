@@ -3,9 +3,13 @@ description: Execute TDD Spike Phase - exploratory coding to understand problem 
 argument-hint: <exploration description>
 ---
 
+**User arguments:**
+
 Spike: $ARGUMENTS
 
-SPIKE PHASE! Apply the below to the info given by user input.
+**End of user arguments**
+
+SPIKE PHASE! Apply the below to the user input above.
 
 ## General Guidelines
 

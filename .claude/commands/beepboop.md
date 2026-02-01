@@ -23,7 +23,11 @@ Beads is available for task tracking. Use `mcp__beads__*` tools to manage issues
 
 ## Instructions
 
+**User arguments:**
+
 Beepboop: $ARGUMENTS
+
+**End of user arguments**
 
 **IMPORTANT Communication Format:**
 

@@ -17,7 +17,11 @@ _order: 2
 
 Create multiple atomic git commits, committing the smallest possible logical unit at a time
 
+**User arguments:**
+
 Busycommit: $ARGUMENTS
+
+**End of user arguments**
 
 <!-- docs INCLUDE path='src/fragments/commit-process.md' -->
 <!-- /docs -->
