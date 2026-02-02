@@ -130,3 +130,50 @@ describe("README", () => {
     expect(content).toContain("npx @wbern/claude-instructions");
   });
 });
+
+// Claude Code bug: https://github.com/anthropics/claude-code/issues/12762
+// Backticks containing `!` in tables get parsed as bash history expansion
+describe("Claude Code table parsing bug workaround", () => {
+  // Pattern to detect markdown tables with backtick-wrapped content containing !
+  // The `!` triggers bash history expansion when Claude Code parses the command file
+  // Matches: | `!something` | or | `foo!bar` | in table cells
+  const problematicTablePattern = /\|[^|]*`[^`]*![^`]*`[^|]*\|/;
+
+  const checkFilesForBug = (dir: string, files: string[]) => {
+    files.forEach((file) => {
+      it(`${file} should not have backticks with ! in tables (CC bug #12762)`, () => {
+        const content = fs.readFileSync(path.join(dir, file), "utf8");
+
+        // Extract table rows (lines starting and ending with |)
+        const tableLines = content
+          .split("\n")
+          .filter((line) => line.trim().startsWith("|") && line.includes("`"));
+
+        const problematicLines = tableLines.filter((line) =>
+          problematicTablePattern.test(line),
+        );
+
+        expect(
+          problematicLines,
+          `Found table cells with backtick-wrapped ! that triggers Claude Code bash parsing bug.\n` +
+            `Problematic lines:\n${problematicLines.join("\n")}\n\n` +
+            `Workaround: Use plain text or bullet lists instead of tables with backticked content containing !.\n` +
+            `See: https://github.com/anthropics/claude-code/issues/12762`,
+        ).toEqual([]);
+      });
+    });
+  };
+
+  describe("generated commands", () => {
+    const dir = path.join(PROJECT_ROOT, ".claude", "commands");
+    checkFilesForBug(dir, getMarkdownFiles(dir));
+  });
+
+  describe("source files", () => {
+    checkFilesForBug(SOURCES_DIR, getMarkdownFiles(SOURCES_DIR));
+  });
+
+  describe("fragment files", () => {
+    checkFilesForBug(FRAGMENTS_DIR, getMarkdownFiles(FRAGMENTS_DIR));
+  });
+});

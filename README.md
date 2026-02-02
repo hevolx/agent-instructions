@@ -236,7 +236,7 @@ flowchart TB
 - `/beepboop` - Communicate AI-generated content with transparent attribution
 - `/add-command` - Guide for creating new slash commands
 - `/kata` - Generate a TDD practice challenge with boilerplate test setup
-- `/adr` - Create an Architecture Decision Record
+- `/create-adr` - Create a new Architecture Decision Record (ADR)
 - `/research` - Research a problem in parallel via web docs, web search, codebase exploration, and deep ultrathink
 - `/commitlint-checklist-nodejs` - Audit commit hook automation for Node.js projects
 - `/upgrade-deps` - Check for dependency upgrades and assess safety before updating
