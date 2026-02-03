@@ -480,3 +480,8 @@ TDD workflow instructions adapted from [TDD Guard](https://github.com/nizos/tdd-
 FIRST principles and test quality criteria from [TDD Manifesto](https://tddmanifesto.com/).
 
 Example kata from [Cyber-Dojo](https://cyber-dojo.org/).
+
+## Related Projects
+
+- [citypaul/.dotfiles](https://github.com/citypaul/.dotfiles) - Claude Code configuration with TDD workflows and custom commands
+- [nizos/tdd-guard](https://github.com/nizos/tdd-guard) - Original TDD Guard instructions for Claude
