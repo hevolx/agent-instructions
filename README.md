@@ -485,3 +485,27 @@ Example kata from [Cyber-Dojo](https://cyber-dojo.org/).
 
 - [citypaul/.dotfiles](https://github.com/citypaul/.dotfiles) - Claude Code configuration with TDD workflows and custom commands
 - [nizos/tdd-guard](https://github.com/nizos/tdd-guard) - Original TDD Guard instructions for Claude
+
+## Author's Usage Stats
+
+Real usage percentages from the author's workflow (transparency note):
+
+| Command | Usage |
+|---------|-------|
+| /tdd | 26% |
+| /gap | 15% |
+| /research | 15% |
+| /code-review | 13% |
+| /commit | 8% |
+| /refactor | 5% |
+| /create-issues | 4% |
+| /issue | 2% |
+| /red | 2% |
+| /polish | 2% |
+| /worktree-add | 2% |
+| /pr | 1% |
+| /spike | 1% |
+| /summarize | 1% |
+| /tdd-review | 1% |
+| /create-adr | 1% |
+| Other | 1% |
