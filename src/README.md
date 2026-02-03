@@ -287,9 +287,7 @@ Example kata from [Cyber-Dojo](https://cyber-dojo.org/).
 - [citypaul/.dotfiles](https://github.com/citypaul/.dotfiles) - Claude Code configuration with TDD workflows and custom commands
 - [nizos/tdd-guard](https://github.com/nizos/tdd-guard) - Original TDD Guard instructions for Claude
 
-## Author's Usage Stats
-
-Real usage percentages from the author's workflow (transparency note):
+## Transparency: @wbern's Usage Stats
 
 | Command | Usage |
 |---------|-------|
