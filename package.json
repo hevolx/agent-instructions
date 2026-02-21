@@ -2,6 +2,9 @@
   "name": "@hevolx/agent-instructions",
   "version": "2.10.0",
   "description": "TDD workflow commands for AI coding agents (OpenCode, Claude Code)",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": "./bin/cli.js",
   "files": [
