@@ -470,6 +470,23 @@ function closestToZero(nums: number[]): number {
 
 ✅ 4/4 tests still pass
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, build system, and fragment management.
+
+## Credits
+
+TDD workflow instructions adapted from [TDD Guard](https://github.com/nizos/tdd-guard) by Nizar.
+
+FIRST principles and test quality criteria from [TDD Manifesto](https://tddmanifesto.com/).
+
+Example kata from [Cyber-Dojo](https://cyber-dojo.org/).
+
+## Related Projects
+
+- [citypaul/.dotfiles](https://github.com/citypaul/.dotfiles) - Claude Code configuration with TDD workflows and custom commands
+- [nizos/tdd-guard](https://github.com/nizos/tdd-guard) - Original TDD Guard instructions for Claude
+
 ## Transparency: @wbern's Usage Stats (Jan 20 - Feb 3, 2025)
 
 | Command | Usage |
@@ -491,20 +508,3 @@ function closestToZero(nums: number[]): number {
 | /tdd-review | 1% |
 | /create-adr | 1% |
 | Other | 1% |
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, build system, and fragment management.
-
-## Credits
-
-TDD workflow instructions adapted from [TDD Guard](https://github.com/nizos/tdd-guard) by Nizar.
-
-FIRST principles and test quality criteria from [TDD Manifesto](https://tddmanifesto.com/).
-
-Example kata from [Cyber-Dojo](https://cyber-dojo.org/).
-
-## Related Projects
-
-- [citypaul/.dotfiles](https://github.com/citypaul/.dotfiles) - Claude Code configuration with TDD workflows and custom commands
-- [nizos/tdd-guard](https://github.com/nizos/tdd-guard) - Original TDD Guard instructions for Claude
