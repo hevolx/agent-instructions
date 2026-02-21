@@ -17,7 +17,9 @@ export const SCOPES = {
 
 export const DIRECTORIES = {
   CLAUDE: ".claude",
+  OPENCODE: ".opencode",
   COMMANDS: "commands",
+  SKILLS: "skills",
   SOURCES: "src/sources",
 } as const;
 
