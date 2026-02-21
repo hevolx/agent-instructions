@@ -124,6 +124,15 @@ Use the `commands` attribute to inject content only into specific commands:
 
 This injects the content only into `commit.md` and `ask.md`.
 
+### File Priority
+
+The generator looks for template blocks in this order:
+
+1. `CLAUDE.md` (checked first)
+2. `AGENTS.md` (fallback)
+
+Only the first file found is used.
+
 ## Which Command Should I Use?
 
 ### Main Workflow
@@ -261,6 +270,28 @@ The commands enforce TDD discipline: you can't refactor with failing tests, can'
 
 <!-- docs EXAMPLE_CONVERSATIONS -->
 <!-- /docs -->
+
+## Transparency: @wbern's Usage Stats (Jan 20 - Feb 3, 2025)
+
+| Command | Usage |
+|---------|-------|
+| /tdd | 26% |
+| /gap | 15% |
+| /research | 15% |
+| /code-review | 13% |
+| /commit | 8% |
+| /refactor | 5% |
+| /create-issues | 4% |
+| /issue | 2% |
+| /red | 2% |
+| /polish | 2% |
+| /worktree-add | 2% |
+| /pr | 1% |
+| /spike | 1% |
+| /summarize | 1% |
+| /tdd-review | 1% |
+| /create-adr | 1% |
+| Other | 1% |
 
 ## Contributing
 
