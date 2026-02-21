@@ -368,22 +368,13 @@ export async function getRequestedToolsOptions(): Promise<
   }));
 }
 
-function getDestinationPath(
-  outputPath: string | undefined,
-  scope: string | undefined,
-): string {
-  if (outputPath) {
-    return outputPath;
-  }
 
-  if (scope === SCOPES.PROJECT) {
-    return path.join(process.cwd(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
-  }
-
-  if (scope === SCOPES.USER) {
-    return path.join(os.homedir(), DIRECTORIES.CLAUDE, DIRECTORIES.COMMANDS);
-  }
-
+function getDestinationPath(outputPath, scope, agent) {
+  const baseDir = agent === "opencode" ? DIRECTORIES.OPENCODE : DIRECTORIES.CLAUDE;
+  
+  if (scope === SCOPES.PROJECT) return path.join(cwd, baseDir, DIRECTORIES.COMMANDS);
+  if (scope === SCOPES.USER)    return path.join(home, ".config/opencode", DIRECTORIES.COMMANDS)
+  
   throw new Error("Either outputPath or scope must be provided");
 }
 
