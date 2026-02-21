@@ -80,7 +80,7 @@ Then add a postinstall script to your `package.json`:
     "postinstall": "agent-instructions --scope=project --overwrite"
   },
   "devDependencies": {
-    "@hevolx/agent-instructions": "^2.10.0"
+    "@hevolx/agent-instructions": "^1.0.0"
   }
 }
 ```
